@@ -130,6 +130,17 @@ FOLLOWER_DECAY_HOURS = 48
 ALGORITHM_PENALTY_MULT = 0.6
 ALGORITHM_PENALTY_DURATION = 2
 
+# Sleep mechanics (research-backed: Frontiers Neuroscience 2025, Frontiers Human Neuroscience 2014)
+# - Cognitive performance follows a continuous decay curve, not step functions
+# - Full night deprivation (~24hrs) impairs performance by ~50%
+# - Uses exponential decay: quality = 1.0 * (0.5 ^ ((hours - optimal) / halflife))
+SLEEP_OPTIMAL_AWAKE = 14  # Hours awake with no performance impact
+SLEEP_HALFLIFE_HOURS = 10  # Hours beyond optimal for quality to halve
+SLEEP_MIN_QUALITY = 0.30  # Floor for sleep-based quality (can't go below 30%)
+SLEEP_ENERGY_DRAIN_START = 16  # Hours awake before extra energy drain kicks in
+SLEEP_ENERGY_DRAIN_RATE = 0.015  # Energy drain per hour when sleep deprived
+SLEEP_RECOVERY_PER_REST = 2  # Hours of "sleep credit" per rest action (rest = nap)
+
 
 # ---------------------------------------------------------------------------
 # Environment
@@ -180,6 +191,10 @@ class ViraltestEnvironment(Environment):
         self._trending_tags = self._pick_trending_tags()
         self._competitors = [CompetitorState(**p) for p in COMPETITOR_PROFILES]
 
+        # Sleep state: creator starts well-rested at 9am (awake since ~7am)
+        self._hours_since_sleep = 2  # Woke up 2 hours ago at start (9am)
+        self._sleep_debt = 0.0  # 0 = fully rested, 1 = severe deprivation
+
     # ----- trend rotation -----
 
     def _pick_trending_topics(self) -> List[str]:
@@ -218,11 +233,32 @@ class ViraltestEnvironment(Environment):
 
     # ----- quality -----
 
-    @staticmethod
-    def _get_quality_modifier(energy: float) -> float:
-        if energy > 0.5:
-            return 1.0
-        return max(0.48, energy * 1.5)
+    def _get_quality_modifier(self) -> float:
+        """
+        Quality affected by both energy and sleep debt.
+        
+        Sleep uses exponential decay curve (not step function):
+        - No impact until SLEEP_OPTIMAL_AWAKE hours (14hrs)
+        - Then: quality = 0.5 ^ ((hours - optimal) / halflife)
+        - At 24hrs awake: ~50% quality (matches research)
+        - Floor at SLEEP_MIN_QUALITY (30%)
+        """
+        # Energy component (existing logic)
+        if self._energy > 0.5:
+            energy_factor = 1.0
+        else:
+            energy_factor = max(0.48, self._energy * 1.5)
+
+        # Sleep component - exponential decay curve
+        if self._hours_since_sleep <= SLEEP_OPTIMAL_AWAKE:
+            sleep_factor = 1.0
+        else:
+            hours_over = self._hours_since_sleep - SLEEP_OPTIMAL_AWAKE
+            # Exponential decay: halves every SLEEP_HALFLIFE_HOURS
+            sleep_factor = 0.5 ** (hours_over / SLEEP_HALFLIFE_HOURS)
+            sleep_factor = max(SLEEP_MIN_QUALITY, sleep_factor)
+
+        return energy_factor * sleep_factor
 
     # ----- tags -----
 
@@ -371,6 +407,9 @@ class ViraltestEnvironment(Environment):
 
         elif action.action_type == "rest":
             self._energy = min(1.0, self._energy + REST_RECOVERY)
+            # Rest also counts as sleep/nap, reducing sleep debt
+            self._hours_since_sleep = max(0, self._hours_since_sleep - SLEEP_RECOVERY_PER_REST)
+            self._sleep_debt = max(0.0, self._sleep_debt - 0.1)
 
         elif action.action_type == "create_content":
             self._energy = max(0.0, self._energy - CREATE_CONTENT_COST)
@@ -384,7 +423,7 @@ class ViraltestEnvironment(Environment):
                 base = BASE_ENGAGEMENT.get(action.content_type, 0.3)  # type: ignore[arg-type]
                 reach = REACH_MULT.get(action.content_type, 1.0)  # type: ignore[arg-type]
                 hour_mult = self._get_hour_multiplier()
-                quality = self._get_quality_modifier(self._energy)
+                quality = self._get_quality_modifier()
                 tag_boost = self._calc_tag_boost(action.tags)
                 trending_bonus = 1.5 if self._is_topic_trending(action.topic) else 1.0
                 comp_diff = self._calc_competitor_diff(action.topic)
@@ -535,6 +574,24 @@ class ViraltestEnvironment(Environment):
 
     def _advance_time(self) -> None:
         self._hour += 1
+
+        # Track hours since sleep (always increases unless resting)
+        self._hours_since_sleep += 1
+
+        # Sleep deprivation drains extra energy (smooth ramp after threshold)
+        if self._hours_since_sleep > SLEEP_ENERGY_DRAIN_START:
+            hours_over = self._hours_since_sleep - SLEEP_ENERGY_DRAIN_START
+            # Drain increases smoothly the longer you're awake
+            drain = SLEEP_ENERGY_DRAIN_RATE * (1 + hours_over * 0.1)
+            self._energy = max(0.0, self._energy - drain)
+
+        # Update sleep debt (smooth accumulation based on hours awake)
+        if self._hours_since_sleep > SLEEP_OPTIMAL_AWAKE:
+            hours_over = self._hours_since_sleep - SLEEP_OPTIMAL_AWAKE
+            # Debt accumulates faster the longer awake (quadratic-ish curve)
+            debt_rate = 0.01 * (1 + hours_over * 0.05)
+            self._sleep_debt = min(1.0, self._sleep_debt + debt_rate)
+
         if self._hour >= 24:
             self._hour = 0
             self._day += 1
@@ -562,6 +619,8 @@ class ViraltestEnvironment(Environment):
             day_of_week=self._day % 7,
             days_elapsed=self._day,
             creator_energy=round(self._energy, 3),
+            hours_since_sleep=self._hours_since_sleep,
+            sleep_debt=round(self._sleep_debt, 3),
             follower_count=self._followers,
             engagement_rate=round(eng_rate, 4),
             posts_today=self._posts_today,

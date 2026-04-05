@@ -296,57 +296,21 @@ body{background:#0b1326;color:#dae2fd;font-family:'Inter',sans-serif}
           </div>
         </div>
 
-        <!-- Simulate Scenarios -->
+        <!-- Simulate Scenarios (loaded from /dashboard/scenarios) -->
         <div class="glass-solid p-5 rounded-xl">
-          <div class="flex justify-between items-center mb-3">
+          <div class="flex flex-wrap justify-between items-center gap-2 mb-3">
             <h3 class="text-sm font-bold flex items-center gap-2"><span class="material-symbols-outlined text-secondary text-lg">science</span>Simulate Scenarios</h3>
-            <span class="text-[9px] font-label text-on-surface-dim">168-step full episode</span>
+            <div class="flex flex-col items-end gap-0.5">
+              <div class="flex items-center gap-2">
+                <span id="scenarioCount" class="text-[9px] font-label text-primary font-bold">…</span>
+                <span class="text-[9px] font-label text-on-surface-dim">168-step episode</span>
+              </div>
+              <span class="text-[8px] font-label text-on-surface-dim/70 max-w-[16rem] text-right leading-tight">All strategies below — scroll the grid or search. Count updates after load.</span>
+            </div>
           </div>
-          <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2 mb-3">
-            <button onclick="runSim('always_rest')" class="sim-btn p-2.5 rounded-lg bg-surface border border-outline/20 hover:border-tertiary/40 text-left">
-              <div class="text-xs font-bold text-tertiary">Always Rest</div>
-              <div class="text-[8px] text-on-surface-dim mt-0.5">No engagement</div>
-            </button>
-            <button onclick="runSim('spam')" class="sim-btn p-2.5 rounded-lg bg-surface border border-outline/20 hover:border-tertiary/40 text-left">
-              <div class="text-xs font-bold text-tertiary">Spam Post</div>
-              <div class="text-[8px] text-on-surface-dim mt-0.5">Instant burnout</div>
-            </button>
-            <button onclick="runSim('bad_timing')" class="sim-btn p-2.5 rounded-lg bg-surface border border-outline/20 hover:border-tertiary/40 text-left">
-              <div class="text-xs font-bold text-tertiary">Night Poster</div>
-              <div class="text-[8px] text-on-surface-dim mt-0.5">Low multiplier</div>
-            </button>
-            <button onclick="runSim('no_rest')" class="sim-btn p-2.5 rounded-lg bg-surface border border-outline/20 hover:border-tertiary/40 text-left">
-              <div class="text-xs font-bold text-tertiary">No Rest</div>
-              <div class="text-[8px] text-on-surface-dim mt-0.5">Burns out fast</div>
-            </button>
-            <button onclick="runSim('smart')" class="sim-btn p-2.5 rounded-lg bg-surface border border-primary/20 hover:border-primary/50 text-left">
-              <div class="text-xs font-bold text-primary">Smart Agent</div>
-              <div class="text-[8px] text-on-surface-dim mt-0.5">Optimal strategy</div>
-            </button>
-            <button onclick="runSim('copycat')" class="sim-btn p-2.5 rounded-lg bg-surface border border-outline/20 hover:border-secondary/40 text-left">
-              <div class="text-xs font-bold text-secondary">Copycat</div>
-              <div class="text-[8px] text-on-surface-dim mt-0.5">Copies rivals</div>
-            </button>
-            <button onclick="runSim('queue_optimizer')" class="sim-btn p-2.5 rounded-lg bg-surface border border-primary/20 hover:border-primary/50 text-left">
-              <div class="text-xs font-bold text-primary">Queue Opt.</div>
-              <div class="text-[8px] text-on-surface-dim mt-0.5">Queue → post</div>
-            </button>
-            <button onclick="runSim('burst')" class="sim-btn p-2.5 rounded-lg bg-surface border border-outline/20 hover:border-secondary/40 text-left">
-              <div class="text-xs font-bold text-secondary">Burst</div>
-              <div class="text-[8px] text-on-surface-dim mt-0.5">3 then rest</div>
-            </button>
-            <button onclick="runSim('weekend')" class="sim-btn p-2.5 rounded-lg bg-surface border border-outline/20 hover:border-tertiary/40 text-left">
-              <div class="text-xs font-bold text-tertiary">Weekend</div>
-              <div class="text-[8px] text-on-surface-dim mt-0.5">Sat/Sun only</div>
-            </button>
-            <button onclick="runSim('tag_explorer')" class="sim-btn p-2.5 rounded-lg bg-surface border border-primary/20 hover:border-primary/50 text-left">
-              <div class="text-xs font-bold text-primary">Tag Explorer</div>
-              <div class="text-[8px] text-on-surface-dim mt-0.5">New tags each post</div>
-            </button>
-            <button onclick="runSim('balanced')" class="sim-btn p-2.5 rounded-lg bg-surface border border-primary/20 hover:border-primary/50 text-left">
-              <div class="text-xs font-bold text-primary">Balanced</div>
-              <div class="text-[8px] text-on-surface-dim mt-0.5">Create→Post→Rest</div>
-            </button>
+          <input type="search" id="scenarioFilter" autocomplete="off" placeholder="Search strategies by name or description…" class="w-full mb-2 bg-surface-low border border-outline/30 rounded-lg px-3 py-2 text-sm focus:ring-1 focus:ring-primary focus:outline-none"/>
+          <div id="scenarioGrid" tabindex="0" role="region" aria-label="Strategy list, scroll for all scenarios" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2 mb-3 max-h-[min(52vh,36rem)] min-h-[14rem] overflow-y-auto overscroll-y-contain pr-1 py-1 rounded-lg border border-outline/15 bg-surface-low/40 scrollbar-thin shadow-inner">
+            <div class="col-span-full text-on-surface-dim text-[10px] italic py-4 text-center">Loading strategies…</div>
           </div>
           <!-- Sim Progress -->
           <div id="simProgress" class="hidden">
@@ -956,6 +920,60 @@ async function clearHistory(){
   loadHistory();
 }
 
+function _escapeHtml(t){
+  const d=document.createElement("div");
+  d.textContent=t??"";
+  return d.innerHTML;
+}
+
+let _scenarioItems=[];
+
+async function loadScenarioButtons(){
+  const grid=document.getElementById("scenarioGrid");
+  const countEl=document.getElementById("scenarioCount");
+  const filterEl=document.getElementById("scenarioFilter");
+  if(!grid)return;
+  try{
+    const r=await fetch(API+"/dashboard/scenarios",{cache:"no-store",headers:{"Cache-Control":"no-cache"}});
+    const data=await r.json();
+    _scenarioItems=data.scenarios||[];
+    if(countEl)countEl.textContent=_scenarioItems.length+" strategies";
+    const pin=new Set(["smart","balanced","high_freq","optimal_sleep","sleep_conscious","sleep_debt_aware"]);
+    _scenarioItems.sort((a,b)=>{
+      const pa=pin.has(a.id)?0:1,pb=pin.has(b.id)?0:1;
+      if(pa!==pb)return pa-pb;
+      return (a.label||"").localeCompare(b.label||"","en",{sensitivity:"base"});
+    });
+    function render(){
+      const q=(filterEl&&filterEl.value||"").trim().toLowerCase();
+      grid.innerHTML="";
+      let n=0;
+      for(const s of _scenarioItems){
+        const lab=(s.label||"").toLowerCase();
+        const id=(s.id||"").toLowerCase();
+        const desc=(s.description||"").toLowerCase();
+        if(q&&!(lab.includes(q)||id.includes(q)||desc.includes(q)))continue;
+        n++;
+        const btn=document.createElement("button");
+        btn.type="button";
+        btn.className="sim-btn p-2.5 rounded-lg bg-surface border border-outline/20 hover:border-secondary/40 text-left transition";
+        if(pin.has(s.id))btn.classList.add("border-primary/25","hover:border-primary/55");
+        btn.onclick=()=>runSim(s.id);
+        btn.innerHTML=`<div class="text-xs font-bold text-on-surface leading-tight">${_escapeHtml(s.label)}</div><div class="text-[8px] text-on-surface-dim mt-0.5 line-clamp-2">${_escapeHtml(s.description)}</div>`;
+        grid.appendChild(btn);
+      }
+      if(!n)grid.innerHTML='<div class="col-span-full text-on-surface-dim text-[10px] italic py-4 text-center">No strategies match your search.</div>';
+    }
+    if(filterEl)filterEl.oninput=render;
+    render();
+  }catch(e){
+    console.error(e);
+    grid.innerHTML='<div class="col-span-full text-error text-[10px] py-3">Could not load strategies. Refresh the page.</div>';
+    if(countEl)countEl.textContent="";
+  }
+}
+
+loadScenarioButtons();
 loadHistory();
 </script>
 </body>

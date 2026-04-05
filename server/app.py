@@ -35,7 +35,7 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional
 
 from fastapi import Body
-from fastapi.responses import HTMLResponse
+from fastapi.responses import HTMLResponse, JSONResponse
 
 try:
     from openenv.core.env_server.http_server import create_app
@@ -378,10 +378,727 @@ def _agent_balanced(obs: dict, step: int) -> dict:
     return {"action_type": "rest"}
 
 
+# --- NEW SCENARIOS (50 additional) ---
+
+def _agent_sleep_deprived(obs: dict, step: int) -> dict:
+    """Posts or creates content but never rests - tests sleep deprivation."""
+    hour = obs.get("current_hour", 12)
+    posts = obs.get("posts_today", 0)
+    if 9 <= hour <= 20 and posts < 2:
+        return {"action_type": "post", "content_type": _CONTENT_TYPES[step % 4],
+                "topic": (obs.get("trending_topics") or ["coding"])[0],
+                "tags": list((obs.get("trending_tags") or [])[:2])}
+    return {"action_type": "create_content"}
+
+
+def _agent_sleep_conscious(obs: dict, step: int) -> dict:
+    """Rests during night hours to simulate proper sleep schedule."""
+    hour = obs.get("current_hour", 12)
+    energy = obs.get("creator_energy", 1.0)
+    posts = obs.get("posts_today", 0)
+    if hour >= 23 or hour < 7:
+        return {"action_type": "rest"}
+    if energy < 0.4 or posts >= 2:
+        return {"action_type": "rest"}
+    if 9 <= hour <= 20:
+        return {"action_type": "post", "content_type": _CONTENT_TYPES[step % 4],
+                "topic": (obs.get("trending_topics") or ["wellness"])[0],
+                "tags": list((obs.get("trending_tags") or [])[:2]) + ["productivity"]}
+    return {"action_type": "create_content"}
+
+
+def _agent_minimal(obs: dict, step: int) -> dict:
+    posts = obs.get("posts_today", 0)
+    hour = obs.get("current_hour", 12)
+    if posts >= 1:
+        return {"action_type": "rest"}
+    if hour == 12:
+        return {"action_type": "post", "content_type": "carousel",
+                "topic": (obs.get("trending_topics") or ["minimalism"])[0],
+                "tags": list((obs.get("trending_tags") or [])[:3])}
+    return {"action_type": "rest"}
+
+
+def _agent_story_spammer(obs: dict, step: int) -> dict:
+    energy = obs.get("creator_energy", 1.0)
+    hour = obs.get("current_hour", 12)
+    posts = obs.get("posts_today", 0)
+    if energy < 0.2:
+        return {"action_type": "rest"}
+    if posts < 4 and 8 <= hour <= 22:
+        return {"action_type": "post", "content_type": "story",
+                "topic": "daily update", "tags": ["fitness", "wellness"]}
+    return {"action_type": "rest"}
+
+
+def _agent_reel_max(obs: dict, step: int) -> dict:
+    energy = obs.get("creator_energy", 1.0)
+    hour = obs.get("current_hour", 12)
+    posts = obs.get("posts_today", 0)
+    if energy < 0.4 or posts >= 2:
+        return {"action_type": "rest"}
+    if 12 <= hour <= 15:
+        return {"action_type": "post", "content_type": "reel",
+                "topic": (obs.get("trending_topics") or ["viral content"])[0],
+                "tags": list((obs.get("trending_tags") or [])[:3])}
+    return {"action_type": "rest"}
+
+
+def _agent_text_only(obs: dict, step: int) -> dict:
+    energy = obs.get("creator_energy", 1.0)
+    hour = obs.get("current_hour", 12)
+    posts = obs.get("posts_today", 0)
+    if energy < 0.3 or posts >= 3:
+        return {"action_type": "rest"}
+    if 9 <= hour <= 18:
+        return {"action_type": "post", "content_type": "text_post",
+                "topic": "thoughts and tips", "tags": ["tips", "howto", "motivation"]}
+    return {"action_type": "rest"}
+
+
+def _agent_early_bird(obs: dict, step: int) -> dict:
+    energy = obs.get("creator_energy", 1.0)
+    hour = obs.get("current_hour", 12)
+    posts = obs.get("posts_today", 0)
+    if energy < 0.3:
+        return {"action_type": "rest"}
+    if 6 <= hour <= 10 and posts < 2:
+        return {"action_type": "post", "content_type": "carousel",
+                "topic": "morning routine", "tags": ["productivity", "wellness", "fitness"]}
+    return {"action_type": "rest"}
+
+
+def _agent_night_owl(obs: dict, step: int) -> dict:
+    energy = obs.get("creator_energy", 1.0)
+    hour = obs.get("current_hour", 12)
+    posts = obs.get("posts_today", 0)
+    if energy < 0.3:
+        return {"action_type": "rest"}
+    if 20 <= hour <= 23 and posts < 2:
+        return {"action_type": "post", "content_type": "reel",
+                "topic": "night thoughts", "tags": ["stoic", "motivation"]}
+    return {"action_type": "rest"}
+
+
+def _agent_trend_chaser(obs: dict, step: int) -> dict:
+    energy = obs.get("creator_energy", 1.0)
+    hour = obs.get("current_hour", 12)
+    posts = obs.get("posts_today", 0)
+    trending = obs.get("trending_topics") or []
+    if energy < 0.4 or posts >= 2:
+        return {"action_type": "rest"}
+    if trending and 9 <= hour <= 20:
+        return {"action_type": "post", "content_type": "reel",
+                "topic": trending[0], "tags": list((obs.get("trending_tags") or [])[:3])}
+    return {"action_type": "rest"}
+
+
+def _agent_anti_trend(obs: dict, step: int) -> dict:
+    energy = obs.get("creator_energy", 1.0)
+    hour = obs.get("current_hour", 12)
+    posts = obs.get("posts_today", 0)
+    trending_tags = obs.get("trending_tags") or []
+    if energy < 0.4 or posts >= 2:
+        return {"action_type": "rest"}
+    if 9 <= hour <= 20:
+        non_trending = [t for t in TAG_POOL if t not in trending_tags][:3]
+        return {"action_type": "post", "content_type": "carousel",
+                "topic": "unique perspective on niche topic",
+                "tags": non_trending if non_trending else ["minimalism", "stoic"]}
+    return {"action_type": "rest"}
+
+
+def _agent_energy_saver(obs: dict, step: int) -> dict:
+    energy = obs.get("creator_energy", 1.0)
+    hour = obs.get("current_hour", 12)
+    posts = obs.get("posts_today", 0)
+    if energy < 0.7:
+        return {"action_type": "rest"}
+    if posts < 1 and 10 <= hour <= 18:
+        return {"action_type": "post", "content_type": "carousel",
+                "topic": (obs.get("trending_topics") or ["productivity"])[0],
+                "tags": list((obs.get("trending_tags") or [])[:2]) + ["tips"]}
+    return {"action_type": "rest"}
+
+
+_qh_phase = "prep"
+
+
+def _agent_queue_heavy(obs: dict, step: int) -> dict:
+    global _qh_phase
+    days = obs.get("days_elapsed", 0)
+    energy = obs.get("creator_energy", 1.0)
+    hour = obs.get("current_hour", 12)
+    posts = obs.get("posts_today", 0)
+    queue = obs.get("content_queue_size", 0)
+    if days < 3:
+        if energy < 0.3:
+            return {"action_type": "rest"}
+        return {"action_type": "create_content"}
+    if energy < 0.35:
+        return {"action_type": "rest"}
+    if queue > 0 and 9 <= hour <= 20 and posts < 2:
+        return {"action_type": "post", "content_type": _CONTENT_TYPES[step % 4],
+                "topic": (obs.get("trending_topics") or ["growth"])[0],
+                "tags": list((obs.get("trending_tags") or [])[:2]) + ["viral"]}
+    return {"action_type": "rest"}
+
+
+def _agent_midday(obs: dict, step: int) -> dict:
+    energy = obs.get("creator_energy", 1.0)
+    hour = obs.get("current_hour", 12)
+    posts = obs.get("posts_today", 0)
+    if energy < 0.4 or posts >= 2:
+        return {"action_type": "rest"}
+    if 11 <= hour <= 14:
+        return {"action_type": "post", "content_type": "reel",
+                "topic": (obs.get("trending_topics") or ["lunch break content"])[0],
+                "tags": list((obs.get("trending_tags") or [])[:2]) + ["howto"]}
+    return {"action_type": "rest"}
+
+
+def _agent_random(obs: dict, step: int) -> dict:
+    action = _SIM_RNG.choice(["post", "rest", "create_content"])
+    if action == "post":
+        return {"action_type": "post", "content_type": _SIM_RNG.choice(_CONTENT_TYPES),
+                "topic": _SIM_RNG.choice(["random topic", "AI tools", "fitness", "travel"]),
+                "tags": _SIM_RNG.sample(TAG_POOL, 2)}
+    elif action == "create_content":
+        return {"action_type": "create_content"}
+    return {"action_type": "rest"}
+
+
+def _agent_carousel_only(obs: dict, step: int) -> dict:
+    energy = obs.get("creator_energy", 1.0)
+    hour = obs.get("current_hour", 12)
+    posts = obs.get("posts_today", 0)
+    if energy < 0.35 or posts >= 2:
+        return {"action_type": "rest"}
+    if 9 <= hour <= 18:
+        return {"action_type": "post", "content_type": "carousel",
+                "topic": (obs.get("trending_topics") or ["guide"])[0],
+                "tags": list((obs.get("trending_tags") or [])[:3])}
+    return {"action_type": "rest"}
+
+
+def _agent_tech_niche(obs: dict, step: int) -> dict:
+    energy = obs.get("creator_energy", 1.0)
+    hour = obs.get("current_hour", 12)
+    posts = obs.get("posts_today", 0)
+    if energy < 0.4 or posts >= 2:
+        return {"action_type": "rest"}
+    if 9 <= hour <= 20:
+        return {"action_type": "post", "content_type": _CONTENT_TYPES[step % 4],
+                "topic": "AI tools and coding tips", "tags": ["ai", "coding", "devtools"]}
+    return {"action_type": "rest"}
+
+
+def _agent_lifestyle_niche(obs: dict, step: int) -> dict:
+    energy = obs.get("creator_energy", 1.0)
+    hour = obs.get("current_hour", 12)
+    posts = obs.get("posts_today", 0)
+    if energy < 0.4 or posts >= 2:
+        return {"action_type": "rest"}
+    if 9 <= hour <= 20:
+        return {"action_type": "post", "content_type": "reel",
+                "topic": "fitness routine and wellness tips", "tags": ["fitness", "wellness", "travel"]}
+    return {"action_type": "rest"}
+
+
+def _agent_high_freq(obs: dict, step: int) -> dict:
+    energy = obs.get("creator_energy", 1.0)
+    hour = obs.get("current_hour", 12)
+    posts = obs.get("posts_today", 0)
+    if energy < 0.25:
+        return {"action_type": "rest"}
+    if posts < 3 and 8 <= hour <= 21:
+        ct = ["story", "text_post", "reel"][posts % 3]
+        return {"action_type": "post", "content_type": ct,
+                "topic": (obs.get("trending_topics") or ["daily update"])[0],
+                "tags": list((obs.get("trending_tags") or [])[:2])}
+    return {"action_type": "rest"}
+
+
+def _agent_low_freq(obs: dict, step: int) -> dict:
+    days = obs.get("days_elapsed", 0)
+    hour = obs.get("current_hour", 12)
+    posts = obs.get("posts_today", 0)
+    if days % 2 != 0:
+        return {"action_type": "rest"}
+    if posts >= 1:
+        return {"action_type": "rest"}
+    if hour == 14:
+        return {"action_type": "post", "content_type": "carousel",
+                "topic": (obs.get("trending_topics") or ["weekly roundup"])[0],
+                "tags": list((obs.get("trending_tags") or [])[:3])}
+    return {"action_type": "rest"}
+
+
+def _agent_comp_avoider(obs: dict, step: int) -> dict:
+    energy = obs.get("creator_energy", 1.0)
+    hour = obs.get("current_hour", 12)
+    posts = obs.get("posts_today", 0)
+    saturation = obs.get("niche_saturation", 0.0)
+    if energy < 0.4 or posts >= 2:
+        return {"action_type": "rest"}
+    if saturation > 0.5:
+        return {"action_type": "rest"}
+    if 9 <= hour <= 20:
+        return {"action_type": "post", "content_type": "reel",
+                "topic": "unique angle on trending topic",
+                "tags": list((obs.get("trending_tags") or [])[:2]) + ["growth"]}
+    return {"action_type": "rest"}
+
+
+def _agent_tue_thu(obs: dict, step: int) -> dict:
+    energy = obs.get("creator_energy", 1.0)
+    hour = obs.get("current_hour", 12)
+    posts = obs.get("posts_today", 0)
+    dow = obs.get("day_of_week", 0)
+    if dow not in (1, 3):
+        return {"action_type": "rest"}
+    if energy < 0.4 or posts >= 2:
+        return {"action_type": "rest"}
+    if 12 <= hour <= 15:
+        return {"action_type": "post", "content_type": "reel",
+                "topic": (obs.get("trending_topics") or ["midweek content"])[0],
+                "tags": list((obs.get("trending_tags") or [])[:3])}
+    return {"action_type": "rest"}
+
+
+def _agent_monday(obs: dict, step: int) -> dict:
+    energy = obs.get("creator_energy", 1.0)
+    hour = obs.get("current_hour", 12)
+    posts = obs.get("posts_today", 0)
+    dow = obs.get("day_of_week", 0)
+    if dow != 0:
+        return {"action_type": "rest"}
+    if energy < 0.3 or posts >= 3:
+        return {"action_type": "rest"}
+    if 8 <= hour <= 18:
+        return {"action_type": "post", "content_type": _CONTENT_TYPES[posts % 4],
+                "topic": "monday motivation", "tags": ["motivation", "tips", "productivity"]}
+    return {"action_type": "rest"}
+
+
+def _agent_tag_exploiter(obs: dict, step: int) -> dict:
+    energy = obs.get("creator_energy", 1.0)
+    hour = obs.get("current_hour", 12)
+    posts = obs.get("posts_today", 0)
+    tag_perf = obs.get("tag_performance") or {}
+    if energy < 0.4 or posts >= 2:
+        return {"action_type": "rest"}
+    if 9 <= hour <= 20:
+        best_tags = sorted(tag_perf.items(), key=lambda x: x[1], reverse=True)[:3]
+        tags = [t[0] for t in best_tags] if best_tags else list((obs.get("trending_tags") or [])[:3])
+        return {"action_type": "post", "content_type": "reel",
+                "topic": (obs.get("trending_topics") or ["growth content"])[0], "tags": tags}
+    return {"action_type": "rest"}
+
+
+_alt_idx = 0
+
+
+def _agent_alternating(obs: dict, step: int) -> dict:
+    global _alt_idx
+    energy = obs.get("creator_energy", 1.0)
+    hour = obs.get("current_hour", 12)
+    posts = obs.get("posts_today", 0)
+    if energy < 0.35 or posts >= 2:
+        return {"action_type": "rest"}
+    if 9 <= hour <= 20:
+        ct = _CONTENT_TYPES[_alt_idx % 4]
+        _alt_idx += 1
+        return {"action_type": "post", "content_type": ct,
+                "topic": (obs.get("trending_topics") or ["varied content"])[0],
+                "tags": list((obs.get("trending_tags") or [])[:2]) + ["trending"]}
+    return {"action_type": "rest"}
+
+
+def _agent_engagement_chaser(obs: dict, step: int) -> dict:
+    energy = obs.get("creator_energy", 1.0)
+    hour = obs.get("current_hour", 12)
+    posts = obs.get("posts_today", 0)
+    eng_rate = obs.get("engagement_rate", 0.0)
+    if energy < 0.3:
+        return {"action_type": "rest"}
+    target = 3 if eng_rate > 0.5 else 2 if eng_rate > 0.3 else 1
+    if posts >= target:
+        return {"action_type": "rest"}
+    if 9 <= hour <= 20:
+        return {"action_type": "post", "content_type": "reel",
+                "topic": (obs.get("trending_topics") or ["engagement content"])[0],
+                "tags": list((obs.get("trending_tags") or [])[:3])}
+    return {"action_type": "rest"}
+
+
+def _agent_conservative(obs: dict, step: int) -> dict:
+    energy = obs.get("creator_energy", 1.0)
+    hour = obs.get("current_hour", 12)
+    posts = obs.get("posts_today", 0)
+    if energy < 0.5:
+        return {"action_type": "rest"}
+    if posts >= 1:
+        return {"action_type": "rest"}
+    if 12 <= hour <= 14:
+        return {"action_type": "post", "content_type": "text_post",
+                "topic": (obs.get("trending_topics") or ["quick tip"])[0],
+                "tags": list((obs.get("trending_tags") or [])[:2])}
+    return {"action_type": "rest"}
+
+
+def _agent_aggressive(obs: dict, step: int) -> dict:
+    energy = obs.get("creator_energy", 1.0)
+    hour = obs.get("current_hour", 12)
+    posts = obs.get("posts_today", 0)
+    if energy < 0.15:
+        return {"action_type": "rest"}
+    if posts >= 4:
+        return {"action_type": "rest"}
+    if 8 <= hour <= 22:
+        return {"action_type": "post", "content_type": _CONTENT_TYPES[posts % 4],
+                "topic": (obs.get("trending_topics") or ["high output"])[0],
+                "tags": list((obs.get("trending_tags") or [])[:2]) + ["viral"]}
+    return {"action_type": "rest"}
+
+
+def _agent_sleep_respecting(obs: dict, step: int) -> dict:
+    energy = obs.get("creator_energy", 1.0)
+    hour = obs.get("current_hour", 12)
+    posts = obs.get("posts_today", 0)
+    hours_since_sleep = obs.get("hours_since_sleep", 0)
+    sleep_debt = obs.get("sleep_debt", 0.0)
+    if hours_since_sleep >= 14 or sleep_debt > 0.3:
+        return {"action_type": "rest"}
+    if hour >= 22 or hour < 8:
+        return {"action_type": "rest"}
+    if energy < 0.4 or posts >= 2:
+        return {"action_type": "rest"}
+    if 9 <= hour <= 20:
+        return {"action_type": "post", "content_type": _CONTENT_TYPES[step % 4],
+                "topic": (obs.get("trending_topics") or ["well-rested content"])[0],
+                "tags": list((obs.get("trending_tags") or [])[:2]) + ["wellness"]}
+    return {"action_type": "rest"}
+
+
+def _agent_night_shift(obs: dict, step: int) -> dict:
+    energy = obs.get("creator_energy", 1.0)
+    hour = obs.get("current_hour", 12)
+    posts = obs.get("posts_today", 0)
+    if 8 <= hour <= 20:
+        return {"action_type": "rest"}
+    if energy < 0.3 or posts >= 2:
+        return {"action_type": "rest"}
+    return {"action_type": "post", "content_type": "reel",
+            "topic": "late night content", "tags": ["stoic", "motivation"]}
+
+
+def _agent_split_schedule(obs: dict, step: int) -> dict:
+    energy = obs.get("creator_energy", 1.0)
+    hour = obs.get("current_hour", 12)
+    posts = obs.get("posts_today", 0)
+    if energy < 0.4:
+        return {"action_type": "rest"}
+    morning = 8 <= hour <= 10
+    evening = 18 <= hour <= 20
+    if not (morning or evening):
+        return {"action_type": "rest"}
+    if posts >= 2:
+        return {"action_type": "rest"}
+    ct = "carousel" if morning else "reel"
+    return {"action_type": "post", "content_type": ct,
+            "topic": (obs.get("trending_topics") or ["daily content"])[0],
+            "tags": list((obs.get("trending_tags") or [])[:2]) + ["tips"]}
+
+
+def _agent_growth_focus(obs: dict, step: int) -> dict:
+    energy = obs.get("creator_energy", 1.0)
+    hour = obs.get("current_hour", 12)
+    posts = obs.get("posts_today", 0)
+    if energy < 0.35 or posts >= 2:
+        return {"action_type": "rest"}
+    if 12 <= hour <= 15:
+        return {"action_type": "post", "content_type": "reel",
+                "topic": (obs.get("trending_topics") or ["growth hacks"])[0],
+                "tags": ["viral", "growth", "trending"]}
+    return {"action_type": "rest"}
+
+
+_ccm_ratio = 0
+
+
+def _agent_content_creator(obs: dict, step: int) -> dict:
+    global _ccm_ratio
+    energy = obs.get("creator_energy", 1.0)
+    hour = obs.get("current_hour", 12)
+    queue = obs.get("content_queue_size", 0)
+    if energy < 0.3:
+        return {"action_type": "rest"}
+    _ccm_ratio += 1
+    if _ccm_ratio % 4 != 0:
+        return {"action_type": "create_content"}
+    if queue > 0 and 9 <= hour <= 20:
+        return {"action_type": "post", "content_type": _CONTENT_TYPES[step % 4],
+                "topic": (obs.get("trending_topics") or ["queued content"])[0],
+                "tags": list((obs.get("trending_tags") or [])[:3])}
+    return {"action_type": "create_content"}
+
+
+def _agent_weekday_only(obs: dict, step: int) -> dict:
+    energy = obs.get("creator_energy", 1.0)
+    hour = obs.get("current_hour", 12)
+    posts = obs.get("posts_today", 0)
+    dow = obs.get("day_of_week", 0)
+    if dow >= 5:
+        return {"action_type": "rest"}
+    if energy < 0.4 or posts >= 2:
+        return {"action_type": "rest"}
+    if 9 <= hour <= 18:
+        return {"action_type": "post", "content_type": _CONTENT_TYPES[step % 4],
+                "topic": (obs.get("trending_topics") or ["weekday content"])[0],
+                "tags": list((obs.get("trending_tags") or [])[:2]) + ["productivity"]}
+    return {"action_type": "rest"}
+
+
+def _agent_double_peak(obs: dict, step: int) -> dict:
+    energy = obs.get("creator_energy", 1.0)
+    hour = obs.get("current_hour", 12)
+    posts = obs.get("posts_today", 0)
+    if energy < 0.4 or posts >= 2:
+        return {"action_type": "rest"}
+    if hour in (9, 15):
+        ct = "reel" if hour == 9 else "carousel"
+        return {"action_type": "post", "content_type": ct,
+                "topic": (obs.get("trending_topics") or ["peak time content"])[0],
+                "tags": list((obs.get("trending_tags") or [])[:3])}
+    return {"action_type": "rest"}
+
+
+def _agent_crypto_niche(obs: dict, step: int) -> dict:
+    energy = obs.get("creator_energy", 1.0)
+    hour = obs.get("current_hour", 12)
+    posts = obs.get("posts_today", 0)
+    if energy < 0.4 or posts >= 2:
+        return {"action_type": "rest"}
+    if 9 <= hour <= 20:
+        return {"action_type": "post", "content_type": "reel",
+                "topic": "crypto market analysis and web3 trends",
+                "tags": ["crypto", "web3", "ai"]}
+    return {"action_type": "rest"}
+
+
+def _agent_gaming_niche(obs: dict, step: int) -> dict:
+    energy = obs.get("creator_energy", 1.0)
+    hour = obs.get("current_hour", 12)
+    posts = obs.get("posts_today", 0)
+    if energy < 0.4 or posts >= 2:
+        return {"action_type": "rest"}
+    if 14 <= hour <= 22:
+        return {"action_type": "post", "content_type": "reel",
+                "topic": "gaming highlights and tips", "tags": ["gaming", "viral", "tips"]}
+    return {"action_type": "rest"}
+
+
+def _agent_productivity(obs: dict, step: int) -> dict:
+    energy = obs.get("creator_energy", 1.0)
+    hour = obs.get("current_hour", 12)
+    posts = obs.get("posts_today", 0)
+    if energy < 0.4 or posts >= 2:
+        return {"action_type": "rest"}
+    if 6 <= hour <= 10:
+        return {"action_type": "post", "content_type": "carousel",
+                "topic": "productivity tips and systems", "tags": ["productivity", "tips", "howto"]}
+    return {"action_type": "rest"}
+
+
+def _agent_food_creator(obs: dict, step: int) -> dict:
+    energy = obs.get("creator_energy", 1.0)
+    hour = obs.get("current_hour", 12)
+    posts = obs.get("posts_today", 0)
+    if energy < 0.4 or posts >= 2:
+        return {"action_type": "rest"}
+    if hour in (8, 12, 18):
+        return {"action_type": "post", "content_type": "reel",
+                "topic": "food recipe and cooking tips", "tags": ["food", "howto", "viral"]}
+    return {"action_type": "rest"}
+
+
+def _agent_travel(obs: dict, step: int) -> dict:
+    energy = obs.get("creator_energy", 1.0)
+    hour = obs.get("current_hour", 12)
+    posts = obs.get("posts_today", 0)
+    if energy < 0.4 or posts >= 2:
+        return {"action_type": "rest"}
+    if 10 <= hour <= 16:
+        return {"action_type": "post", "content_type": "reel",
+                "topic": "travel guide and destination highlights",
+                "tags": ["travel", "photography", "trending"]}
+    return {"action_type": "rest"}
+
+
+def _agent_fashion(obs: dict, step: int) -> dict:
+    energy = obs.get("creator_energy", 1.0)
+    hour = obs.get("current_hour", 12)
+    posts = obs.get("posts_today", 0)
+    if energy < 0.4 or posts >= 2:
+        return {"action_type": "rest"}
+    if 11 <= hour <= 19:
+        return {"action_type": "post", "content_type": "carousel",
+                "topic": "fashion haul and style tips", "tags": ["fashion", "trending", "tips"]}
+    return {"action_type": "rest"}
+
+
+def _agent_photography(obs: dict, step: int) -> dict:
+    energy = obs.get("creator_energy", 1.0)
+    hour = obs.get("current_hour", 12)
+    posts = obs.get("posts_today", 0)
+    if energy < 0.4 or posts >= 2:
+        return {"action_type": "rest"}
+    if hour in (7, 8, 17, 18):
+        return {"action_type": "post", "content_type": "carousel",
+                "topic": "photo editing tips and composition",
+                "tags": ["photography", "tips", "howto"]}
+    return {"action_type": "rest"}
+
+
+def _agent_stoic(obs: dict, step: int) -> dict:
+    energy = obs.get("creator_energy", 1.0)
+    hour = obs.get("current_hour", 12)
+    posts = obs.get("posts_today", 0)
+    if energy < 0.4 or posts >= 1:
+        return {"action_type": "rest"}
+    if hour == 6:
+        return {"action_type": "post", "content_type": "text_post",
+                "topic": "stoic wisdom and daily reflection",
+                "tags": ["stoic", "motivation", "minimalism"]}
+    return {"action_type": "rest"}
+
+
+def _agent_saas(obs: dict, step: int) -> dict:
+    energy = obs.get("creator_energy", 1.0)
+    hour = obs.get("current_hour", 12)
+    posts = obs.get("posts_today", 0)
+    if energy < 0.4 or posts >= 2:
+        return {"action_type": "rest"}
+    if 9 <= hour <= 17:
+        return {"action_type": "post", "content_type": "carousel",
+                "topic": "SaaS growth strategies and startup tips",
+                "tags": ["saas", "startup", "growth"]}
+    return {"action_type": "rest"}
+
+
+def _agent_creator_economy(obs: dict, step: int) -> dict:
+    energy = obs.get("creator_energy", 1.0)
+    hour = obs.get("current_hour", 12)
+    posts = obs.get("posts_today", 0)
+    if energy < 0.4 or posts >= 2:
+        return {"action_type": "rest"}
+    if 10 <= hour <= 18:
+        return {"action_type": "post", "content_type": "reel",
+                "topic": "creator economy and monetization tips",
+                "tags": ["growth", "viral", "tips"]}
+    return {"action_type": "rest"}
+
+
+def _agent_ml_deep(obs: dict, step: int) -> dict:
+    energy = obs.get("creator_energy", 1.0)
+    hour = obs.get("current_hour", 12)
+    posts = obs.get("posts_today", 0)
+    if energy < 0.4 or posts >= 2:
+        return {"action_type": "rest"}
+    if 9 <= hour <= 20:
+        return {"action_type": "post", "content_type": "carousel",
+                "topic": "machine learning concepts and AI tools",
+                "tags": ["ml", "ai", "coding"]}
+    return {"action_type": "rest"}
+
+
+def _agent_sleep_debt_aware(obs: dict, step: int) -> dict:
+    energy = obs.get("creator_energy", 1.0)
+    hour = obs.get("current_hour", 12)
+    posts = obs.get("posts_today", 0)
+    sleep_debt = obs.get("sleep_debt", 0.0)
+    if sleep_debt > 0.2:
+        return {"action_type": "rest"}
+    if hour >= 23 or hour < 7:
+        return {"action_type": "rest"}
+    if energy < 0.4 or posts >= 2:
+        return {"action_type": "rest"}
+    if 9 <= hour <= 20:
+        return {"action_type": "post", "content_type": _CONTENT_TYPES[step % 4],
+                "topic": (obs.get("trending_topics") or ["balanced content"])[0],
+                "tags": list((obs.get("trending_tags") or [])[:3])}
+    return {"action_type": "rest"}
+
+
+def _agent_marathon(obs: dict, step: int) -> dict:
+    energy = obs.get("creator_energy", 1.0)
+    hour = obs.get("current_hour", 12)
+    posts = obs.get("posts_today", 0)
+    if energy < 0.1:
+        return {"action_type": "rest"}
+    if 6 <= hour <= 23 and posts < 3:
+        return {"action_type": "post", "content_type": "story",
+                "topic": "marathon content session",
+                "tags": list((obs.get("trending_tags") or [])[:2])}
+    return {"action_type": "create_content"}
+
+
+_nap_count = 0
+
+
+def _agent_napper(obs: dict, step: int) -> dict:
+    global _nap_count
+    energy = obs.get("creator_energy", 1.0)
+    hour = obs.get("current_hour", 12)
+    posts = obs.get("posts_today", 0)
+    hours_since_sleep = obs.get("hours_since_sleep", 0)
+    if hours_since_sleep >= 6:
+        _nap_count += 1
+        return {"action_type": "rest"}
+    if energy < 0.4 or posts >= 2:
+        return {"action_type": "rest"}
+    if 9 <= hour <= 20:
+        return {"action_type": "post", "content_type": _CONTENT_TYPES[step % 4],
+                "topic": (obs.get("trending_topics") or ["fresh content"])[0],
+                "tags": list((obs.get("trending_tags") or [])[:2]) + ["wellness"]}
+    return {"action_type": "rest"}
+
+
+def _agent_optimal_sleep(obs: dict, step: int) -> dict:
+    energy = obs.get("creator_energy", 1.0)
+    hour = obs.get("current_hour", 12)
+    posts = obs.get("posts_today", 0)
+    if hour >= 23 or hour < 7:
+        return {"action_type": "rest"}
+    if energy < 0.4 or posts >= 2:
+        return {"action_type": "rest"}
+    if 9 <= hour <= 20:
+        return {"action_type": "post", "content_type": _CONTENT_TYPES[step % 4],
+                "topic": (obs.get("trending_topics") or ["well-rested creator"])[0],
+                "tags": list((obs.get("trending_tags") or [])[:2]) + ["productivity"]}
+    return {"action_type": "create_content"}
+
+
+def _agent_events(obs: dict, step: int) -> dict:
+    energy = obs.get("creator_energy", 1.0)
+    hour = obs.get("current_hour", 12)
+    posts = obs.get("posts_today", 0)
+    trending_tags = obs.get("trending_tags") or []
+    if energy < 0.4 or posts >= 2:
+        return {"action_type": "rest"}
+    event_tags = [t for t in trending_tags if t in ["worldcup", "election", "oscars", "newyear", "climate"]]
+    if event_tags and 9 <= hour <= 20:
+        return {"action_type": "post", "content_type": "reel",
+                "topic": "breaking news and event coverage",
+                "tags": event_tags[:2] + ["trending"]}
+    return {"action_type": "rest"}
+
+
 SCENARIOS = {
     "always_rest": ("Always Rest", "Never posts. Tests follower decay + zero engagement.", _agent_always_rest),
     "spam": ("Spam Post", "Same reel every step. Burns out in 4 steps.", _agent_spam),
-    "bad_timing": ("Bad Timing", "Posts at night with boring topics only.", _agent_bad_timing),
+    "bad_timing": ("Night Poster", "Off-peak posts and weak topics; low hour multiplier.", _agent_bad_timing),
     "no_rest": ("No Rest", "Varied posts but never rests. Burns out fast.", _agent_no_rest),
     "smart": ("Smart Agent", "Optimal: peak hours, trending, varied types, rests.", _agent_smart),
     "copycat": ("Copycat", "Copies competitor topics. High saturation penalty.", _agent_copycat),
@@ -390,18 +1107,85 @@ SCENARIOS = {
     "weekend": ("Weekend Warrior", "Only posts on Sat/Sun. Misses 5 weekdays.", _agent_weekend),
     "tag_explorer": ("Tag Explorer", "New tag combo every post. Max discovery.", _agent_tag_explorer),
     "balanced": ("Balanced Creator", "Create→Post→Rest cycle. Uses queue.", _agent_balanced),
+    # New scenarios
+    "sleep_deprived": ("Sleep Deprived", "Never rests. Tests sleep deprivation effects.", _agent_sleep_deprived),
+    "sleep_conscious": ("Sleep Conscious", "Rests at night. Proper sleep schedule.", _agent_sleep_conscious),
+    "minimal": ("Minimal Poster", "Only 1 post per day at noon.", _agent_minimal),
+    "story_spammer": ("Story Spammer", "Low-energy story spam strategy.", _agent_story_spammer),
+    "reel_max": ("Reel Maximizer", "Only reels at peak hours for max reach.", _agent_reel_max),
+    "text_only": ("Text Only", "Low-energy text posts only.", _agent_text_only),
+    "early_bird": ("Early Bird", "Posts only 6-10am.", _agent_early_bird),
+    "night_owl": ("Night Owl", "Posts only 20-23.", _agent_night_owl),
+    "trend_chaser": ("Trend Chaser", "Only posts trending topics.", _agent_trend_chaser),
+    "anti_trend": ("Anti-Trend", "Avoids trending for differentiation.", _agent_anti_trend),
+    "energy_saver": ("Energy Saver", "Only posts when energy > 0.7.", _agent_energy_saver),
+    "queue_heavy": ("Queue Heavy", "3 days prep, then posts from queue.", _agent_queue_heavy),
+    "midday": ("Midday Focus", "Posts only 11-14 peak hours.", _agent_midday),
+    "random": ("Random Actor", "Random actions. Baseline test.", _agent_random),
+    "carousel_only": ("Carousel Only", "Only carousel posts.", _agent_carousel_only),
+    "tech_niche": ("Tech Niche", "AI/coding content focus.", _agent_tech_niche),
+    "lifestyle_niche": ("Lifestyle Niche", "Fitness/wellness focus.", _agent_lifestyle_niche),
+    "high_freq": ("High Frequency", "3 posts per day target.", _agent_high_freq),
+    "low_freq": ("Low Frequency", "1 post every 2 days.", _agent_low_freq),
+    "comp_avoider": ("Competitor Avoider", "Checks saturation before posting.", _agent_comp_avoider),
+    "tue_thu": ("Tuesday Thursday", "Peak weekday targeting.", _agent_tue_thu),
+    "monday": ("Monday Motivation", "Only Monday posts.", _agent_monday),
+    "tag_exploiter": ("Tag Exploiter", "Uses best-performing tags.", _agent_tag_exploiter),
+    "alternating": ("Alternating Format", "Rotates content types.", _agent_alternating),
+    "engagement_chaser": ("Engagement Chaser", "Posts more when engagement high.", _agent_engagement_chaser),
+    "conservative": ("Conservative Energy", "Never goes below 0.5 energy.", _agent_conservative),
+    "aggressive": ("Aggressive Energy", "Pushes to 0.15 energy.", _agent_aggressive),
+    "sleep_respecting": ("Sleep Respecting", "Monitors hours_since_sleep.", _agent_sleep_respecting),
+    "night_shift": ("Night Shift", "Inverted schedule, sleeps during day.", _agent_night_shift),
+    "split_schedule": ("Split Schedule", "Morning and evening posts.", _agent_split_schedule),
+    "growth_focus": ("Growth Focus", "Maximizes follower growth.", _agent_growth_focus),
+    "content_creator": ("Content Creator", "Heavy content creation ratio.", _agent_content_creator),
+    "weekday_only": ("Weekday Only", "No weekend posting.", _agent_weekday_only),
+    "double_peak": ("Double Peak", "Posts at 9am and 3pm.", _agent_double_peak),
+    "crypto_niche": ("Crypto/Web3", "Crypto content focus.", _agent_crypto_niche),
+    "gaming_niche": ("Gaming Niche", "Gaming audience timing.", _agent_gaming_niche),
+    "productivity": ("Productivity Guru", "Morning productivity posts.", _agent_productivity),
+    "food_creator": ("Food Creator", "Meal-time posting.", _agent_food_creator),
+    "travel": ("Travel Blogger", "Travel content strategy.", _agent_travel),
+    "fashion": ("Fashion Content", "Fashion niche timing.", _agent_fashion),
+    "photography": ("Photography Focus", "Golden hour timing.", _agent_photography),
+    "stoic": ("Stoic Philosophy", "Minimal daily wisdom.", _agent_stoic),
+    "saas": ("SaaS/Business", "B2B content timing.", _agent_saas),
+    "creator_economy": ("Creator Economy", "Monetization focus.", _agent_creator_economy),
+    "ml_deep": ("ML/AI Deep Dive", "Technical content.", _agent_ml_deep),
+    "sleep_debt_aware": ("Sleep Debt Aware", "Monitors sleep_debt field.", _agent_sleep_debt_aware),
+    "marathon": ("Marathon Runner", "Extended awake, tests deprivation.", _agent_marathon),
+    "napper": ("Napper", "Strategic short rests.", _agent_napper),
+    "optimal_sleep": ("Optimal Sleep", "8-hour sleep blocks.", _agent_optimal_sleep),
+    "events": ("Events/News", "Event-based trending tags.", _agent_events),
 }
+
+
+@app.get("/dashboard/scenarios")
+async def dashboard_scenarios():
+    """List all simulation strategies for the dashboard UI."""
+    items = [{"id": k, "label": v[0], "description": v[1]} for k, v in SCENARIOS.items()]
+    items.sort(key=lambda x: (x["label"].lower()))
+    return JSONResponse(
+        content={"count": len(items), "scenarios": items},
+        headers={"Cache-Control": "no-store, max-age=0, must-revalidate"},
+    )
 
 
 @app.post("/dashboard/simulate")
 async def dashboard_simulate(body: Dict[str, Any] = Body(...)):
     global _sm_ct, _sm_tg, _SIM_RNG, _q7_phase, _burst_count, _te_idx, _bc_phase
+    global _qh_phase, _alt_idx, _ccm_ratio, _nap_count
     _sm_ct = 0
     _sm_tg = 0
     _q7_phase = "prep"
+    _qh_phase = "prep"
     _burst_count = 0
     _te_idx = 0
     _bc_phase = 0
+    _alt_idx = 0
+    _ccm_ratio = 0
+    _nap_count = 0
     _SIM_RNG = stdlib_random.Random(99)
 
     scenario_id = body.get("scenario", "smart")
@@ -438,6 +1222,8 @@ async def dashboard_simulate(body: Dict[str, Any] = Body(...)):
             "done": obs.done,
             "error": obs.error,
             "energy": round(obs.creator_energy, 3),
+            "hours_since_sleep": obs.hours_since_sleep,
+            "sleep_debt": round(obs.sleep_debt, 3),
             "followers": obs.follower_count,
             "engagement_rate": round(obs.engagement_rate, 4),
             "niche_saturation": round(obs.niche_saturation, 3),
@@ -463,6 +1249,8 @@ async def dashboard_simulate(body: Dict[str, Any] = Body(...)):
         "score": round(score, 4),
         "final": {
             "energy": round(obs.creator_energy, 3),
+            "hours_since_sleep": obs.hours_since_sleep,
+            "sleep_debt": round(obs.sleep_debt, 3),
             "followers": obs.follower_count,
             "engagement_rate": round(obs.engagement_rate, 4),
             "burned_out": obs.creator_energy <= 0,

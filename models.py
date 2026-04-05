@@ -40,6 +40,8 @@ class ViraltestObservation(Observation):
     day_of_week: int = Field(default=0, ge=0, le=6)
     days_elapsed: int = Field(default=0, ge=0)
     creator_energy: float = Field(default=1.0, ge=0.0, le=1.0)
+    hours_since_sleep: int = Field(default=0, ge=0, description="Hours since last sleep period")
+    sleep_debt: float = Field(default=0.0, ge=0.0, le=1.0, description="Accumulated sleep debt (0=rested, 1=severe)")
     follower_count: int = Field(default=0, ge=0)
     engagement_rate: float = Field(default=0.0, ge=0.0)
     posts_today: int = Field(default=0, ge=0)
