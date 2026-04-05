@@ -1,0 +1,482 @@
+[
+  {
+    "id": "2026-04-04T20:57:35.849755+00:00",
+    "scenario": "Always Rest",
+    "scenario_id": "always_rest",
+    "task": "weekly_competitive",
+    "score": 0.035,
+    "total_steps": 168,
+    "total_posts": 0,
+    "avg_reward": 0.15,
+    "final": {
+      "energy": 1.0,
+      "followers": 5497,
+      "engagement_rate": 0.0,
+      "burned_out": false
+    }
+  },
+  {
+    "id": "2026-04-04T20:57:36.058403+00:00",
+    "scenario": "Spam Post",
+    "scenario_id": "spam",
+    "task": "weekly_competitive",
+    "score": 0.0,
+    "total_steps": 4,
+    "total_posts": 4,
+    "avg_reward": 0.387,
+    "final": {
+      "energy": 0.0,
+      "followers": 10625,
+      "engagement_rate": 1.567,
+      "burned_out": true
+    }
+  },
+  {
+    "id": "2026-04-04T20:57:36.248882+00:00",
+    "scenario": "Bad Timing",
+    "scenario_id": "bad_timing",
+    "task": "weekly_competitive",
+    "score": 0.0937,
+    "total_steps": 168,
+    "total_posts": 49,
+    "avg_reward": 0.1611,
+    "final": {
+      "energy": 0.59,
+      "followers": 10237,
+      "engagement_rate": 0.0358,
+      "burned_out": false
+    }
+  },
+  {
+    "id": "2026-04-04T20:57:36.445156+00:00",
+    "scenario": "No Rest",
+    "scenario_id": "no_rest",
+    "task": "weekly_competitive",
+    "score": 0.0,
+    "total_steps": 8,
+    "total_posts": 8,
+    "avg_reward": 0.2686,
+    "final": {
+      "energy": 0.0,
+      "followers": 10213,
+      "engagement_rate": 0.2732,
+      "burned_out": true
+    }
+  },
+  {
+    "id": "2026-04-04T20:57:36.637122+00:00",
+    "scenario": "Smart Agent",
+    "scenario_id": "smart",
+    "task": "weekly_competitive",
+    "score": 0.8745,
+    "total_steps": 168,
+    "total_posts": 14,
+    "avg_reward": 0.2301,
+    "final": {
+      "energy": 1.0,
+      "followers": 12200,
+      "engagement_rate": 1.5557,
+      "burned_out": false
+    }
+  },
+  {
+    "id": "2026-04-04T20:57:36.845464+00:00",
+    "scenario": "Copycat",
+    "scenario_id": "copycat",
+    "task": "weekly_competitive",
+    "score": 0.6136,
+    "total_steps": 168,
+    "total_posts": 21,
+    "avg_reward": 0.1887,
+    "final": {
+      "energy": 1.0,
+      "followers": 11589,
+      "engagement_rate": 0.497,
+      "burned_out": false
+    }
+  },
+  {
+    "id": "2026-04-04T20:57:37.051727+00:00",
+    "scenario": "Queue Optimizer",
+    "scenario_id": "queue_optimizer",
+    "task": "weekly_competitive",
+    "score": 0.352,
+    "total_steps": 168,
+    "total_posts": 14,
+    "avg_reward": 0.2233,
+    "final": {
+      "energy": 1.0,
+      "followers": 11215,
+      "engagement_rate": 0.8701,
+      "burned_out": false
+    }
+  },
+  {
+    "id": "2026-04-04T20:57:37.258141+00:00",
+    "scenario": "Burst Poster",
+    "scenario_id": "burst",
+    "task": "weekly_competitive",
+    "score": 0.6111,
+    "total_steps": 168,
+    "total_posts": 57,
+    "avg_reward": 0.2318,
+    "final": {
+      "energy": 0.44,
+      "followers": 11701,
+      "engagement_rate": 0.2076,
+      "burned_out": false
+    }
+  },
+  {
+    "id": "2026-04-04T20:57:37.465213+00:00",
+    "scenario": "Weekend Warrior",
+    "scenario_id": "weekend",
+    "task": "weekly_competitive",
+    "score": 0.1257,
+    "total_steps": 168,
+    "total_posts": 6,
+    "avg_reward": 0.1648,
+    "final": {
+      "energy": 1.0,
+      "followers": 7659,
+      "engagement_rate": 0.635,
+      "burned_out": false
+    }
+  },
+  {
+    "id": "2026-04-04T20:57:37.668143+00:00",
+    "scenario": "Tag Explorer",
+    "scenario_id": "tag_explorer",
+    "task": "weekly_competitive",
+    "score": 0.8323,
+    "total_steps": 168,
+    "total_posts": 15,
+    "avg_reward": 0.2253,
+    "final": {
+      "energy": 0.94,
+      "followers": 11351,
+      "engagement_rate": 0.7735,
+      "burned_out": false
+    }
+  },
+  {
+    "id": "2026-04-04T20:57:37.881982+00:00",
+    "scenario": "Balanced Creator",
+    "scenario_id": "balanced",
+    "task": "weekly_competitive",
+    "score": 0.8775,
+    "total_steps": 168,
+    "total_posts": 28,
+    "avg_reward": 0.2187,
+    "final": {
+      "energy": 1.0,
+      "followers": 12534,
+      "engagement_rate": 0.8273,
+      "burned_out": false
+    }
+  },
+  {
+    "id": "2026-04-04T21:06:55.283992+00:00",
+    "scenario": "Tag Explorer",
+    "scenario_id": "tag_explorer",
+    "task": "weekly_competitive",
+    "score": 0.8323,
+    "total_steps": 168,
+    "total_posts": 15,
+    "avg_reward": 0.2253,
+    "final": {
+      "energy": 0.94,
+      "followers": 11351,
+      "engagement_rate": 0.7735,
+      "burned_out": false
+    }
+  },
+  {
+    "id": "2026-04-04T21:26:06.570545+00:00",
+    "scenario": "Smart Agent",
+    "scenario_id": "smart",
+    "task": "weekly_competitive",
+    "score": 0.8745,
+    "total_steps": 168,
+    "total_posts": 14,
+    "avg_reward": 0.2301,
+    "final": {
+      "energy": 1.0,
+      "followers": 12200,
+      "engagement_rate": 1.5557,
+      "burned_out": false
+    }
+  },
+  {
+    "id": "2026-04-04T22:09:19.912163+00:00",
+    "scenario": "Tag Explorer",
+    "scenario_id": "tag_explorer",
+    "task": "weekly_competitive",
+    "score": 0.8323,
+    "total_steps": 168,
+    "total_posts": 15,
+    "avg_reward": 0.2253,
+    "final": {
+      "energy": 0.94,
+      "followers": 11351,
+      "engagement_rate": 0.7735,
+      "burned_out": false
+    }
+  },
+  {
+    "id": "2026-04-04T22:09:46.689413+00:00",
+    "scenario": "Tag Explorer",
+    "scenario_id": "tag_explorer",
+    "task": "weekly_competitive",
+    "score": 0.8323,
+    "total_steps": 168,
+    "total_posts": 15,
+    "avg_reward": 0.2253,
+    "final": {
+      "energy": 0.94,
+      "followers": 11351,
+      "engagement_rate": 0.7735,
+      "burned_out": false
+    }
+  },
+  {
+    "id": "2026-04-04T22:10:01.292431+00:00",
+    "scenario": "Tag Explorer",
+    "scenario_id": "tag_explorer",
+    "task": "weekly_competitive",
+    "score": 0.8323,
+    "total_steps": 168,
+    "total_posts": 15,
+    "avg_reward": 0.2253,
+    "final": {
+      "energy": 0.94,
+      "followers": 11351,
+      "engagement_rate": 0.7735,
+      "burned_out": false
+    }
+  },
+  {
+    "id": "2026-04-05T07:15:36.326347+00:00",
+    "scenario": "Bad Timing",
+    "scenario_id": "bad_timing",
+    "task": "weekly_competitive",
+    "score": 0.0937,
+    "total_steps": 168,
+    "total_posts": 49,
+    "avg_reward": 0.1611,
+    "final": {
+      "energy": 0.59,
+      "followers": 10237,
+      "engagement_rate": 0.0358,
+      "burned_out": false
+    }
+  },
+  {
+    "id": "2026-04-05T07:40:57.606057+00:00",
+    "scenario": "Tag Explorer",
+    "scenario_id": "tag_explorer",
+    "task": "weekly_competitive",
+    "score": 0.8323,
+    "total_steps": 168,
+    "total_posts": 15,
+    "avg_reward": 0.2253,
+    "final": {
+      "energy": 0.94,
+      "followers": 11351,
+      "engagement_rate": 0.7735,
+      "burned_out": false
+    }
+  },
+  {
+    "id": "2026-04-05T07:42:44.478526+00:00",
+    "scenario": "Always Rest",
+    "scenario_id": "always_rest",
+    "task": "weekly_engage",
+    "score": 0.0,
+    "total_steps": 168,
+    "total_posts": 0,
+    "avg_reward": 0.15,
+    "final": {
+      "energy": 1.0,
+      "followers": 5497,
+      "engagement_rate": 0.0,
+      "burned_out": false
+    }
+  },
+  {
+    "id": "2026-04-05T07:43:35.405517+00:00",
+    "scenario": "Copycat",
+    "scenario_id": "copycat",
+    "task": "weekly_engage",
+    "score": 0.6597,
+    "total_steps": 168,
+    "total_posts": 21,
+    "avg_reward": 0.1887,
+    "final": {
+      "energy": 1.0,
+      "followers": 11589,
+      "engagement_rate": 0.497,
+      "burned_out": false
+    }
+  },
+  {
+    "id": "2026-04-05T07:43:40.954150+00:00",
+    "scenario": "Copycat",
+    "scenario_id": "copycat",
+    "task": "weekly_engage",
+    "score": 0.6597,
+    "total_steps": 168,
+    "total_posts": 21,
+    "avg_reward": 0.1887,
+    "final": {
+      "energy": 1.0,
+      "followers": 11589,
+      "engagement_rate": 0.497,
+      "burned_out": false
+    }
+  },
+  {
+    "id": "2026-04-05T07:43:48.810895+00:00",
+    "scenario": "Smart Agent",
+    "scenario_id": "smart",
+    "task": "weekly_engage",
+    "score": 0.9098,
+    "total_steps": 168,
+    "total_posts": 14,
+    "avg_reward": 0.2301,
+    "final": {
+      "energy": 1.0,
+      "followers": 12200,
+      "engagement_rate": 1.5557,
+      "burned_out": false
+    }
+  },
+  {
+    "id": "2026-04-05T07:43:57.297259+00:00",
+    "scenario": "Burst Poster",
+    "scenario_id": "burst",
+    "task": "weekly_engage",
+    "score": 0.7139,
+    "total_steps": 168,
+    "total_posts": 57,
+    "avg_reward": 0.2318,
+    "final": {
+      "energy": 0.44,
+      "followers": 11701,
+      "engagement_rate": 0.2076,
+      "burned_out": false
+    }
+  },
+  {
+    "id": "2026-04-05T07:45:09.509292+00:00",
+    "scenario": "Balanced Creator",
+    "scenario_id": "balanced",
+    "task": "weekly_engage",
+    "score": 1.0,
+    "total_steps": 168,
+    "total_posts": 28,
+    "avg_reward": 0.2187,
+    "final": {
+      "energy": 1.0,
+      "followers": 12534,
+      "engagement_rate": 0.8273,
+      "burned_out": false
+    }
+  },
+  {
+    "id": "2026-04-05T07:45:41.183954+00:00",
+    "scenario": "Smart Agent",
+    "scenario_id": "smart",
+    "task": "weekly_engage",
+    "score": 0.9098,
+    "total_steps": 168,
+    "total_posts": 14,
+    "avg_reward": 0.2301,
+    "final": {
+      "energy": 1.0,
+      "followers": 12200,
+      "engagement_rate": 1.5557,
+      "burned_out": false
+    }
+  },
+  {
+    "id": "2026-04-05T08:11:30.607340+00:00",
+    "scenario": "Smart Agent",
+    "scenario_id": "smart",
+    "task": "weekly_engage",
+    "score": 0.9098,
+    "total_steps": 168,
+    "total_posts": 14,
+    "avg_reward": 0.2301,
+    "final": {
+      "energy": 1.0,
+      "followers": 12200,
+      "engagement_rate": 1.5557,
+      "burned_out": false
+    }
+  },
+  {
+    "id": "2026-04-05T08:11:50.917153+00:00",
+    "scenario": "Balanced Creator",
+    "scenario_id": "balanced",
+    "task": "weekly_competitive",
+    "score": 0.8775,
+    "total_steps": 168,
+    "total_posts": 28,
+    "avg_reward": 0.2187,
+    "final": {
+      "energy": 1.0,
+      "followers": 12534,
+      "engagement_rate": 0.8273,
+      "burned_out": false
+    }
+  },
+  {
+    "id": "2026-04-05T08:12:15.319943+00:00",
+    "scenario": "Smart Agent",
+    "scenario_id": "smart",
+    "task": "weekly_competitive",
+    "score": 0.8745,
+    "total_steps": 168,
+    "total_posts": 14,
+    "avg_reward": 0.2301,
+    "final": {
+      "energy": 1.0,
+      "followers": 12200,
+      "engagement_rate": 1.5557,
+      "burned_out": false
+    }
+  },
+  {
+    "id": "2026-04-05T08:14:38.365237+00:00",
+    "scenario": "Balanced Creator",
+    "scenario_id": "balanced",
+    "task": "weekly_competitive",
+    "score": 0.8775,
+    "total_steps": 168,
+    "total_posts": 28,
+    "avg_reward": 0.2187,
+    "final": {
+      "energy": 1.0,
+      "followers": 12534,
+      "engagement_rate": 0.8273,
+      "burned_out": false
+    }
+  },
+  {
+    "id": "2026-04-05T08:25:25.665631+00:00",
+    "scenario": "Burst Poster",
+    "scenario_id": "burst",
+    "task": "weekly_competitive",
+    "score": 0.6111,
+    "total_steps": 168,
+    "total_posts": 57,
+    "avg_reward": 0.2318,
+    "final": {
+      "energy": 0.44,
+      "followers": 11701,
+      "engagement_rate": 0.2076,
+      "burned_out": false
+    }
+  }
+]

@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Tag Performance Lab — Viraltest</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<script>
+tailwind.config={darkMode:"class",theme:{extend:{colors:{"on-secondary-fixed":"#001e2c","surface-container-lowest":"#060e20","on-secondary-fixed-variant":"#004c69","surface-variant":"#2d3449","on-primary":"#3c0091","secondary-container":"#00a6e0","on-secondary-container":"#00374d","surface-dim":"#0b1326","tertiary":"#ffb2b9","on-tertiary":"#67001f","on-primary-fixed":"#23005c","on-primary-fixed-variant":"#5516be","tertiary-fixed":"#ffdadc","on-primary-container":"#340080","primary-container":"#a078ff","secondary":"#7bd0ff","error-container":"#93000a","outline":"#958ea0","surface-container-high":"#222a3d","surface-container-low":"#131b2e","inverse-on-surface":"#283044","inverse-surface":"#dae2fd","on-secondary":"#00354a","on-background":"#dae2fd","on-tertiary-container":"#5b001a","surface-container-highest":"#2d3449","tertiary-container":"#ea6479","secondary-fixed-dim":"#7bd0ff","error":"#ffb4ab","on-surface":"#dae2fd","surface-bright":"#31394d","inverse-primary":"#6d3bd7","primary":"#d0bcff","on-tertiary-fixed-variant":"#891933","surface-tint":"#d0bcff","primary-fixed-dim":"#d0bcff","on-surface-variant":"#cbc3d7","primary-fixed":"#e9ddff","tertiary-fixed-dim":"#ffb2b9","on-tertiary-fixed":"#400010","on-error-container":"#ffdad6","surface":"#0b1326","on-error":"#690005","background":"#0b1326","secondary-fixed":"#c4e7ff","outline-variant":"#494454","surface-container":"#171f33"},borderRadius:{DEFAULT:"0.125rem",lg:"0.25rem",xl:"0.5rem",full:"0.75rem"},fontFamily:{headline:["Inter"],body:["Inter"],label:["Space Grotesk"]}}}};
+</script>
+<style>
+.material-symbols-outlined{font-variation-settings:'FILL' 0,'wght' 400,'GRAD' 0,'opsz' 24}
+.glass-panel{background:rgba(34,42,61,.6);backdrop-filter:blur(24px);border:1px solid rgba(73,68,84,.2)}
+</style>
+</head>
+<body class="bg-background text-on-surface font-body selection:bg-primary/30 min-h-screen flex">
+
+<!-- SideNavBar -->
+<aside class="flex flex-col sticky top-0 h-screen w-72 border-r border-white/5 bg-[#060e20] shadow-2xl shadow-slate-950/50">
+  <div class="p-8">
+    <h1 class="text-2xl font-black tracking-tighter text-transparent bg-clip-text bg-gradient-to-br from-[#d0bcff] to-[#a078ff]">Viraltest</h1>
+    <p class="font-label text-[10px] uppercase tracking-widest text-slate-500 mt-1">Obsidian Lens v2.4</p>
+  </div>
+  <nav class="flex-1 px-4 space-y-2">
+    <a href="/dashboard" class="flex items-center gap-3 px-4 py-3 rounded-lg text-slate-400 font-medium hover:text-slate-200 hover:bg-white/5 transition-all duration-300">
+      <span class="material-symbols-outlined">dashboard</span><span class="font-label text-sm tracking-tight">Dashboard</span>
+    </a>
+    <a href="/dashboard/competitors" class="flex items-center gap-3 px-4 py-3 rounded-lg text-slate-400 font-medium hover:text-slate-200 hover:bg-white/5 transition-all duration-300">
+      <span class="material-symbols-outlined">monitoring</span><span class="font-label text-sm tracking-tight">Competitor Insights</span>
+    </a>
+    <a href="/dashboard/tags" class="flex items-center gap-3 px-4 py-3 rounded-lg text-[#d0bcff] font-bold border-r-2 border-[#d0bcff] bg-gradient-to-r from-[#d0bcff]/10 to-transparent">
+      <span class="material-symbols-outlined">science</span><span class="font-label text-sm tracking-tight">Tag Performance Lab</span>
+    </a>
+  </nav>
+  <div class="p-6 mt-auto">
+    <div class="flex items-center gap-3 px-2">
+      <div class="w-10 h-10 rounded-full bg-surface-container-highest flex items-center justify-center text-primary"><span class="material-symbols-outlined">person</span></div>
+      <div><p class="text-sm font-bold text-on-surface">Creator Profile</p><p class="text-[10px] font-label text-on-surface-variant">PRO PLAN</p></div>
+    </div>
+  </div>
+</aside>
+
+<!-- Main Content -->
+<main class="flex-1 flex flex-col">
+  <header class="flex justify-between items-center px-8 sticky top-0 z-50 w-full bg-[#0b1326]/60 backdrop-blur-xl h-16 border-b border-white/5">
+    <div class="flex items-center gap-4">
+      <div class="flex items-center gap-2 px-3 py-1.5 rounded-full bg-surface-container-low border border-outline-variant/10">
+        <span class="material-symbols-outlined text-secondary text-sm">health_and_safety</span>
+        <span class="font-label text-[11px] text-on-surface-variant">System: <span id="sysStatus">Loading</span></span>
+      </div>
+      <div class="flex items-center gap-2 px-3 py-1.5 rounded-full bg-surface-container-low border border-outline-variant/10">
+        <span class="material-symbols-outlined text-primary text-sm">directions_run</span>
+        <span class="font-label text-[11px] text-on-surface-variant">Step: <span id="stepCount">-</span></span>
+      </div>
+    </div>
+    <div class="flex items-center gap-6">
+      <button class="material-symbols-outlined text-slate-400 hover:text-white transition-colors">notifications</button>
+    </div>
+  </header>
+
+  <div class="p-10 space-y-8 max-w-[1400px] mx-auto w-full">
+    <!-- Header Section -->
+    <div class="flex flex-wrap justify-between items-end gap-4">
+      <div>
+        <h2 class="text-4xl font-black tracking-tight text-on-surface">Tag Performance Lab</h2>
+        <p class="text-on-surface-variant mt-2 max-w-xl">Deep-dive into RL agent's taxonomic optimization. Discovery vs. exploitation yield efficiency.</p>
+      </div>
+      <div class="flex gap-3">
+        <div class="glass-panel px-6 py-4 rounded-xl text-center">
+          <p class="font-label text-[10px] text-secondary uppercase tracking-widest mb-1">Active Cycle</p>
+          <p class="text-2xl font-bold font-label">168-STEP</p>
+        </div>
+        <div class="glass-panel px-6 py-4 rounded-xl text-center">
+          <p class="font-label text-[10px] text-primary uppercase tracking-widest mb-1">Tags Used</p>
+          <p class="text-2xl font-bold font-label" id="tagsUsedCount">0</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="grid grid-cols-12 gap-6">
+
+      <!-- Learning Progress Graph -->
+      <div class="col-span-12 lg:col-span-8 glass-panel p-8 rounded-xl relative overflow-hidden">
+        <div class="flex justify-between items-start mb-12">
+          <div><h3 class="text-xl font-bold text-on-surface">Learning Progress</h3><p class="font-label text-xs text-on-surface-variant">Tag performance over simulation steps</p></div>
+          <div class="flex gap-4">
+            <div class="flex items-center gap-2"><div class="w-3 h-3 rounded-full bg-secondary"></div><span class="font-label text-[11px] text-on-surface-variant">Exploration</span></div>
+            <div class="flex items-center gap-2"><div class="w-3 h-3 rounded-full bg-primary"></div><span class="font-label text-[11px] text-on-surface-variant">Exploitation</span></div>
+          </div>
+        </div>
+        <div class="h-64 relative">
+          <svg id="progressSvg" class="w-full h-full" preserveAspectRatio="none" viewBox="0 0 1000 200">
+            <defs>
+              <linearGradient id="grad-blue" x1="0%" y1="0%" x2="0%" y2="100%"><stop offset="0%" style="stop-color:#7bd0ff;stop-opacity:1"/><stop offset="100%" style="stop-color:#7bd0ff;stop-opacity:0"/></linearGradient>
+              <linearGradient id="grad-purple" x1="0%" y1="0%" x2="0%" y2="100%"><stop offset="0%" style="stop-color:#d0bcff;stop-opacity:1"/><stop offset="100%" style="stop-color:#d0bcff;stop-opacity:0"/></linearGradient>
+            </defs>
+            <path id="explorationPath" d="" fill="url(#grad-blue)" opacity="0.3"/>
+            <path id="exploitationPath" d="" fill="url(#grad-purple)" opacity="0.3"/>
+            <path id="explorationLine" d="" fill="none" stroke="#7bd0ff" stroke-width="2"/>
+            <path id="exploitationLine" d="" fill="none" stroke="#d0bcff" stroke-width="2"/>
+          </svg>
+          <div class="absolute bottom-[-24px] inset-x-0 flex justify-between font-label text-[10px] text-on-surface-variant px-2">
+            <span>STEP 0</span><span>STEP 42</span><span>STEP 84</span><span>STEP 126</span><span>STEP 168</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tag Cloud -->
+      <div class="col-span-12 lg:col-span-4 glass-panel p-8 rounded-xl">
+        <h3 class="text-xl font-bold text-on-surface mb-2">Tag Cloud</h3>
+        <p class="font-label text-xs text-on-surface-variant mb-6">Trending (Blue) vs Used (Purple)</p>
+        <div class="relative min-h-[250px] flex flex-wrap content-center justify-center gap-3" id="tagCloud">
+          <span class="text-on-surface-variant italic text-sm">Loading...</span>
+        </div>
+      </div>
+
+      <!-- Tag Efficiency Bar Chart -->
+      <div class="col-span-12 lg:col-span-7 glass-panel p-8 rounded-xl">
+        <div class="flex justify-between items-end mb-10">
+          <div><h3 class="text-xl font-bold text-on-surface">Tag Efficiency</h3><p class="font-label text-xs text-on-surface-variant">Engagement Yield per Tag</p></div>
+        </div>
+        <div class="space-y-5" id="tagBars">
+          <div class="text-on-surface-variant italic text-sm">Run the environment to see tag data...</div>
+        </div>
+      </div>
+
+      <!-- Top Lists -->
+      <div class="col-span-12 lg:col-span-5 grid grid-cols-1 gap-6">
+        <div class="glass-panel p-6 rounded-xl border-l-4 border-secondary">
+          <h4 class="font-bold text-on-surface mb-4 flex items-center gap-2">
+            <span class="material-symbols-outlined text-secondary">trending_up</span> Trending Tags (Live)
+          </h4>
+          <ul class="space-y-3" id="trendingList">
+            <li class="text-on-surface-variant italic text-sm">Loading...</li>
+          </ul>
+        </div>
+        <div class="glass-panel p-6 rounded-xl border-l-4 border-primary">
+          <h4 class="font-bold text-on-surface mb-4 flex items-center gap-2">
+            <span class="material-symbols-outlined text-primary">star</span> Top Performing Tags
+          </h4>
+          <ul class="space-y-3" id="topPerfList">
+            <li class="text-on-surface-variant italic text-sm">Post with tags to see performance...</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<script>
+const API=window.location.origin;
+
+async function loadTagData(){
+  try{
+    const r=await fetch(API+"/dashboard/insights");
+    const d=await r.json();
+    const f=d.final;
+    document.getElementById("sysStatus").textContent="Online";
+    document.getElementById("stepCount").textContent=d.total_steps;
+
+    const tagPerf=f.tag_performance||{};
+    const trendTags=new Set(f.trending_tags||[]);
+    const usedTags=new Set(Object.keys(tagPerf));
+
+    // Collect used tags from steps
+    d.steps.forEach(s=>(s.action_tags||[]).forEach(t=>usedTags.add(t)));
+
+    renderTagCloud(trendTags,usedTags);
+    renderTagBars(tagPerf);
+    renderTrendingList(f.trending_tags||[]);
+    renderTopPerf(tagPerf);
+    renderGraph(d.steps.filter(s=>s.action==="post"));
+    document.getElementById("tagsUsedCount").textContent=usedTags.size;
+
+  }catch(e){document.getElementById("sysStatus").textContent="Error"}
+}
+
+function renderTagCloud(trending,used){
+  const el=document.getElementById("tagCloud");
+  const allTags=[...new Set([...trending,...used])];
+  if(!allTags.length){el.innerHTML='<span class="text-on-surface-variant italic">No tags yet</span>';return}
+  const sizes=["text-xs","text-sm","text-base","text-lg","text-xl","text-2xl"];
+  el.innerHTML=allTags.map((t,i)=>{
+    const isTrending=trending.has(t);
+    const isUsed=used.has(t);
+    const size=sizes[Math.min(5,(i%3)+(isUsed?2:0))];
+    const color=isTrending?"secondary":"primary";
+    const weight=isUsed?"font-black":"font-label";
+    return `<span class="px-3 py-1 rounded-md bg-${color}/10 border border-${color}/20 text-${color} ${weight} ${size}">#${t.toUpperCase()}</span>`;
+  }).join("");
+}
+
+function renderTagBars(perf){
+  const el=document.getElementById("tagBars");
+  const entries=Object.entries(perf).sort((a,b)=>b[1]-a[1]).slice(0,8);
+  if(!entries.length){el.innerHTML='<div class="text-on-surface-variant italic">No tag data yet</div>';return}
+  const maxVal=Math.max(...entries.map(e=>e[1]),0.01);
+  el.innerHTML=entries.map(([tag,val],i)=>{
+    const pct=Math.min(100,(val/maxVal)*100).toFixed(1);
+    const color=i%2===0?"secondary":"primary";
+    return `<div class="space-y-2">
+      <div class="flex justify-between font-label text-xs"><span class="text-on-surface">#${tag.toUpperCase()}</span><span class="text-${color}">${val.toFixed(3)}</span></div>
+      <div class="h-2 bg-surface-container-low rounded-full overflow-hidden"><div class="h-full bg-gradient-to-r from-${color} to-${color}/40" style="width:${pct}%"></div></div>
+    </div>`;
+  }).join("");
+}
+
+function renderTrendingList(tags){
+  const el=document.getElementById("trendingList");
+  if(!tags.length){el.innerHTML='<li class="text-on-surface-variant italic">No trending tags</li>';return}
+  el.innerHTML=tags.slice(0,5).map((t,i)=>`
+    <li class="flex items-center justify-between group">
+      <span class="font-label text-sm text-on-surface-variant group-hover:text-secondary transition-colors">${i+1}. #${t.toUpperCase()}</span>
+      <span class="text-[10px] px-2 py-0.5 rounded bg-secondary/10 text-secondary font-label">LIVE</span>
+    </li>`).join("");
+}
+
+function renderTopPerf(perf){
+  const el=document.getElementById("topPerfList");
+  const top=Object.entries(perf).sort((a,b)=>b[1]-a[1]).slice(0,5);
+  if(!top.length){el.innerHTML='<li class="text-on-surface-variant italic">No data yet</li>';return}
+  el.innerHTML=top.map(([tag,val],i)=>`
+    <li class="flex items-center justify-between group">
+      <span class="font-label text-sm text-on-surface-variant group-hover:text-primary transition-colors">${i+1}. #${tag.toUpperCase()}</span>
+      <span class="text-[10px] font-label text-on-surface-variant italic">${val.toFixed(3)} avg</span>
+    </li>`).join("");
+}
+
+function renderGraph(postSteps){
+  if(!postSteps.length)return;
+  const W=1000,H=200;
+  const maxR=Math.max(...postSteps.map(s=>s.reward),0.01);
+
+  const exploitPts=postSteps.map((s,i)=>{
+    const x=(i/(postSteps.length-1||1))*W;
+    const y=H-(s.reward/maxR)*H*0.85-15;
+    return{x,y};
+  });
+
+  // Exploration: unique tags seen so far (normalized)
+  const seenTags=new Set();
+  const expPts=postSteps.map((s,i)=>{
+    (s.action_tags||[]).forEach(t=>seenTags.add(t));
+    const x=(i/(postSteps.length-1||1))*W;
+    const y=H-(seenTags.size/30)*H*0.85-15;
+    return{x,y};
+  });
+
+  const toLine=ps=>ps.map((p,i)=>(i===0?"M":"L")+p.x.toFixed(1)+","+p.y.toFixed(1)).join(" ");
+  const toArea=ps=>toLine(ps)+` L${ps[ps.length-1].x.toFixed(1)},${H} L${ps[0].x.toFixed(1)},${H} Z`;
+
+  document.getElementById("explorationLine").setAttribute("d",toLine(expPts));
+  document.getElementById("exploitationLine").setAttribute("d",toLine(exploitPts));
+  document.getElementById("explorationPath").setAttribute("d",toArea(expPts));
+  document.getElementById("exploitationPath").setAttribute("d",toArea(exploitPts));
+}
+
+loadTagData();
+</script>
+</body></html>
