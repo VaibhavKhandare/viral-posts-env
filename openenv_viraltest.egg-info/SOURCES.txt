@@ -1,13 +1,16 @@
 README.md
 __init__.py
 client.py
+inference.py
 models.py
 pyproject.toml
+test_scenarios.py
 ./__init__.py
 ./client.py
 ./inference.py
 ./models.py
 ./test_scenarios.py
+./visualize_optimal.py
 openenv_viraltest.egg-info/PKG-INFO
 openenv_viraltest.egg-info/SOURCES.txt
 openenv_viraltest.egg-info/dependency_links.txt

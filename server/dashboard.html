@@ -27,6 +27,14 @@ body{background:#0b1326;color:#dae2fd;font-family:'Inter',sans-serif}
 .sim-btn:hover{transform:translateY(-1px)}
 .action-btn{transition:all .15s ease}
 .action-btn:active{transform:scale(.97)}
+.dash-tip-parent{position:relative;cursor:help}
+.dash-hover-hint{
+  position:absolute;left:0;right:0;bottom:0;z-index:20;
+  transform:translateY(100%);transition:transform .2s ease;
+  padding:8px 10px;font-family:'Space Grotesk',sans-serif;font-size:9px;line-height:1.45;
+  color:#cbc3d7;background:rgba(19,27,46,.96);border-top:1px solid rgba(73,68,84,.35)
+}
+.dash-tip-parent:hover .dash-hover-hint{transform:translateY(0)}
 </style>
 </head>
 <body class="min-h-screen flex">
@@ -87,7 +95,7 @@ body{background:#0b1326;color:#dae2fd;font-family:'Inter',sans-serif}
     <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
 
       <!-- Energy -->
-      <div class="glass-solid p-4 rounded-xl relative overflow-hidden">
+      <div class="glass-solid p-4 rounded-xl overflow-hidden dash-tip-parent">
         <div class="absolute top-3 right-3 opacity-10"><span class="material-symbols-outlined text-4xl">bolt</span></div>
         <div class="text-[9px] font-label text-on-surface-dim uppercase tracking-widest mb-1">Energy</div>
         <div id="energyVal" class="text-3xl font-black tracking-tight">1.00</div>
@@ -95,53 +103,67 @@ body{background:#0b1326;color:#dae2fd;font-family:'Inter',sans-serif}
           <div id="energyBar" class="h-full bg-gradient-to-r from-tertiary-ctr to-tertiary energy-bar rounded-full" style="width:100%"></div>
         </div>
         <div id="energyHint" class="mt-1.5 text-[9px] font-label text-tertiary">FULL</div>
+        <div class="dash-hover-hint">Stamina for creating and posting. Rest recovers it; posts and create drain it. Low energy reduces content quality in the sim.</div>
       </div>
 
       <!-- Followers -->
-      <div class="glass-solid p-4 rounded-xl relative overflow-hidden">
+      <div class="glass-solid p-4 rounded-xl overflow-hidden dash-tip-parent">
         <div class="absolute top-3 right-3 opacity-10"><span class="material-symbols-outlined text-4xl">group</span></div>
         <div class="text-[9px] font-label text-on-surface-dim uppercase tracking-widest mb-1">Followers</div>
         <div id="followersVal" class="text-3xl font-black tracking-tight">10,000</div>
         <div id="followersDelta" class="mt-1.5 text-[9px] font-label text-on-surface-dim">+0 since start</div>
+        <div class="dash-hover-hint">Simulated audience size. Can grow from good posting patterns on competitive tasks; shown for the current episode.</div>
       </div>
 
       <!-- Engagement -->
-      <div class="glass-solid p-4 rounded-xl relative overflow-hidden">
+      <div class="glass-solid p-4 rounded-xl overflow-hidden dash-tip-parent">
         <div class="absolute top-3 right-3 opacity-10"><span class="material-symbols-outlined text-4xl">trending_up</span></div>
         <div class="text-[9px] font-label text-on-surface-dim uppercase tracking-widest mb-1">Engagement</div>
         <div id="engVal" class="text-3xl font-black tracking-tight text-secondary">0.000</div>
         <div id="engVsComp" class="mt-1.5 text-[9px] font-label text-on-surface-dim">vs competitors: —</div>
+        <div class="dash-hover-hint">Rolling engagement rate from your recent posts (0–1 scale). Compared to simulated rivals below; not real analytics.</div>
       </div>
 
       <!-- Posts Today -->
-      <div class="glass-solid p-4 rounded-xl relative overflow-hidden">
+      <div class="glass-solid p-4 rounded-xl overflow-hidden dash-tip-parent">
         <div class="absolute top-3 right-3 opacity-10"><span class="material-symbols-outlined text-4xl">send</span></div>
         <div class="text-[9px] font-label text-on-surface-dim uppercase tracking-widest mb-1">Posts Today</div>
         <div id="postsVal" class="text-3xl font-black tracking-tight">0</div>
         <div class="mt-1.5 text-[9px] font-label text-on-surface-dim">max 2-3 optimal</div>
+        <div class="dash-hover-hint">Count of posts in the current simulated day. Too many in one day can hurt performance; the sim rewards pacing.</div>
       </div>
 
       <!-- Queue -->
-      <div class="glass-solid p-4 rounded-xl relative overflow-hidden">
+      <div class="glass-solid p-4 rounded-xl overflow-hidden dash-tip-parent">
         <div class="absolute top-3 right-3 opacity-10"><span class="material-symbols-outlined text-4xl">inventory_2</span></div>
         <div class="text-[9px] font-label text-on-surface-dim uppercase tracking-widest mb-1">Content Queue</div>
         <div id="queueVal" class="text-3xl font-black tracking-tight text-secondary">0</div>
         <div class="mt-1.5 text-[9px] font-label text-on-surface-dim">posts cost 50% less</div>
+        <div class="dash-hover-hint">Drafts from “Create”. Posting from the queue uses less energy than posting cold—plan ahead in the sim.</div>
       </div>
 
       <!-- Saturation -->
-      <div class="glass-solid p-4 rounded-xl relative overflow-hidden">
+      <div class="glass-solid p-4 rounded-xl overflow-hidden dash-tip-parent">
         <div class="absolute top-3 right-3 opacity-10"><span class="material-symbols-outlined text-4xl">layers</span></div>
         <div class="text-[9px] font-label text-on-surface-dim uppercase tracking-widest mb-1">Niche Saturation</div>
         <div id="satVal" class="text-3xl font-black tracking-tight text-primary">0.00</div>
         <div id="satHint" class="mt-1.5 text-[9px] font-label text-primary">LOW — post unique topics</div>
+        <div class="dash-hover-hint">How much simulated competitors recently posted on similar topics. High saturation usually lowers your engagement if you match the crowd.</div>
       </div>
+    </div>
+
+    <div class="glass-solid border border-outline/20 rounded-xl px-4 py-3 flex gap-3 items-start overflow-hidden dash-tip-parent">
+      <span class="material-symbols-outlined text-secondary text-lg shrink-0">info</span>
+      <p class="text-[11px] font-label text-on-surface-dim leading-relaxed flex-1 min-w-0">
+        <span class="text-on-surface font-semibold">Simulation only</span> — not live social data. Every <span class="text-on-surface">step</span> advances the sim; <span class="text-on-surface">Post</span> updates tags and engagement metrics; <span class="text-on-surface">Rest</span> mainly restores energy while competitor activity still ticks forward.
+      </p>
+      <div class="dash-hover-hint">Hover any card with a help cursor for what that widget measures. Observations match what an RL agent would see—generated inside Viraltest, not from real APIs.</div>
     </div>
 
     <!-- Charts Row -->
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
       <!-- Engagement Forecast -->
-      <div class="lg:col-span-2 glass-solid p-5 rounded-xl">
+      <div class="lg:col-span-2 glass-solid p-5 rounded-xl overflow-hidden dash-tip-parent">
         <div class="flex justify-between items-center mb-4">
           <div>
             <h3 class="text-sm font-bold">Engagement Forecast</h3>
@@ -171,10 +193,11 @@ body{background:#0b1326;color:#dae2fd;font-family:'Inter',sans-serif}
             <span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span><span>Sun</span>
           </div>
         </div>
+        <div class="dash-hover-hint">Blue line: your engagement after each step. Purple dashed line: simple forward projection from recent trend—for display only.</div>
       </div>
 
       <!-- Burnout Meter -->
-      <div class="glass-solid p-5 rounded-xl flex flex-col items-center">
+      <div class="glass-solid p-5 rounded-xl flex flex-col items-center overflow-hidden dash-tip-parent">
         <div class="flex justify-between items-center w-full mb-3">
           <h3 class="text-sm font-bold">Burnout Meter</h3>
           <span class="material-symbols-outlined text-tertiary text-lg">monitor_heart</span>
@@ -193,13 +216,14 @@ body{background:#0b1326;color:#dae2fd;font-family:'Inter',sans-serif}
         <div id="burnoutRec" class="p-3 rounded-lg bg-surface border border-outline/15 text-[10px] font-label text-on-surface-dim text-center leading-relaxed w-full">
           Recommendation: Start with a balanced create-rest cycle.
         </div>
+        <div class="dash-hover-hint">Visual fatigue from posting without enough rest. High burnout lowers effective engagement; Rest and spacing posts help.</div>
       </div>
     </div>
 
     <!-- Second Charts Row -->
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
       <!-- Follower Growth -->
-      <div class="glass-solid p-5 rounded-xl">
+      <div class="glass-solid p-5 rounded-xl overflow-hidden dash-tip-parent">
         <h3 class="text-sm font-bold mb-3">Follower Growth</h3>
         <div class="h-32 relative">
           <svg id="followerChart" class="w-full h-full" viewBox="0 0 280 120" preserveAspectRatio="xMidYMid meet"></svg>
@@ -208,38 +232,111 @@ body{background:#0b1326;color:#dae2fd;font-family:'Inter',sans-serif}
           <span id="followerTotal" class="text-2xl font-black tracking-tight text-secondary">+0</span>
           <span id="followerDeltaPct" class="text-xs font-label text-secondary/60">+0% vs start</span>
         </div>
+        <div class="dash-hover-hint">Follower delta over the episode (competitive task). Chart is built from the same history as the main dashboard.</div>
       </div>
 
       <!-- Top Performing Tags -->
-      <div class="glass-solid p-5 rounded-xl">
+      <div class="glass-solid p-5 rounded-xl overflow-hidden dash-tip-parent">
         <h3 class="text-sm font-bold mb-3">Top Performing Tags</h3>
         <div id="topTagsList" class="space-y-3">
           <div class="text-on-surface-dim italic text-[10px]">No tag data yet</div>
         </div>
+        <div class="dash-hover-hint">Tags you used, ranked by rolling average engagement in the sim. Updates when you post with hashtags.</div>
       </div>
 
       <!-- Recent RL Actions -->
-      <div class="glass-solid p-5 rounded-xl">
+      <div class="glass-solid p-5 rounded-xl overflow-hidden dash-tip-parent">
         <h3 class="text-sm font-bold mb-3">Recent RL Actions</h3>
         <div id="recentActions" class="space-y-3 max-h-44 overflow-y-auto">
           <div class="text-on-surface-dim italic text-[10px]">No actions yet</div>
+        </div>
+        <div class="dash-hover-hint">Last few actions you sent (rest, create, post). Helps you see the sequence the environment processed.</div>
+      </div>
+    </div>
+
+    <!-- Step & hour analytics -->
+    <div class="space-y-3">
+      <div class="flex items-center gap-2 px-1">
+        <span class="material-symbols-outlined text-secondary text-lg">show_chart</span>
+        <h2 class="text-sm font-bold">Step &amp; hour analytics</h2>
+        <span class="text-[9px] font-label text-on-surface-dim uppercase tracking-widest">X = simulation step (~1h); posts histogram = clock hour (0–23)</span>
+      </div>
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-3">
+        <div class="glass-solid p-4 rounded-xl overflow-hidden dash-tip-parent">
+          <div class="text-[10px] font-bold text-on-surface-dim uppercase tracking-widest mb-1">Energy / step</div>
+          <svg id="tsEnergy" class="w-full h-24" viewBox="0 0 320 96" preserveAspectRatio="xMidYMid meet"></svg>
+          <div class="dash-hover-hint">Creator energy after each step. Rest pushes it up; create/post drain it.</div>
+        </div>
+        <div class="glass-solid p-4 rounded-xl overflow-hidden dash-tip-parent">
+          <div class="text-[10px] font-bold text-on-surface-dim uppercase tracking-widest mb-1">Followers / step</div>
+          <svg id="tsFollowers" class="w-full h-24" viewBox="0 0 320 96" preserveAspectRatio="xMidYMid meet"></svg>
+          <div class="dash-hover-hint">Total followers over time (simulated count).</div>
+        </div>
+        <div class="glass-solid p-4 rounded-xl overflow-hidden dash-tip-parent">
+          <div class="text-[10px] font-bold text-on-surface-dim uppercase tracking-widest mb-1">Follower Δ / step</div>
+          <svg id="tsFollowDelta" class="w-full h-24" viewBox="0 0 320 96" preserveAspectRatio="xMidYMid meet"></svg>
+          <div class="dash-hover-hint">Change in followers vs previous step. Spikes often follow posts on competitive tasks.</div>
+        </div>
+        <div class="glass-solid p-4 rounded-xl overflow-hidden dash-tip-parent">
+          <div class="text-[10px] font-bold text-on-surface-dim uppercase tracking-widest mb-1">Engagement rate / step</div>
+          <svg id="tsEngagement" class="w-full h-24" viewBox="0 0 320 96" preserveAspectRatio="xMidYMid meet"></svg>
+          <div class="dash-hover-hint">Rolling engagement rate from the environment after each step.</div>
+        </div>
+        <div class="glass-solid p-4 rounded-xl overflow-hidden dash-tip-parent">
+          <div class="text-[10px] font-bold text-on-surface-dim uppercase tracking-widest mb-1">Reward / step</div>
+          <svg id="tsReward" class="w-full h-24" viewBox="0 0 320 96" preserveAspectRatio="xMidYMid meet"></svg>
+          <div class="dash-hover-hint">RL reward returned each step (same series as the main forecast chart).</div>
+        </div>
+        <div class="glass-solid p-4 rounded-xl overflow-hidden dash-tip-parent">
+          <div class="text-[10px] font-bold text-on-surface-dim uppercase tracking-widest mb-1">Niche saturation / step</div>
+          <svg id="tsSat" class="w-full h-24" viewBox="0 0 320 96" preserveAspectRatio="xMidYMid meet"></svg>
+          <div class="dash-hover-hint">Overlap with competitor topics in the last 12 sim hours.</div>
+        </div>
+        <div class="glass-solid p-4 rounded-xl overflow-hidden dash-tip-parent">
+          <div class="text-[10px] font-bold text-on-surface-dim uppercase tracking-widest mb-1">Content queue / step</div>
+          <svg id="tsQueue" class="w-full h-24" viewBox="0 0 320 96" preserveAspectRatio="xMidYMid meet"></svg>
+          <div class="dash-hover-hint">Queued drafts from Create; publishing from queue costs less energy.</div>
+        </div>
+        <div class="glass-solid p-4 rounded-xl overflow-hidden dash-tip-parent">
+          <div class="text-[10px] font-bold text-on-surface-dim uppercase tracking-widest mb-1">Competitor avg engagement / step</div>
+          <svg id="tsComp" class="w-full h-24" viewBox="0 0 320 96" preserveAspectRatio="xMidYMid meet"></svg>
+          <div class="dash-hover-hint">Mean engagement on simulated rivals’ recent posts.</div>
+        </div>
+        <div class="glass-solid p-4 rounded-xl overflow-hidden dash-tip-parent">
+          <div class="text-[10px] font-bold text-on-surface-dim uppercase tracking-widest mb-1">Sleep debt / step</div>
+          <svg id="tsSleep" class="w-full h-24" viewBox="0 0 320 96" preserveAspectRatio="xMidYMid meet"></svg>
+          <div class="dash-hover-hint">Accumulated sleep debt (0 rested → 1 severe). Rest reduces it in the sim.</div>
+        </div>
+        <div class="glass-solid p-4 rounded-xl overflow-hidden dash-tip-parent">
+          <div class="text-[10px] font-bold text-on-surface-dim uppercase tracking-widest mb-1">Hours since sleep / step</div>
+          <svg id="tsAwake" class="w-full h-24" viewBox="0 0 320 96" preserveAspectRatio="xMidYMid meet"></svg>
+          <div class="dash-hover-hint">Hours awake in simulation; long stretches hurt quality until you rest.</div>
+        </div>
+        <div class="glass-solid p-4 rounded-xl overflow-hidden dash-tip-parent">
+          <div class="text-[10px] font-bold text-on-surface-dim uppercase tracking-widest mb-1">Posts by clock hour (0–23)</div>
+          <svg id="tsPostsHour" class="w-full h-20" viewBox="0 0 320 72" preserveAspectRatio="xMidYMid meet"></svg>
+          <div class="text-[10px] font-bold text-on-surface-dim uppercase tracking-widest mt-2 mb-0.5">Action counts (run)</div>
+          <svg id="tsActionMix" class="w-full h-14" viewBox="0 0 320 52" preserveAspectRatio="xMidYMid meet"></svg>
+          <div class="dash-hover-hint">Histogram: when you posted by simulated clock. Bars below: total rest vs create vs post steps in this session.</div>
         </div>
       </div>
     </div>
 
     <!-- Bottom Stats -->
     <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-      <div class="glass-solid p-4 rounded-xl">
+      <div class="glass-solid p-4 rounded-xl overflow-hidden dash-tip-parent">
         <div class="text-[9px] font-label text-on-surface-dim uppercase tracking-widest mb-1">Avg Reward</div>
         <div id="bottomAvgReward" class="text-3xl font-black tracking-tight">0.00</div>
         <div id="bottomAvgDelta" class="text-[10px] font-label text-on-surface-dim mt-1">—</div>
+        <div class="dash-hover-hint">Mean reward signal returned each step—what an RL agent would try to maximize for this task.</div>
       </div>
-      <div class="glass-solid p-4 rounded-xl">
+      <div class="glass-solid p-4 rounded-xl overflow-hidden dash-tip-parent">
         <div class="text-[9px] font-label text-on-surface-dim uppercase tracking-widest mb-1">Total Posts</div>
         <div id="bottomTotalPosts" class="text-3xl font-black tracking-tight">0</div>
         <div class="text-[10px] font-label text-on-surface-dim mt-1">across episode</div>
+        <div class="dash-hover-hint">All Post actions since reset. Does not count Rest or Create alone.</div>
       </div>
-      <div class="glass-solid p-4 rounded-xl relative overflow-hidden">
+      <div class="glass-solid p-4 rounded-xl overflow-hidden dash-tip-parent">
         <div class="text-[9px] font-label text-on-surface-dim uppercase tracking-widest mb-1">Viral Probability</div>
         <div id="bottomViralProb" class="text-3xl font-black tracking-tight">LOW (0%)</div>
         <div class="absolute bottom-0 right-0 w-2/3 h-10 opacity-30">
@@ -248,6 +345,7 @@ body{background:#0b1326;color:#dae2fd;font-family:'Inter',sans-serif}
             <path d="M0,25 Q30,5 60,20 Q90,30 120,10 Q150,0 180,15 Q200,25 200,30 L0,30Z" fill="url(#viralGrad)"/>
           </svg>
         </div>
+        <div class="dash-hover-hint">Heuristic label from recent engagement momentum—not a prediction of real virality.</div>
       </div>
     </div>
 
@@ -258,20 +356,20 @@ body{background:#0b1326;color:#dae2fd;font-family:'Inter',sans-serif}
       <div class="lg:col-span-8 space-y-5">
 
         <!-- Action Panel -->
-        <div class="glass-solid p-5 rounded-xl">
+        <div class="glass-solid p-5 rounded-xl overflow-hidden dash-tip-parent">
           <h3 class="text-sm font-bold mb-4 flex items-center gap-2"><span class="material-symbols-outlined text-primary text-lg">gamepad</span>Send Action</h3>
           <div class="grid grid-cols-3 gap-3 mb-3">
-            <button onclick="doAction('rest')" class="action-btn group p-4 rounded-xl bg-gradient-to-br from-tertiary/5 to-tertiary/10 border border-tertiary/15 hover:border-tertiary/40 hover:from-tertiary/10 hover:to-tertiary/20 text-center">
+            <button type="button" title="Advance one hour, recover energy, reduce burnout. Competitors still simulate." onclick="doAction('rest')" class="action-btn group p-4 rounded-xl bg-gradient-to-br from-tertiary/5 to-tertiary/10 border border-tertiary/15 hover:border-tertiary/40 hover:from-tertiary/10 hover:to-tertiary/20 text-center">
               <span class="material-symbols-outlined text-tertiary text-3xl group-hover:scale-110 transition-transform">hotel</span>
               <div class="text-sm font-bold text-tertiary mt-1">Rest</div>
               <div class="text-[9px] text-on-surface-dim mt-0.5">+0.12 energy recovery</div>
             </button>
-            <button onclick="doAction('create_content')" class="action-btn group p-4 rounded-xl bg-gradient-to-br from-secondary/5 to-secondary/10 border border-secondary/15 hover:border-secondary/40 hover:from-secondary/10 hover:to-secondary/20 text-center">
+            <button type="button" title="Add one item to the queue. Costs a little energy; use before Post for cheaper publishes." onclick="doAction('create_content')" class="action-btn group p-4 rounded-xl bg-gradient-to-br from-secondary/5 to-secondary/10 border border-secondary/15 hover:border-secondary/40 hover:from-secondary/10 hover:to-secondary/20 text-center">
               <span class="material-symbols-outlined text-secondary text-3xl group-hover:scale-110 transition-transform">edit_note</span>
               <div class="text-sm font-bold text-secondary mt-1">Create</div>
               <div class="text-[9px] text-on-surface-dim mt-0.5">-0.05 energy, +1 queue</div>
             </button>
-            <button onclick="showPostForm()" id="postBtn" class="action-btn group p-4 rounded-xl bg-gradient-to-br from-primary/5 to-primary/10 border border-primary/15 hover:border-primary/40 hover:from-primary/10 hover:to-primary/20 text-center">
+            <button type="button" title="Publish to the feed: choose format, topic, and tags. Drives engagement and tag stats." onclick="showPostForm()" id="postBtn" class="action-btn group p-4 rounded-xl bg-gradient-to-br from-primary/5 to-primary/10 border border-primary/15 hover:border-primary/40 hover:from-primary/10 hover:to-primary/20 text-center">
               <span class="material-symbols-outlined text-primary text-3xl group-hover:scale-110 transition-transform">send</span>
               <div class="text-sm font-bold text-primary mt-1">Post</div>
               <div class="text-[9px] text-on-surface-dim mt-0.5">type + topic + tags</div>
@@ -290,14 +388,15 @@ body{background:#0b1326;color:#dae2fd;font-family:'Inter',sans-serif}
             </div>
             <input id="tagsInput" class="w-full bg-surface-low border border-outline/30 rounded-lg px-3 py-2 text-sm focus:ring-1 focus:ring-primary focus:outline-none" placeholder="Tags comma-separated (ai, ml, coding)"/>
             <div class="flex gap-2">
-              <button onclick="doPost()" class="px-5 py-2 rounded-lg bg-primary text-[#23005c] font-bold text-sm hover:opacity-90 transition">Send Post</button>
-              <button onclick="hidePostForm()" class="px-5 py-2 rounded-lg border border-outline/30 text-sm text-on-surface-dim hover:bg-white/5 transition">Cancel</button>
+              <button type="button" onclick="doPost()" class="px-5 py-2 rounded-lg bg-primary text-[#23005c] font-bold text-sm hover:opacity-90 transition">Send Post</button>
+              <button type="button" onclick="hidePostForm()" class="px-5 py-2 rounded-lg border border-outline/30 text-sm text-on-surface-dim hover:bg-white/5 transition">Cancel</button>
             </div>
           </div>
+          <div class="dash-hover-hint">Each click sends one OpenEnv step to the server. Rest / Create / Post change state and return a new observation for the UI.</div>
         </div>
 
         <!-- Simulate Scenarios (loaded from /dashboard/scenarios) -->
-        <div class="glass-solid p-5 rounded-xl">
+        <div class="glass-solid p-5 rounded-xl overflow-hidden dash-tip-parent">
           <div class="flex flex-wrap justify-between items-center gap-2 mb-3">
             <h3 class="text-sm font-bold flex items-center gap-2"><span class="material-symbols-outlined text-secondary text-lg">science</span>Simulate Scenarios</h3>
             <div class="flex flex-col items-end gap-0.5">
@@ -320,16 +419,18 @@ body{background:#0b1326;color:#dae2fd;font-family:'Inter',sans-serif}
             </div>
             <div id="simResult" class="hidden"></div>
           </div>
+          <div class="dash-hover-hint">Runs a full 168-step episode with a fixed bot strategy. Compare scores across tactics; does not change your manual session until you Reset.</div>
         </div>
 
         <!-- Step History -->
-        <div class="glass-solid rounded-xl overflow-hidden">
+        <div class="glass-solid rounded-xl overflow-hidden dash-tip-parent">
           <div class="p-4 border-b border-white/5 flex justify-between items-center">
             <h3 class="text-sm font-bold flex items-center gap-2"><span class="material-symbols-outlined text-on-surface-dim text-lg">history</span>Step History</h3>
           </div>
           <div id="historyLog" class="p-4 space-y-1.5 max-h-72 overflow-y-auto text-[11px] font-mono leading-relaxed">
             <div class="text-on-surface-dim italic">Reset the environment to begin...</div>
           </div>
+          <div class="dash-hover-hint">Raw log of rewards and actions for each step you took in this session (after Reset).</div>
         </div>
       </div>
 
@@ -337,7 +438,7 @@ body{background:#0b1326;color:#dae2fd;font-family:'Inter',sans-serif}
       <div class="lg:col-span-4 space-y-5">
 
         <!-- Grader Score (shown when done) -->
-        <div id="graderCard" class="hidden glass-solid p-5 rounded-xl border-2 border-primary pulse-glow">
+        <div id="graderCard" class="hidden glass-solid p-5 rounded-xl border-2 border-primary pulse-glow overflow-hidden dash-tip-parent">
           <div class="flex justify-between items-start">
             <div>
               <div class="text-[9px] font-label text-primary uppercase tracking-widest">Final Score</div>
@@ -346,10 +447,11 @@ body{background:#0b1326;color:#dae2fd;font-family:'Inter',sans-serif}
             <span class="material-symbols-outlined text-primary/20 text-5xl">emoji_events</span>
           </div>
           <div id="graderLabel" class="mt-2 text-xs font-label text-on-surface-dim">Episode complete</div>
+          <div class="dash-hover-hint">End-of-episode grade for the selected task (engagement, burnout, tags, competitors, etc., per task rules).</div>
         </div>
 
         <!-- Trending -->
-        <div class="glass-solid p-5 rounded-xl">
+        <div class="glass-solid p-5 rounded-xl overflow-hidden dash-tip-parent">
           <h3 class="text-sm font-bold mb-3 flex items-center gap-2"><span class="material-symbols-outlined text-secondary text-lg">trending_up</span>Trending Now</h3>
           <div class="mb-3">
             <div class="text-[9px] font-label text-on-surface-dim uppercase tracking-widest mb-1.5">Topics</div>
@@ -359,18 +461,20 @@ body{background:#0b1326;color:#dae2fd;font-family:'Inter',sans-serif}
             <div class="text-[9px] font-label text-on-surface-dim uppercase tracking-widest mb-1.5">Tags</div>
             <div id="trendTags" class="flex flex-wrap gap-1.5"></div>
           </div>
+          <div class="dash-hover-hint">Simulated platform trends this step. Using these tags in posts can give a small boost in the environment math.</div>
         </div>
 
         <!-- Tag Performance -->
-        <div class="glass-solid p-5 rounded-xl">
+        <div class="glass-solid p-5 rounded-xl overflow-hidden dash-tip-parent">
           <h3 class="text-sm font-bold mb-3 flex items-center gap-2"><span class="material-symbols-outlined text-primary text-lg">science</span>Tag Performance</h3>
           <div id="tagPerf" class="space-y-2.5 text-xs">
             <div class="text-on-surface-dim italic">No data yet</div>
           </div>
+          <div class="dash-hover-hint">Per-tag rolling average engagement from your own posts (last few samples). Helps you see which hashtags worked in the sim.</div>
         </div>
 
         <!-- Competitors -->
-        <div class="glass-solid p-5 rounded-xl">
+        <div class="glass-solid p-5 rounded-xl overflow-hidden dash-tip-parent">
           <h3 class="text-sm font-bold mb-3 flex items-center gap-2"><span class="material-symbols-outlined text-tertiary text-lg">groups</span>Competitors</h3>
           <div class="mb-3 flex justify-between items-center">
             <span class="text-[9px] font-label text-on-surface-dim uppercase tracking-widest">Avg Engagement</span>
@@ -379,12 +483,13 @@ body{background:#0b1326;color:#dae2fd;font-family:'Inter',sans-serif}
           <div id="compPosts" class="space-y-2 text-xs">
             <div class="text-on-surface-dim italic">No competitor posts yet</div>
           </div>
+          <div class="dash-hover-hint">Three simulated rival creators: their recent posts and engagement. Used for saturation and “vs competitors” on the main stats.</div>
         </div>
       </div>
     </div>
 
     <!-- Simulation History -->
-    <div class="glass-solid rounded-xl overflow-hidden">
+    <div class="glass-solid rounded-xl overflow-hidden dash-tip-parent">
       <div class="p-4 border-b border-white/5 flex justify-between items-center">
         <h3 class="text-sm font-bold flex items-center gap-2"><span class="material-symbols-outlined text-primary text-lg">history</span>Simulation History</h3>
         <div class="flex items-center gap-2">
@@ -413,6 +518,7 @@ body{background:#0b1326;color:#dae2fd;font-family:'Inter',sans-serif}
           </tbody>
         </table>
       </div>
+      <div class="dash-hover-hint">Past scenario runs saved on the server (JSON). Refresh to reload; Clear wipes the log.</div>
     </div>
 
   </main>
@@ -426,12 +532,166 @@ const energyHistory=[];
 const rewardHistory=[];
 const followerHistory=[];
 const actionLog=[];
+const timelineHistory=[];
 let totalPostsCount=0;
+
+function recordTimelineFromObs(d, actionType){
+  const o=d.observation||d;
+  const step=o.metadata?.step??timelineHistory.length;
+  timelineHistory.push({
+    step,
+    simHour:(o.days_elapsed??0)*24+(o.current_hour??0),
+    hour:o.current_hour??0,
+    day:o.day_of_week??0,
+    energy:o.creator_energy??0,
+    followers:o.follower_count??0,
+    engagement:o.engagement_rate??0,
+    reward:d.reward??0,
+    sat:o.niche_saturation??0,
+    queue:o.content_queue_size??0,
+    postsToday:o.posts_today??0,
+    compAvg:o.competitor_avg_engagement??0,
+    sleepDebt:o.sleep_debt??0,
+    hoursSinceSleep:o.hours_since_sleep??0,
+    action:actionType||null,
+  });
+}
+
+function simActionType(actionStr){
+  const a=actionStr||"";
+  if(a.startsWith("post"))return "post";
+  if(a.startsWith("rest"))return "rest";
+  if(a.startsWith("create"))return "create_content";
+  return null;
+}
+
+function redrawTimelineCharts(){
+  drawStepLineChart("tsEnergy","energy","#ffb2b9");
+  drawStepLineChart("tsFollowers","followers","#7bd0ff");
+  drawFollowerDeltaChart("tsFollowDelta");
+  drawStepLineChart("tsEngagement","engagement","#a078ff");
+  drawStepLineChart("tsReward","reward","#d0bcff");
+  drawStepLineChart("tsSat","sat","#ea6479");
+  drawStepLineChart("tsQueue","queue","#00a6e0");
+  drawStepLineChart("tsComp","compAvg","#7bd0ff");
+  drawStepLineChart("tsSleep","sleepDebt","#958ea0");
+  drawStepLineChart("tsAwake","hoursSinceSleep","#cbc3d7");
+  drawPostsByHour("tsPostsHour");
+  drawActionMix("tsActionMix");
+}
+
+function drawStepLineChart(svgId,key,color){
+  const svg=document.getElementById(svgId);
+  const data=timelineHistory;
+  if(!svg)return;
+  if(!data.length){
+    svg.innerHTML='<text x="160" y="52" text-anchor="middle" fill="#958ea0" font-size="10" font-family="Space Grotesk,sans-serif">No steps yet</text>';
+    return;
+  }
+  const W=320,H=88,pL=4,pR=4,pT=4,pB=12;
+  const vals=data.map(d=>Number(d[key]??0));
+  let minV=Math.min(...vals),maxV=Math.max(...vals);
+  if(maxV-minV<1e-9){minV-=0.5;maxV+=0.5;}
+  const n=data.length;
+  const pts=data.map((d,i)=>{
+    const x=pL+(n<=1?0.5:i/(n-1))*(W-pL-pR);
+    const v=Number(d[key]??0);
+    const y=pT+(1-(v-minV)/(maxV-minV))*(H-pT-pB);
+    return {x,y};
+  });
+  let lineD;
+  if(pts.length===1)lineD=`M${pts[0].x},${pts[0].y} L${(pts[0].x+1)},${pts[0].y}`;
+  else lineD=smoothPath(pts);
+  const last=pts[pts.length-1],first=pts[0];
+  const areaD=lineD+` L${last.x},${H-pB} L${first.x},${H-pB} Z`;
+  const gid="g_"+svgId.replace(/[^a-zA-Z0-9_]/g,"_");
+  svg.innerHTML=`<defs><linearGradient id="${gid}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${color}" stop-opacity="0.22"/><stop offset="1" stop-color="${color}" stop-opacity="0"/></linearGradient></defs><path d="${areaD}" fill="url(#${gid})"/><path d="${lineD}" fill="none" stroke="${color}" stroke-width="2"/>`;
+}
+
+function drawFollowerDeltaChart(svgId){
+  const svg=document.getElementById(svgId);
+  const data=timelineHistory;
+  if(!svg)return;
+  if(data.length<2){
+    svg.innerHTML='<text x="160" y="52" text-anchor="middle" fill="#958ea0" font-size="10" font-family="Space Grotesk,sans-serif">Need 2+ steps</text>';
+    return;
+  }
+  const dlt=data.map((d,i)=>i===0?0:d.followers-data[i-1].followers);
+  const maxA=Math.max(...dlt.map(a=>Math.abs(a)),1);
+  const W=320,H=88,pL=4,pR=4,pT=4,pB=12;
+  const midY=pT+(H-pT-pB)/2;
+  const n=data.length;
+  const pts=dlt.map((dv,i)=>{
+    const x=pL+(n<=1?0.5:i/(n-1))*(W-pL-pR);
+    const y=midY-(dv/maxA)*((H-pT-pB)/2-2);
+    return {x,y};
+  });
+  const lineD=smoothPath(pts);
+  svg.innerHTML=`<line x1="${pL}" y1="${midY}" x2="${W-pR}" y2="${midY}" stroke="#494454" stroke-width="0.5" opacity="0.5"/><path d="${lineD}" fill="none" stroke="#7bd0ff" stroke-width="2"/>`;
+}
+
+function drawPostsByHour(svgId){
+  const svg=document.getElementById(svgId);
+  if(!svg)return;
+  const buckets=new Array(24).fill(0);
+  for(const p of timelineHistory){
+    if(p.action==="post")buckets[p.hour]++;
+  }
+  const postN=buckets.reduce((a,b)=>a+b,0);
+  if(!postN){
+    svg.innerHTML='<text x="160" y="40" text-anchor="middle" fill="#958ea0" font-size="10" font-family="Space Grotesk,sans-serif">No posts yet — histogram fills when you post</text>';
+    return;
+  }
+  const max=Math.max(...buckets,1);
+  const W=320,H=64,pL=16,pR=4,pT=4,pB=16;
+  const slot=(W-pL-pR)/24;
+  const bw=slot*0.72;
+  let rects="";
+  for(let h=0;h<24;h++){
+    const bh=(buckets[h]/max)*(H-pT-pB);
+    const x=pL+h*slot+(slot-bw)/2;
+    const y=H-pB-Math.max(bh,0.5);
+    rects+=`<rect x="${x.toFixed(2)}" y="${y.toFixed(2)}" width="${bw.toFixed(2)}" height="${Math.max(bh,0.5).toFixed(2)}" fill="#d0bcff" rx="1"/>`;
+  }
+  let labels="";
+  for(let h=0;h<24;h+=6){
+    labels+=`<text x="${(pL+h*slot+bw/2).toFixed(1)}" y="${H-3}" text-anchor="middle" fill="#958ea0" font-size="8" font-family="Space Grotesk,sans-serif">${h}h</text>`;
+  }
+  svg.innerHTML=rects+labels;
+}
+
+function drawActionMix(svgId){
+  const svg=document.getElementById(svgId);
+  if(!svg)return;
+  if(!timelineHistory.length){
+    svg.innerHTML='<text x="160" y="28" text-anchor="middle" fill="#958ea0" font-size="10" font-family="Space Grotesk,sans-serif">No steps yet</text>';
+    return;
+  }
+  let r=0,c=0,p=0;
+  for(const x of timelineHistory){
+    if(x.action==="rest")r++;
+    else if(x.action==="create_content")c++;
+    else if(x.action==="post")p++;
+  }
+  const W=320,H=44,pT=6,pB=4;
+  const labels=[["Rest",r,"#ffb2b9"],["Create",c,"#7bd0ff"],["Post",p,"#d0bcff"]];
+  const max=Math.max(r,c,p,1);
+  const bw=90;
+  let out="";
+  labels.forEach(([lab,n,col],i)=>{
+    const x=20+i*100;
+    const bh=(n/max)*(H-pT-pB);
+    const y=H-pB-bh;
+    out+=`<rect x="${x}" y="${y}" width="${bw}" height="${Math.max(bh,2)}" fill="${col}" rx="2"/>`;
+    out+=`<text x="${x+bw/2}" y="${H+2}" text-anchor="middle" fill="#958ea0" font-size="8" font-family="Space Grotesk,sans-serif">${lab} ${n}</text>`;
+  });
+  svg.innerHTML=out;
+}
 
 async function doReset(){
   setStatus("Resetting...");
   const task=document.getElementById("taskSelect").value;
-  energyHistory.length=0;rewardHistory.length=0;followerHistory.length=0;actionLog.length=0;totalPostsCount=0;
+  energyHistory.length=0;rewardHistory.length=0;followerHistory.length=0;actionLog.length=0;timelineHistory.length=0;totalPostsCount=0;
   try{
     const r=await fetch(API+"/dashboard/reset",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({task})});
     const d=await r.json();
@@ -453,7 +713,7 @@ async function doAction(type){
   try{
     const r=await fetch(API+"/dashboard/step",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({action:{action_type:type}})});
     const d=await r.json();
-    updateUI(d);
+    updateUI(d,{actionType:type});
     addLog(type+"()",d.reward,d.done,d.observation?.error);
   }catch(e){setStatus("Error: "+e.message)}
 }
@@ -469,15 +729,16 @@ async function doPost(){
     const body={action:{action_type:"post",content_type:ct,topic,tags:tags.length?tags:undefined}};
     const r=await fetch(API+"/dashboard/step",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)});
     const d=await r.json();
-    updateUI(d);
+    updateUI(d,{actionType:"post"});
     addLog(`post(${ct},"${topic}",[${tags.join(",")}])`,d.reward,d.done,d.observation?.error);
     hidePostForm();
   }catch(e){setStatus("Error: "+e.message)}
 }
 
-function updateUI(d){
+function updateUI(d, opts={}){
   const o=d.observation||d;
   currentObs=o;
+  recordTimelineFromObs(d, opts.actionType);
   const energy=o.creator_energy??1;
   const followers=o.follower_count??0;
   const eng=o.engagement_rate??0;
@@ -584,6 +845,7 @@ function updateUI(d){
     document.querySelectorAll("#postBtn,.action-btn").forEach(b=>{b.disabled=false;b.classList.remove("opacity-30","pointer-events-none")});
     setStatus("Running");
   }
+  redrawTimelineCharts();
 }
 
 function smoothPath(pts){
@@ -717,7 +979,7 @@ async function runSim(scenario){
   document.getElementById("simBar").style.width="0%";
   document.getElementById("simPct").textContent="0%";
   document.getElementById("graderCard").classList.add("hidden");
-  energyHistory.length=0;rewardHistory.length=0;followerHistory.length=0;totalPostsCount=0;
+  energyHistory.length=0;rewardHistory.length=0;followerHistory.length=0;timelineHistory.length=0;totalPostsCount=0;
   setStatus("Simulating...");
 
   try{
@@ -734,6 +996,23 @@ async function runSim(scenario){
       rewardHistory.push(s.reward);
       energyHistory.push(s.energy);
       followerHistory.push(s.followers);
+      timelineHistory.push({
+        step:s.step,
+        simHour:(s.days_elapsed??0)*24+(s.hour??0),
+        hour:s.hour??0,
+        day:s.day??0,
+        energy:s.energy,
+        followers:s.followers,
+        engagement:s.engagement_rate,
+        reward:s.reward,
+        sat:s.niche_saturation,
+        queue:s.queue,
+        postsToday:s.posts_today,
+        compAvg:s.competitor_avg_engagement,
+        sleepDebt:s.sleep_debt??0,
+        hoursSinceSleep:s.hours_since_sleep??0,
+        action:simActionType(s.action),
+      });
       if(s.action.startsWith("post"))totalPostsCount++;
 
       const pct=Math.round((i+1)/total*100);
@@ -766,6 +1045,7 @@ async function runSim(scenario){
         drawBurnoutMeter(s.energy);
         drawFollowerBars();
         updateBottomStats();
+        redrawTimelineCharts();
 
         // Update trending
         const tt=document.getElementById("trendTopics");
@@ -807,6 +1087,7 @@ async function runSim(scenario){
 
     const f=d.final;
     const sc=d.score;
+    redrawTimelineCharts();
 
     // Final update of all panels using last step data
     const lastStep=d.steps[d.steps.length-1];
@@ -975,6 +1256,7 @@ async function loadScenarioButtons(){
 
 loadScenarioButtons();
 loadHistory();
+doReset();
 </script>
 </body>
 </html>

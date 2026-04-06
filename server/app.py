@@ -29,13 +29,14 @@ Usage:
 """
 
 import json
+import os
 import random as stdlib_random
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
 from fastapi import Body
-from fastapi.responses import HTMLResponse, JSONResponse
+from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse
 
 try:
     from openenv.core.env_server.http_server import create_app
@@ -43,6 +44,10 @@ except Exception as e:  # pragma: no cover
     raise ImportError(
         "openenv is required for the web interface. Install dependencies with '\n    uv sync\n'"
     ) from e
+
+# OpenEnv Gradio UI lives at /web; Dockerfile sets this — default on for local parity with HF Spaces.
+if "ENABLE_WEB_INTERFACE" not in os.environ:
+    os.environ["ENABLE_WEB_INTERFACE"] = "true"
 
 try:
     from ..models import ViraltestAction, ViraltestObservation
@@ -62,6 +67,18 @@ app = create_app(
     env_name="viraltest",
     max_concurrent_envs=1,
 )
+
+_gradio_web = os.getenv("ENABLE_WEB_INTERFACE", "false").lower() in ("true", "1", "yes")
+if not _gradio_web:
+
+    @app.get("/", include_in_schema=False)
+    async def _root_redirect():
+        return RedirectResponse("/dashboard", status_code=302)
+
+    @app.get("/web", include_in_schema=False)
+    @app.get("/web/", include_in_schema=False)
+    async def _web_disabled_redirect():
+        return RedirectResponse("/dashboard", status_code=302)
 
 _dash_env: Optional[ViraltestEnvironment] = None
 _HISTORY_FILE = Path(__file__).parent / "simulation_history.json"
@@ -1230,6 +1247,7 @@ async def dashboard_simulate(body: Dict[str, Any] = Body(...)):
             "posts_today": obs.posts_today,
             "hour": obs.current_hour,
             "day": obs.day_of_week,
+            "days_elapsed": obs.days_elapsed,
             "queue": obs.content_queue_size,
             "tag_performance": obs.tag_performance,
             "trending_topics": obs.trending_topics,
