@@ -114,7 +114,16 @@ async def dashboard():
 
 @app.get("/dashboard/history")
 async def dashboard_history():
-    return _load_history()
+    history = _load_history()
+    out: List[Dict[str, Any]] = []
+    for row in history:
+        entry = dict(row)
+        if not entry.get("description"):
+            sid = entry.get("scenario_id")
+            if sid and sid in SCENARIOS:
+                entry["description"] = SCENARIOS[sid][1]
+        out.append(entry)
+    return out
 
 
 @app.delete("/dashboard/history")

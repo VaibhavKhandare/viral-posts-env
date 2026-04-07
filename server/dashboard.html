@@ -1221,9 +1221,9 @@ async function loadHistory(){
       const desc=(h.description||"").trim();
       return `<tr class="border-b border-white/5 hover:bg-white/[.02] transition">
         <td class="px-4 py-2.5 text-on-surface-dim whitespace-nowrap">${time}</td>
-        <td class="px-4 py-2.5 min-w-[12rem] max-w-md">
+        <td class="px-4 py-2.5 min-w-[14rem] max-w-lg align-top">
           <div class="text-on-surface font-bold">${_escapeHtml(h.scenario)}</div>
-          ${desc?`<div class="text-[9px] text-on-surface-dim mt-0.5 leading-snug">${_escapeHtml(desc)}</div>`:""}
+          ${desc?`<div class="text-[10px] text-on-surface/75 mt-1 leading-relaxed whitespace-normal">${_escapeHtml(desc)}</div>`:""}
         </td>
         <td class="px-4 py-2.5 text-on-surface-dim">${taskLabels[h.task]||h.task}</td>
         <td class="px-4 py-2.5 text-right ${scoreColor} font-bold">${h.score.toFixed(4)}</td>
