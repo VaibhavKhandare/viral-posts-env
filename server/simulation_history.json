@@ -1,41 +1,5 @@
 [
   {
-    "id": "2026-04-05T10:50:54.830983+00:00",
-    "scenario": "Aggressive Energy",
-    "scenario_id": "aggressive",
-    "task": "weekly_competitive",
-    "score": 0.8255,
-    "total_steps": 168,
-    "total_posts": 29,
-    "avg_reward": 0.1875,
-    "final": {
-      "energy": 0.75,
-      "hours_since_sleep": 2,
-      "sleep_debt": 0.0,
-      "followers": 13021,
-      "engagement_rate": 0.8084,
-      "burned_out": false
-    }
-  },
-  {
-    "id": "2026-04-05T10:50:54.841363+00:00",
-    "scenario": "Alternating Format",
-    "scenario_id": "alternating",
-    "task": "weekly_competitive",
-    "score": 0.8533,
-    "total_steps": 168,
-    "total_posts": 14,
-    "avg_reward": 0.2297,
-    "final": {
-      "energy": 1.0,
-      "hours_since_sleep": 1,
-      "sleep_debt": 0.0,
-      "followers": 12174,
-      "engagement_rate": 1.5303,
-      "burned_out": false
-    }
-  },
-  {
     "id": "2026-04-05T10:50:54.850500+00:00",
     "scenario": "Always Rest",
     "scenario_id": "always_rest",
@@ -1670,6 +1634,168 @@
       "sleep_debt": 0.0,
       "followers": 11215,
       "engagement_rate": 0.8701,
+      "burned_out": false
+    }
+  },
+  {
+    "id": "2026-04-07T19:19:06.982475+00:00",
+    "scenario": "Easy: Afternoon story",
+    "scenario_id": "easy_relaxed",
+    "task": "weekly_engage",
+    "score": 0.0776,
+    "total_steps": 168,
+    "total_posts": 7,
+    "avg_reward": 0.1885,
+    "final": {
+      "energy": 1.0,
+      "hours_since_sleep": 1,
+      "sleep_debt": 0.0,
+      "followers": 10185,
+      "engagement_rate": 0.2689,
+      "burned_out": false
+    }
+  },
+  {
+    "id": "2026-04-07T19:25:22.760913+00:00",
+    "scenario": "Medium: Reel + carousel day",
+    "scenario_id": "medium_two_format",
+    "task": "weekly_engage",
+    "score": 1.0,
+    "total_steps": 168,
+    "total_posts": 14,
+    "avg_reward": 0.2305,
+    "final": {
+      "energy": 1.0,
+      "hours_since_sleep": 1,
+      "sleep_debt": 0.0,
+      "followers": 13498,
+      "engagement_rate": 2.3223,
+      "burned_out": false
+    }
+  },
+  {
+    "id": "2026-04-07T19:37:07.163654+00:00",
+    "scenario": "Easy: Morning story",
+    "scenario_id": "easy_morning_story",
+    "task": "weekly_engage",
+    "score": 0.1126,
+    "total_steps": 168,
+    "total_posts": 7,
+    "avg_reward": 0.2064,
+    "final": {
+      "energy": 1.0,
+      "hours_since_sleep": 1,
+      "sleep_debt": 0.0,
+      "followers": 10269,
+      "engagement_rate": 0.3903,
+      "burned_out": false
+    }
+  },
+  {
+    "id": "2026-04-07T19:37:08.936466+00:00",
+    "scenario": "Easy: One text at 1pm",
+    "scenario_id": "easy_one_a_day",
+    "task": "weekly_engage",
+    "score": 0.0992,
+    "total_steps": 168,
+    "total_posts": 7,
+    "avg_reward": 0.1933,
+    "final": {
+      "energy": 1.0,
+      "hours_since_sleep": 1,
+      "sleep_debt": 0.0,
+      "followers": 10239,
+      "engagement_rate": 0.3439,
+      "burned_out": false
+    }
+  },
+  {
+    "id": "2026-04-07T19:37:10.555676+00:00",
+    "scenario": "Easy: Afternoon story",
+    "scenario_id": "easy_relaxed",
+    "task": "weekly_engage",
+    "score": 0.0776,
+    "total_steps": 168,
+    "total_posts": 7,
+    "avg_reward": 0.1885,
+    "final": {
+      "energy": 1.0,
+      "hours_since_sleep": 1,
+      "sleep_debt": 0.0,
+      "followers": 10185,
+      "engagement_rate": 0.2689,
+      "burned_out": false
+    }
+  },
+  {
+    "id": "2026-04-07T19:37:12.240540+00:00",
+    "scenario": "Medium: Create then post",
+    "scenario_id": "medium_queue_cycle",
+    "task": "weekly_engage",
+    "score": 0.8459,
+    "total_steps": 168,
+    "total_posts": 14,
+    "avg_reward": 0.2318,
+    "final": {
+      "energy": 1.0,
+      "hours_since_sleep": 1,
+      "sleep_debt": 0.0,
+      "followers": 12045,
+      "engagement_rate": 1.3511,
+      "burned_out": false
+    }
+  },
+  {
+    "id": "2026-04-07T19:37:14.032300+00:00",
+    "scenario": "Medium: Trend + format rotation",
+    "scenario_id": "medium_trend_rotate",
+    "task": "weekly_engage",
+    "score": 0.5524,
+    "total_steps": 168,
+    "total_posts": 14,
+    "avg_reward": 0.2265,
+    "final": {
+      "energy": 1.0,
+      "hours_since_sleep": 1,
+      "sleep_debt": 0.0,
+      "followers": 11332,
+      "engagement_rate": 0.9003,
+      "burned_out": false
+    }
+  },
+  {
+    "id": "2026-04-07T19:37:15.697454+00:00",
+    "scenario": "Medium: Reel + carousel day",
+    "scenario_id": "medium_two_format",
+    "task": "weekly_engage",
+    "score": 1.0,
+    "total_steps": 168,
+    "total_posts": 14,
+    "avg_reward": 0.2305,
+    "final": {
+      "energy": 1.0,
+      "hours_since_sleep": 1,
+      "sleep_debt": 0.0,
+      "followers": 13498,
+      "engagement_rate": 2.3223,
+      "burned_out": false
+    }
+  },
+  {
+    "id": "2026-04-07T19:38:24.165792+00:00",
+    "scenario": "Easy: One text at 1pm",
+    "scenario_id": "easy_one_a_day",
+    "task": "weekly_engage",
+    "score": 0.0992,
+    "total_steps": 168,
+    "total_posts": 7,
+    "avg_reward": 0.1933,
+    "final": {
+      "energy": 1.0,
+      "hours_since_sleep": 1,
+      "sleep_debt": 0.0,
+      "followers": 10239,
+      "engagement_rate": 0.3439,
       "burned_out": false
     }
   }

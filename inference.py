@@ -5,13 +5,14 @@ MANDATORY
 - Before submitting, ensure the following variables are defined in your environment configuration:
     API_BASE_URL   The API endpoint for the LLM.
     MODEL_NAME     The model identifier to use for inference.
-    HF_TOKEN       Your Hugging Face / API key.
-    LOCAL_IMAGE_NAME The name of the local image to use for the environment if you are using from_docker_image()
+    HF_TOKEN or OPENAI_API_KEY or API_KEY   API key for the LLM client.
+    IMAGE_NAME or LOCAL_IMAGE_NAME   Docker image when using ViraltestEnv.from_docker_image()
 
-STDOUT FORMAT
-- [START] task=<task_name> env=<benchmark> model=<model_name>
-- [STEP]  step=<n> action=<action_str> reward=<0.00> done=<true|false> error=<msg|null>
-- [END]   success=<true|false> steps=<n> rewards=<r1,r2,...,rn>
+Optional:
+    ALLOW_SHORT_EPISODE=1   Allow MAX_STEPS below 168 (final grader score stays 0 if episode never ends).
+    MAX_STEPS   Step cap (default 168). Without ALLOW_SHORT_EPISODE, cap is at least 168 so graders run.
+
+STDOUT FORMAT (single space after tag; score two decimals) — match hackathon sample exactly.
 """
 
 import asyncio
@@ -23,49 +24,40 @@ from typing import Any, Dict, List, Optional
 from openai import OpenAI
 
 from viraltest import ViraltestAction, ViraltestEnv
+from viraltest.server.viraltest_environment import TAG_POOL, TASK_HORIZON
 
-IMAGE_NAME = os.getenv("IMAGE_NAME")
-API_KEY = os.getenv("HF_TOKEN") or os.getenv("API_KEY")
-API_BASE_URL = os.getenv("API_BASE_URL") or "https://router.huggingface.co/v1"
-MODEL_NAME = os.getenv("MODEL_NAME") or "Qwen/Qwen2.5-72B-Instruct"
+DOCKER_IMAGE = os.getenv("IMAGE_NAME") or os.getenv("LOCAL_IMAGE_NAME")
+API_KEY = os.getenv("HF_TOKEN") or os.getenv("OPENAI_API_KEY") or os.getenv("API_KEY")
+API_BASE_URL = os.getenv("API_BASE_URL") or "http://127.0.0.1:1337/v1"
+MODEL_NAME = os.getenv("MODEL_NAME") or "gemma-4-E4B-it-IQ4_XS"
 BENCHMARK = os.getenv("VIRALTEST_BENCHMARK", "viraltest")
 
 TASKS = ["weekly_engage", "weekly_strategic", "weekly_competitive"]
-MAX_STEPS = int(os.getenv("MAX_STEPS", "168"))
+_ALLOW_SHORT = os.getenv("ALLOW_SHORT_EPISODE", "").lower() in ("1", "true", "yes")
+_REQUESTED_MAX = int(os.getenv("MAX_STEPS", str(TASK_HORIZON)))
+MAX_STEPS = _REQUESTED_MAX if _ALLOW_SHORT else max(_REQUESTED_MAX, TASK_HORIZON)
 TEMPERATURE = 0.7
 MAX_TOKENS = 200
 SUCCESS_SCORE_THRESHOLD = 0.1
 
-VALID_TAGS = (
-    "ai, ml, coding, startup, saas, devtools, "
-    "fitness, travel, food, wellness, fashion, photography, "
-    "summer, worldcup, election, newyear, oscars, climate, "
-    "productivity, minimalism, stoic, web3, gaming, crypto, "
-    "motivation, tips, howto, viral, trending, growth"
-)
+VALID_TAGS_TEXT = ", ".join(TAG_POOL)
 
 SYSTEM_PROMPT = textwrap.dedent(f"""\
-You are a social media content strategy agent. Each step you see the creator's current state
-and must decide the next action.
+You are a social media content strategy agent. Each user message is the current simulation state;
+choose the next action. Reply with one JSON object only (no markdown, no prose).
 
-ACTIONS (respond with JSON only):
+ACTIONS:
 1. Post: {{"action_type":"post","content_type":"<reel|story|carousel|text_post>","topic":"<topic>","tags":["tag1","tag2"]}}
 2. Rest: {{"action_type":"rest"}}
 3. Create content: {{"action_type":"create_content"}}
 
-VALID TAGS (you MUST only use tags from this list):
-{VALID_TAGS}
+TAG RULE (enforced by the environment): every tag must be from this pool; unknown tags are removed.
+{VALID_TAGS_TEXT}
 
-RULES:
-- tags must be from the valid list above. Any other tag will be rejected.
-- Post 1-2 times per day at peak hours (12-3PM Tue-Thu best, 6-8PM good)
-- Rest when energy < 0.4. Keep energy above 0.5 for quality.
-- Use trending tags shown in observation when they match your niche
-- Watch competitor posts — pick DIFFERENT topics/times to differentiate
-- Vary content types (reels for reach, carousels for engagement)
-- Explore different tags early, then reuse top performers
-
-Reply ONLY with valid JSON. No explanation, no markdown, just the JSON object.""")
+When action_type is post, content_type and topic are required. Choose each action_type using the
+current observation and your prior JSON actions in this episode (message history) to grow followers
+as much as possible. If creator energy falls to 0 or below, the episode ends immediately (game over).
+Use rest and create_content to manage energy and the content queue while still posting for growth.""")
 
 
 def log_start(task: str, env: str, model: str) -> None:
@@ -76,7 +68,7 @@ def log_step(step: int, action: str, reward: float, done: bool, error: Optional[
     error_val = error.replace(" ", "_") if error else "null"
     done_val = str(done).lower()
     print(
-        f"[STEP]  step={step} action={action} reward={reward:.2f} "
+        f"[STEP] step={step} action={action} reward={reward:.2f} "
         f"done={done_val} error={error_val}",
         flush=True,
     )
@@ -85,8 +77,8 @@ def log_step(step: int, action: str, reward: float, done: bool, error: Optional[
 def log_end(success: bool, steps: int, score: float, rewards: List[float]) -> None:
     rewards_str = ",".join(f"{r:.2f}" for r in rewards)
     print(
-        f"[END]   success={str(success).lower()} steps={steps} "
-        f"score={score:.3f} rewards={rewards_str}",
+        f"[END] success={str(success).lower()} steps={steps} "
+        f"score={score:.2f} rewards={rewards_str}",
         flush=True,
     )
 
@@ -110,9 +102,9 @@ def format_observation(obs: Any) -> str:
 
     days = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
     day_name = days[obs.day_of_week] if 0 <= obs.day_of_week < 7 else "?"
-
     return textwrap.dedent(f"""\
-Hour: {obs.current_hour}:00, Day {obs.days_elapsed} ({day_name})
+Local time: {obs.current_hour}:00 | Weekday: {day_name} (day_of_week={obs.day_of_week}, 0=Mon) | days_elapsed={obs.days_elapsed}
+Hours since sleep: {obs.hours_since_sleep} | Sleep debt: {obs.sleep_debt:.3f}
 Energy: {obs.creator_energy:.2f} | Followers: {obs.follower_count} | Engagement rate: {obs.engagement_rate:.3f}
 Posts today: {obs.posts_today} | Hours since last post: {obs.time_since_last_post}
 Content queue: {obs.content_queue_size} | Last post type: {obs.last_post_type}
@@ -125,7 +117,7 @@ Competitor recent posts:
 
 
 def parse_action(response_text: str) -> ViraltestAction:
-    """Parse LLM JSON response into ViraltestAction. Falls back to rest on failure."""
+    """Parse LLM JSON into ViraltestAction; invalid output becomes rest."""
     text = response_text.strip()
     if text.startswith("```"):
         lines = text.split("\n")
@@ -158,7 +150,7 @@ def get_model_action(
     """Call the LLM and parse its response into an action."""
     user_prompt = format_observation(obs)
     messages = [{"role": "system", "content": SYSTEM_PROMPT}]
-    messages.extend(history[-4:])
+    messages.extend(history[-48:])
     messages.append({"role": "user", "content": user_prompt})
 
     try:
@@ -182,15 +174,16 @@ async def run_task(client: OpenAI, task: str) -> None:
     steps_taken = 0
     score = 0.0
     success = False
+    env: Optional[ViraltestEnv] = None
 
     log_start(task=task, env=BENCHMARK, model=MODEL_NAME)
 
-    if IMAGE_NAME:
-        env = await ViraltestEnv.from_docker_image(IMAGE_NAME)
-    else:
-        env = ViraltestEnv(base_url=os.getenv("ENV_BASE_URL", "http://localhost:8000"))
-
     try:
+        if DOCKER_IMAGE:
+            env = await ViraltestEnv.from_docker_image(DOCKER_IMAGE)
+        else:
+            env = ViraltestEnv(base_url=os.getenv("ENV_BASE_URL", "http://localhost:8000"))
+
         result = await env.reset(task=task)
         history: List[Dict[str, str]] = []
 
@@ -230,21 +223,22 @@ async def run_task(client: OpenAI, task: str) -> None:
 
             if done:
                 meta = getattr(result.observation, "metadata", {}) or {}
-                score = meta.get("grader_score", 0.0)
+                score = float(meta.get("grader_score", 0.0))
                 break
 
         success = score >= SUCCESS_SCORE_THRESHOLD
 
     finally:
-        try:
-            await env.close()
-        except Exception as e:
-            print(f"[DEBUG] env.close() error: {e}", flush=True)
+        if env is not None:
+            try:
+                await env.close()
+            except Exception as e:
+                print(f"[DEBUG] env.close() error: {e}", flush=True)
         log_end(success=success, steps=steps_taken, score=score, rewards=rewards)
 
 
 async def main() -> None:
-    client = OpenAI(base_url=API_BASE_URL, api_key=API_KEY)
+    client = OpenAI(base_url=API_BASE_URL, api_key=API_KEY or "not-needed")
     for task in TASKS:
         await run_task(client, task)
 

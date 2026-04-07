@@ -57,8 +57,6 @@ except ImportError:
     from server.viraltest_environment import ViraltestEnvironment
 
 _DASHBOARD_HTML = (Path(__file__).parent / "dashboard.html").read_text()
-_COMPETITORS_HTML = (Path(__file__).parent / "competitor_insights.html").read_text()
-_TAGS_HTML = (Path(__file__).parent / "tag_performance.html").read_text()
 
 app = create_app(
     ViraltestEnvironment,
@@ -112,87 +110,6 @@ def _save_history_entry(entry: Dict[str, Any]) -> None:
 @app.get("/dashboard", response_class=HTMLResponse)
 async def dashboard():
     return _DASHBOARD_HTML
-
-
-@app.get("/dashboard/competitors", response_class=HTMLResponse)
-async def dashboard_competitors():
-    return _COMPETITORS_HTML
-
-
-@app.get("/dashboard/tags", response_class=HTMLResponse)
-async def dashboard_tags():
-    return _TAGS_HTML
-
-
-@app.get("/dashboard/insights")
-async def dashboard_insights():
-    """Pre-computed insights from a smart agent simulation for competitor/tag pages."""
-    env = ViraltestEnvironment()
-    obs = env.reset(task="weekly_competitive", seed=42)
-    obs_dict = obs.model_dump()
-
-    steps_data: List[Dict[str, Any]] = []
-    tag_perf_snapshots: List[Dict[str, float]] = []
-
-    for step in range(1, 169):
-        energy = obs_dict.get("creator_energy", 1.0)
-        posts = obs_dict.get("posts_today", 0)
-        hour = obs_dict.get("current_hour", 12)
-        trending = obs_dict.get("trending_topics", [])
-        ttags = obs_dict.get("trending_tags", [])
-
-        if energy < 0.4 or posts >= 2:
-            action_data = {"action_type": "rest"}
-        elif 9 <= hour <= 20 and posts < 2:
-            ct = ["reel", "carousel", "story", "text_post"][step % 4]
-            topic = trending[0] if trending else "AI tools"
-            tags = list(ttags[:2]) + [TAG_POOL[step % len(TAG_POOL)]]
-            action_data = {"action_type": "post", "content_type": ct, "topic": topic, "tags": tags}
-        else:
-            action_data = {"action_type": "rest"}
-
-        action = ViraltestAction(**action_data)
-        obs = env.step(action)
-        obs_dict = obs.model_dump()
-
-        steps_data.append({
-            "step": step,
-            "energy": round(obs.creator_energy, 3),
-            "followers": obs.follower_count,
-            "engagement_rate": round(obs.engagement_rate, 4),
-            "niche_saturation": round(obs.niche_saturation, 3),
-            "competitor_avg_engagement": round(obs.competitor_avg_engagement, 4),
-            "competitor_recent_posts": obs.competitor_recent_posts[:5],
-            "trending_topics": obs.trending_topics,
-            "trending_tags": obs.trending_tags,
-            "tag_performance": obs.tag_performance,
-            "reward": round(obs.reward, 4) if obs.reward else 0,
-            "action": action_data.get("action_type", "rest"),
-            "action_tags": action_data.get("tags", []),
-        })
-        if step % 24 == 0:
-            tag_perf_snapshots.append(dict(obs.tag_performance))
-        if obs.done:
-            break
-
-    score = (obs.metadata or {}).get("grader_score", 0.0)
-    return {
-        "steps": steps_data,
-        "total_steps": len(steps_data),
-        "score": round(score, 4),
-        "tag_perf_over_time": tag_perf_snapshots,
-        "final": {
-            "energy": round(obs.creator_energy, 3),
-            "followers": obs.follower_count,
-            "engagement_rate": round(obs.engagement_rate, 4),
-            "tag_performance": obs.tag_performance,
-            "trending_topics": obs.trending_topics,
-            "trending_tags": obs.trending_tags,
-            "competitor_avg_engagement": round(obs.competitor_avg_engagement, 4),
-            "competitor_recent_posts": obs.competitor_recent_posts[:5],
-            "niche_saturation": round(obs.niche_saturation, 3),
-        },
-    }
 
 
 @app.get("/dashboard/history")
@@ -1112,6 +1029,119 @@ def _agent_events(obs: dict, step: int) -> dict:
     return {"action_type": "rest"}
 
 
+def _agent_easy_morning_story(obs: dict, step: int) -> dict:
+    energy = obs.get("creator_energy", 1.0)
+    posts = obs.get("posts_today", 0)
+    hour = obs.get("current_hour", 12)
+    if energy < 0.4 or posts >= 1:
+        return {"action_type": "rest"}
+    if 9 <= hour <= 11:
+        tt = list((obs.get("trending_tags") or [])[:2]) or ["tips"]
+        return {
+            "action_type": "post",
+            "content_type": "story",
+            "topic": (obs.get("trending_topics") or ["morning update"])[0],
+            "tags": tt,
+        }
+    return {"action_type": "rest"}
+
+
+def _agent_easy_one_a_day(obs: dict, step: int) -> dict:
+    energy = obs.get("creator_energy", 1.0)
+    posts = obs.get("posts_today", 0)
+    hour = obs.get("current_hour", 12)
+    if energy < 0.5 or posts >= 1:
+        return {"action_type": "rest"}
+    if hour == 13:
+        tt = list((obs.get("trending_tags") or [])[:2]) or ["ai"]
+        return {
+            "action_type": "post",
+            "content_type": "text_post",
+            "topic": (obs.get("trending_topics") or ["quick thought"])[0],
+            "tags": tt,
+        }
+    return {"action_type": "rest"}
+
+
+def _agent_easy_relaxed(obs: dict, step: int) -> dict:
+    energy = obs.get("creator_energy", 1.0)
+    posts = obs.get("posts_today", 0)
+    hour = obs.get("current_hour", 12)
+    if energy < 0.55 or posts >= 1:
+        return {"action_type": "rest"}
+    if 14 <= hour <= 16:
+        tt = list((obs.get("trending_tags") or [])[:1]) + ["daily"]
+        return {
+            "action_type": "post",
+            "content_type": "story",
+            "topic": (obs.get("trending_topics") or ["casual post"])[0],
+            "tags": tt,
+        }
+    return {"action_type": "rest"}
+
+
+def _agent_medium_queue_cycle(obs: dict, step: int) -> dict:
+    energy = obs.get("creator_energy", 1.0)
+    posts = obs.get("posts_today", 0)
+    hour = obs.get("current_hour", 12)
+    queue = obs.get("content_queue_size", 0)
+    if energy < 0.35:
+        return {"action_type": "rest"}
+    if queue == 0 and energy > 0.5:
+        return {"action_type": "create_content"}
+    if queue > 0 and 10 <= hour <= 19 and posts < 2:
+        return {
+            "action_type": "post",
+            "content_type": "carousel",
+            "topic": (obs.get("trending_topics") or ["batch content"])[0],
+            "tags": list((obs.get("trending_tags") or [])[:3]),
+        }
+    if posts >= 2:
+        return {"action_type": "rest"}
+    return {"action_type": "rest"}
+
+
+def _agent_medium_trend_rotate(obs: dict, step: int) -> dict:
+    energy = obs.get("creator_energy", 1.0)
+    posts = obs.get("posts_today", 0)
+    hour = obs.get("current_hour", 12)
+    if energy < 0.4 or posts >= 2:
+        return {"action_type": "rest"}
+    if 9 <= hour <= 20:
+        ct = _CONTENT_TYPES[step % 4]
+        tags = list((obs.get("trending_tags") or [])[:2]) + [TAG_POOL[step % len(TAG_POOL)]]
+        return {
+            "action_type": "post",
+            "content_type": ct,
+            "topic": (obs.get("trending_topics") or ["trending angle"])[0],
+            "tags": tags,
+        }
+    return {"action_type": "rest"}
+
+
+def _agent_medium_two_format_day(obs: dict, step: int) -> dict:
+    energy = obs.get("creator_energy", 1.0)
+    posts = obs.get("posts_today", 0)
+    hour = obs.get("current_hour", 12)
+    if energy < 0.42 or posts >= 2:
+        return {"action_type": "rest"}
+    if 11 <= hour <= 13 and posts == 0:
+        return {
+            "action_type": "post",
+            "content_type": "reel",
+            "topic": (obs.get("trending_topics") or ["midday hook"])[0],
+            "tags": list((obs.get("trending_tags") or [])[:3]),
+        }
+    if 18 <= hour <= 20 and posts == 1:
+        return {
+            "action_type": "post",
+            "content_type": "carousel",
+            "topic": (obs.get("trending_topics") or ["evening recap"])[0],
+            "tags": list((obs.get("trending_tags") or [])[:2]) + ["howto"],
+        }
+    return {"action_type": "rest"}
+
+
 SCENARIOS = {
     "always_rest": ("Always Rest", "Never posts. Tests follower decay + zero engagement.", _agent_always_rest),
     "spam": ("Spam Post", "Same reel every step. Burns out in 4 steps.", _agent_spam),
@@ -1175,6 +1205,36 @@ SCENARIOS = {
     "napper": ("Napper", "Strategic short rests.", _agent_napper),
     "optimal_sleep": ("Optimal Sleep", "8-hour sleep blocks.", _agent_optimal_sleep),
     "events": ("Events/News", "Event-based trending tags.", _agent_events),
+    "easy_morning_story": (
+        "Easy: Morning story",
+        "One low-cost story between 9–11am when energy allows.",
+        _agent_easy_morning_story,
+    ),
+    "easy_one_a_day": (
+        "Easy: One text at 1pm",
+        "Single text_post at hour 13 if energy stays above 0.5.",
+        _agent_easy_one_a_day,
+    ),
+    "easy_relaxed": (
+        "Easy: Afternoon story",
+        "One story between 2–4pm; rests until energy > 0.55.",
+        _agent_easy_relaxed,
+    ),
+    "medium_queue_cycle": (
+        "Medium: Create then post",
+        "Builds queue then publishes carousels in peak hours.",
+        _agent_medium_queue_cycle,
+    ),
+    "medium_trend_rotate": (
+        "Medium: Trend + format rotation",
+        "Cycles content types with trending topics plus a pool tag.",
+        _agent_medium_trend_rotate,
+    ),
+    "medium_two_format": (
+        "Medium: Reel + carousel day",
+        "Midday reel then evening carousel when slots open.",
+        _agent_medium_two_format_day,
+    ),
 }
 
 
@@ -1281,6 +1341,7 @@ async def dashboard_simulate(body: Dict[str, Any] = Body(...)):
         "id": datetime.now(timezone.utc).isoformat(),
         "scenario": label,
         "scenario_id": scenario_id,
+        "description": desc,
         "task": task,
         "score": round(score, 4),
         "total_steps": len(steps),
@@ -1318,6 +1379,9 @@ if __name__ == "__main__":
     import argparse
 
     parser = argparse.ArgumentParser()
-    parser.add_argument("--port", type=int, default=8000)
+    parser.add_argument("--port", type=int, default=None)
     args = parser.parse_args()
-    main(port=args.port)
+    if args.port is not None:
+        main(port=args.port)
+    else:
+        main()

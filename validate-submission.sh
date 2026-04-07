@@ -160,14 +160,18 @@ fi
 # ──────────────────────────────────────
 log "${BOLD}Step 3/4: Running openenv validate${NC} ..."
 
-if ! command -v openenv &>/dev/null; then
-  fail "openenv command not found"
-  hint "Install it: pip install openenv-core"
+VALIDATE_OK=false
+VALIDATE_OUTPUT=""
+if command -v uv &>/dev/null && [ -f "$REPO_DIR/pyproject.toml" ]; then
+  log "  Using: uv run openenv validate (avoids global CLI / Python mismatch)"
+  VALIDATE_OUTPUT=$(cd "$REPO_DIR" && uv run openenv validate 2>&1) && VALIDATE_OK=true
+elif command -v openenv &>/dev/null; then
+  VALIDATE_OUTPUT=$(cd "$REPO_DIR" && openenv validate 2>&1) && VALIDATE_OK=true
+else
+  fail "Neither uv nor openenv found"
+  hint "Install uv (https://docs.astral.sh/uv/) or: pip install openenv-core"
   stop_at "Step 3"
 fi
-
-VALIDATE_OK=false
-VALIDATE_OUTPUT=$(cd "$REPO_DIR" && openenv validate 2>&1) && VALIDATE_OK=true
 
 if [ "$VALIDATE_OK" = true ]; then
   pass "openenv validate passed"

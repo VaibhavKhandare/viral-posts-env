@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8"/>
 <meta content="width=device-width,initial-scale=1.0" name="viewport"/>
-<title>Viraltest — Creator Intelligence Center</title>
+<title>Growth Copilot — Simulation</title>
 <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&family=Space+Grotesk:wght@400;500;700&display=swap" rel="stylesheet"/>
 <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
@@ -27,14 +27,6 @@ body{background:#0b1326;color:#dae2fd;font-family:'Inter',sans-serif}
 .sim-btn:hover{transform:translateY(-1px)}
 .action-btn{transition:all .15s ease}
 .action-btn:active{transform:scale(.97)}
-.dash-tip-parent{position:relative;cursor:help}
-.dash-hover-hint{
-  position:absolute;left:0;right:0;bottom:0;z-index:20;
-  transform:translateY(100%);transition:transform .2s ease;
-  padding:8px 10px;font-family:'Space Grotesk',sans-serif;font-size:9px;line-height:1.45;
-  color:#cbc3d7;background:rgba(19,27,46,.96);border-top:1px solid rgba(73,68,84,.35)
-}
-.dash-tip-parent:hover .dash-hover-hint{transform:translateY(0)}
 </style>
 </head>
 <body class="min-h-screen flex">
@@ -42,18 +34,12 @@ body{background:#0b1326;color:#dae2fd;font-family:'Inter',sans-serif}
 <!-- Sidebar -->
 <aside class="flex flex-col sticky top-0 h-screen w-64 border-r border-white/5 bg-surface-lowest shadow-2xl shadow-slate-950/50 shrink-0 z-50">
   <div class="p-6 pb-4">
-    <div class="text-xl font-black tracking-tighter text-transparent bg-clip-text bg-gradient-to-br from-primary to-primary-ctr mb-1">Viraltest</div>
-    <div class="text-[9px] font-label uppercase tracking-[.2em] text-on-surface-dim/50">Creator Intelligence Center</div>
+    <div class="text-xl font-black tracking-tighter text-transparent bg-clip-text bg-gradient-to-br from-primary to-primary-ctr mb-1">Growth Copilot</div>
+    <div class="text-[9px] font-label uppercase tracking-[.2em] text-on-surface-dim/50">Weekly growth simulation</div>
   </div>
   <nav class="flex-1 px-3 space-y-1">
     <a href="/dashboard" class="flex items-center gap-3 px-4 py-2.5 rounded-lg text-primary font-bold border-r-2 border-primary bg-gradient-to-r from-primary/10 to-transparent transition-all">
       <span class="material-symbols-outlined text-[20px]">dashboard</span><span class="font-label text-sm">Dashboard</span>
-    </a>
-    <a href="/dashboard/competitors" class="flex items-center gap-3 px-4 py-2.5 rounded-lg text-slate-400 font-medium hover:text-slate-200 hover:bg-white/5 transition-all">
-      <span class="material-symbols-outlined text-[20px]">monitoring</span><span class="font-label text-sm">Competitors</span>
-    </a>
-    <a href="/dashboard/tags" class="flex items-center gap-3 px-4 py-2.5 rounded-lg text-slate-400 font-medium hover:text-slate-200 hover:bg-white/5 transition-all">
-      <span class="material-symbols-outlined text-[20px]">science</span><span class="font-label text-sm">Tag Lab</span>
     </a>
     <a href="/web/" class="flex items-center gap-3 px-4 py-2.5 rounded-lg text-slate-400 font-medium hover:text-slate-200 hover:bg-white/5 transition-all">
       <span class="material-symbols-outlined text-[20px]">web</span><span class="font-label text-sm">OpenEnv UI</span>
@@ -62,7 +48,7 @@ body{background:#0b1326;color:#dae2fd;font-family:'Inter',sans-serif}
   <!-- Task Selector in Sidebar -->
   <div class="p-4 border-t border-white/5 space-y-3">
     <div class="text-[9px] font-label uppercase tracking-widest text-on-surface-dim/60 mb-1">Task</div>
-    <select id="taskSelect" class="w-full bg-surface border border-outline/30 rounded-lg px-3 py-2 text-sm font-label focus:ring-1 focus:ring-primary focus:outline-none">
+    <select id="taskSelect" onchange="refreshTaskScoreBlurb()" class="w-full bg-surface border border-outline/30 rounded-lg px-3 py-2 text-sm font-label focus:ring-1 focus:ring-primary focus:outline-none">
       <option value="weekly_engage">Easy — Engage</option>
       <option value="weekly_strategic">Medium — Strategic</option>
       <option value="weekly_competitive" selected>Hard — Competitive</option>
@@ -95,7 +81,7 @@ body{background:#0b1326;color:#dae2fd;font-family:'Inter',sans-serif}
     <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
 
       <!-- Energy -->
-      <div class="glass-solid p-4 rounded-xl overflow-hidden dash-tip-parent">
+      <div class="glass-solid relative p-4 rounded-xl overflow-hidden">
         <div class="absolute top-3 right-3 opacity-10"><span class="material-symbols-outlined text-4xl">bolt</span></div>
         <div class="text-[9px] font-label text-on-surface-dim uppercase tracking-widest mb-1">Energy</div>
         <div id="energyVal" class="text-3xl font-black tracking-tight">1.00</div>
@@ -103,101 +89,89 @@ body{background:#0b1326;color:#dae2fd;font-family:'Inter',sans-serif}
           <div id="energyBar" class="h-full bg-gradient-to-r from-tertiary-ctr to-tertiary energy-bar rounded-full" style="width:100%"></div>
         </div>
         <div id="energyHint" class="mt-1.5 text-[9px] font-label text-tertiary">FULL</div>
-        <div class="dash-hover-hint">Stamina for creating and posting. Rest recovers it; posts and create drain it. Low energy reduces content quality in the sim.</div>
       </div>
 
       <!-- Followers -->
-      <div class="glass-solid p-4 rounded-xl overflow-hidden dash-tip-parent">
+      <div class="glass-solid relative p-4 rounded-xl overflow-hidden">
         <div class="absolute top-3 right-3 opacity-10"><span class="material-symbols-outlined text-4xl">group</span></div>
         <div class="text-[9px] font-label text-on-surface-dim uppercase tracking-widest mb-1">Followers</div>
         <div id="followersVal" class="text-3xl font-black tracking-tight">10,000</div>
         <div id="followersDelta" class="mt-1.5 text-[9px] font-label text-on-surface-dim">+0 since start</div>
-        <div class="dash-hover-hint">Simulated audience size. Can grow from good posting patterns on competitive tasks; shown for the current episode.</div>
       </div>
 
       <!-- Engagement -->
-      <div class="glass-solid p-4 rounded-xl overflow-hidden dash-tip-parent">
+      <div class="glass-solid relative p-4 rounded-xl overflow-hidden">
         <div class="absolute top-3 right-3 opacity-10"><span class="material-symbols-outlined text-4xl">trending_up</span></div>
         <div class="text-[9px] font-label text-on-surface-dim uppercase tracking-widest mb-1">Engagement</div>
         <div id="engVal" class="text-3xl font-black tracking-tight text-secondary">0.000</div>
         <div id="engVsComp" class="mt-1.5 text-[9px] font-label text-on-surface-dim">vs competitors: —</div>
-        <div class="dash-hover-hint">Rolling engagement rate from your recent posts (0–1 scale). Compared to simulated rivals below; not real analytics.</div>
       </div>
 
       <!-- Posts Today -->
-      <div class="glass-solid p-4 rounded-xl overflow-hidden dash-tip-parent">
+      <div class="glass-solid relative p-4 rounded-xl overflow-hidden">
         <div class="absolute top-3 right-3 opacity-10"><span class="material-symbols-outlined text-4xl">send</span></div>
         <div class="text-[9px] font-label text-on-surface-dim uppercase tracking-widest mb-1">Posts Today</div>
         <div id="postsVal" class="text-3xl font-black tracking-tight">0</div>
         <div class="mt-1.5 text-[9px] font-label text-on-surface-dim">max 2-3 optimal</div>
-        <div class="dash-hover-hint">Count of posts in the current simulated day. Too many in one day can hurt performance; the sim rewards pacing.</div>
       </div>
 
       <!-- Queue -->
-      <div class="glass-solid p-4 rounded-xl overflow-hidden dash-tip-parent">
+      <div class="glass-solid relative p-4 rounded-xl overflow-hidden">
         <div class="absolute top-3 right-3 opacity-10"><span class="material-symbols-outlined text-4xl">inventory_2</span></div>
         <div class="text-[9px] font-label text-on-surface-dim uppercase tracking-widest mb-1">Content Queue</div>
         <div id="queueVal" class="text-3xl font-black tracking-tight text-secondary">0</div>
         <div class="mt-1.5 text-[9px] font-label text-on-surface-dim">posts cost 50% less</div>
-        <div class="dash-hover-hint">Drafts from “Create”. Posting from the queue uses less energy than posting cold—plan ahead in the sim.</div>
       </div>
 
       <!-- Saturation -->
-      <div class="glass-solid p-4 rounded-xl overflow-hidden dash-tip-parent">
+      <div class="glass-solid relative p-4 rounded-xl overflow-hidden">
         <div class="absolute top-3 right-3 opacity-10"><span class="material-symbols-outlined text-4xl">layers</span></div>
         <div class="text-[9px] font-label text-on-surface-dim uppercase tracking-widest mb-1">Niche Saturation</div>
         <div id="satVal" class="text-3xl font-black tracking-tight text-primary">0.00</div>
         <div id="satHint" class="mt-1.5 text-[9px] font-label text-primary">LOW — post unique topics</div>
-        <div class="dash-hover-hint">How much simulated competitors recently posted on similar topics. High saturation usually lowers your engagement if you match the crowd.</div>
       </div>
     </div>
 
-    <div class="glass-solid border border-outline/20 rounded-xl px-4 py-3 flex gap-3 items-start overflow-hidden dash-tip-parent">
-      <span class="material-symbols-outlined text-secondary text-lg shrink-0">info</span>
-      <p class="text-[11px] font-label text-on-surface-dim leading-relaxed flex-1 min-w-0">
-        <span class="text-on-surface font-semibold">Simulation only</span> — not live social data. Every <span class="text-on-surface">step</span> advances the sim; <span class="text-on-surface">Post</span> updates tags and engagement metrics; <span class="text-on-surface">Rest</span> mainly restores energy while competitor activity still ticks forward.
-      </p>
-      <div class="dash-hover-hint">Hover any card with a help cursor for what that widget measures. Observations match what an RL agent would see—generated inside Viraltest, not from real APIs.</div>
+    <div class="glass-solid border border-outline/20 rounded-xl px-4 py-3 space-y-3">
+      <div class="flex gap-3 items-start">
+        <span class="material-symbols-outlined text-secondary text-lg shrink-0">info</span>
+        <p class="text-[11px] font-label text-on-surface-dim leading-relaxed flex-1 min-w-0">
+          <span class="text-on-surface font-semibold">Simulation only</span> — not live social data. Each <span class="text-on-surface">step</span> is ~1 hour; <span class="text-on-surface">Post</span> drives engagement and tags; <span class="text-on-surface">Rest</span> restores energy while rivals keep posting.
+        </p>
+      </div>
+      <div class="border-t border-white/5 pt-3 space-y-2">
+        <div class="text-[10px] font-bold text-on-surface uppercase tracking-widest">Niche saturation</div>
+        <p class="text-[10px] font-label text-on-surface-dim leading-relaxed">
+          Shown after each step for your <span class="text-on-surface">last post topic</span>. The sim collects competitor posts from the last <span class="text-on-surface">12 simulated hours</span>, counts how many topics overlap yours (≥50% shared words), and divides by the number of those recent competitor posts. Result is capped at 1.0. High saturation usually means more crowd overlap; the environment can lower engagement when you post into a crowded topic.
+        </p>
+      </div>
+      <div class="border-t border-white/5 pt-3 space-y-2">
+        <div class="text-[10px] font-bold text-on-surface uppercase tracking-widest">Final score &amp; viral meter</div>
+        <p id="taskScoreBlurb" class="text-[10px] font-label text-on-surface-dim leading-relaxed"></p>
+        <p class="text-[10px] font-label text-on-surface-dim leading-relaxed">
+          <span class="text-on-surface font-semibold">Viral probability</span> (dashboard only): <code class="text-on-surface/90">min(100, round(engagement_rate × 1000))</code> with LOW / MEDIUM / HIGH labels at 40% and 70%. It is not the grader and not a forecast of real-world reach.
+        </p>
+      </div>
     </div>
 
     <!-- Charts Row -->
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
-      <!-- Engagement Forecast -->
-      <div class="lg:col-span-2 glass-solid p-5 rounded-xl overflow-hidden dash-tip-parent">
-        <div class="flex justify-between items-center mb-4">
+      <!-- Reward history chart -->
+      <div class="lg:col-span-2 glass-solid p-5 rounded-xl overflow-hidden">
+        <div class="flex justify-between items-center mb-2">
           <div>
-            <h3 class="text-sm font-bold">Engagement Forecast</h3>
-            <p class="text-[10px] text-on-surface-dim mt-0.5">Historical performance vs AI projection</p>
+            <h3 class="text-sm font-bold">Reward history</h3>
+            <p class="text-[10px] text-on-surface-dim mt-0.5">Per-step RL reward after each action (axes: step index × reward)</p>
           </div>
-          <div class="flex items-center gap-4">
-            <span class="flex items-center gap-1.5 text-[10px] font-label text-on-surface-dim"><span class="w-2 h-2 rounded-full bg-secondary"></span>Historical</span>
-            <span class="flex items-center gap-1.5 text-[10px] font-label text-on-surface-dim"><span class="w-2 h-2 rounded-full bg-primary"></span>Predicted</span>
-          </div>
+          <span class="flex items-center gap-1.5 text-[10px] font-label text-on-surface-dim"><span class="w-2 h-2 rounded-full bg-secondary"></span>Reward</span>
         </div>
-        <div class="h-48 relative">
-          <svg id="engagementChart" class="w-full h-full" viewBox="0 0 700 200" preserveAspectRatio="none">
-            <defs>
-              <linearGradient id="engGrad" x1="0%" y1="0%" x2="0%" y2="100%">
-                <stop offset="0%" style="stop-color:#7bd0ff;stop-opacity:.25"/>
-                <stop offset="100%" style="stop-color:#7bd0ff;stop-opacity:0"/>
-              </linearGradient>
-            </defs>
-            <line x1="0" y1="50" x2="700" y2="50" stroke="#494454" stroke-width=".5" stroke-dasharray="4,4" opacity=".3"/>
-            <line x1="0" y1="100" x2="700" y2="100" stroke="#494454" stroke-width=".5" stroke-dasharray="4,4" opacity=".3"/>
-            <line x1="0" y1="150" x2="700" y2="150" stroke="#494454" stroke-width=".5" stroke-dasharray="4,4" opacity=".3"/>
-            <path id="engArea" d="" fill="url(#engGrad)"/>
-            <path id="engLine" d="" fill="none" stroke="#7bd0ff" stroke-width="2.5"/>
-            <path id="engPredLine" d="" fill="none" stroke="#d0bcff" stroke-width="2" stroke-dasharray="6,4"/>
-          </svg>
-          <div class="absolute bottom-0 left-0 right-0 flex justify-between px-2 text-[9px] font-label text-on-surface-dim/40 uppercase tracking-wider">
-            <span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span><span>Sun</span>
-          </div>
+        <div class="h-52 relative">
+          <svg id="engagementChart" class="w-full h-full" viewBox="0 0 760 208" preserveAspectRatio="xMidYMid meet"></svg>
         </div>
-        <div class="dash-hover-hint">Blue line: your engagement after each step. Purple dashed line: simple forward projection from recent trend—for display only.</div>
       </div>
 
       <!-- Burnout Meter -->
-      <div class="glass-solid p-5 rounded-xl flex flex-col items-center overflow-hidden dash-tip-parent">
+      <div class="glass-solid p-5 rounded-xl flex flex-col items-center overflow-hidden">
         <div class="flex justify-between items-center w-full mb-3">
           <h3 class="text-sm font-bold">Burnout Meter</h3>
           <span class="material-symbols-outlined text-tertiary text-lg">monitor_heart</span>
@@ -216,41 +190,37 @@ body{background:#0b1326;color:#dae2fd;font-family:'Inter',sans-serif}
         <div id="burnoutRec" class="p-3 rounded-lg bg-surface border border-outline/15 text-[10px] font-label text-on-surface-dim text-center leading-relaxed w-full">
           Recommendation: Start with a balanced create-rest cycle.
         </div>
-        <div class="dash-hover-hint">Visual fatigue from posting without enough rest. High burnout lowers effective engagement; Rest and spacing posts help.</div>
       </div>
     </div>
 
     <!-- Second Charts Row -->
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
       <!-- Follower Growth -->
-      <div class="glass-solid p-5 rounded-xl overflow-hidden dash-tip-parent">
+      <div class="glass-solid p-5 rounded-xl overflow-hidden">
         <h3 class="text-sm font-bold mb-3">Follower Growth</h3>
         <div class="h-32 relative">
-          <svg id="followerChart" class="w-full h-full" viewBox="0 0 280 120" preserveAspectRatio="xMidYMid meet"></svg>
+          <svg id="followerChart" class="w-full h-full" viewBox="0 0 300 120" preserveAspectRatio="xMidYMid meet"></svg>
         </div>
         <div class="flex items-baseline gap-3 mt-2">
           <span id="followerTotal" class="text-2xl font-black tracking-tight text-secondary">+0</span>
           <span id="followerDeltaPct" class="text-xs font-label text-secondary/60">+0% vs start</span>
         </div>
-        <div class="dash-hover-hint">Follower delta over the episode (competitive task). Chart is built from the same history as the main dashboard.</div>
       </div>
 
       <!-- Top Performing Tags -->
-      <div class="glass-solid p-5 rounded-xl overflow-hidden dash-tip-parent">
+      <div class="glass-solid p-5 rounded-xl overflow-hidden">
         <h3 class="text-sm font-bold mb-3">Top Performing Tags</h3>
         <div id="topTagsList" class="space-y-3">
           <div class="text-on-surface-dim italic text-[10px]">No tag data yet</div>
         </div>
-        <div class="dash-hover-hint">Tags you used, ranked by rolling average engagement in the sim. Updates when you post with hashtags.</div>
       </div>
 
       <!-- Recent RL Actions -->
-      <div class="glass-solid p-5 rounded-xl overflow-hidden dash-tip-parent">
+      <div class="glass-solid p-5 rounded-xl overflow-hidden">
         <h3 class="text-sm font-bold mb-3">Recent RL Actions</h3>
         <div id="recentActions" class="space-y-3 max-h-44 overflow-y-auto">
           <div class="text-on-surface-dim italic text-[10px]">No actions yet</div>
         </div>
-        <div class="dash-hover-hint">Last few actions you sent (rest, create, post). Helps you see the sequence the environment processed.</div>
       </div>
     </div>
 
@@ -262,90 +232,77 @@ body{background:#0b1326;color:#dae2fd;font-family:'Inter',sans-serif}
         <span class="text-[9px] font-label text-on-surface-dim uppercase tracking-widest">X = simulation step (~1h); posts histogram = clock hour (0–23)</span>
       </div>
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-3">
-        <div class="glass-solid p-4 rounded-xl overflow-hidden dash-tip-parent">
+        <div class="glass-solid p-4 rounded-xl overflow-hidden">
           <div class="text-[10px] font-bold text-on-surface-dim uppercase tracking-widest mb-1">Energy / step</div>
-          <svg id="tsEnergy" class="w-full h-24" viewBox="0 0 320 96" preserveAspectRatio="xMidYMid meet"></svg>
-          <div class="dash-hover-hint">Creator energy after each step. Rest pushes it up; create/post drain it.</div>
+          <svg id="tsEnergy" class="w-full h-24" viewBox="0 0 360 112" preserveAspectRatio="xMidYMid meet"></svg>
         </div>
-        <div class="glass-solid p-4 rounded-xl overflow-hidden dash-tip-parent">
+        <div class="glass-solid p-4 rounded-xl overflow-hidden">
           <div class="text-[10px] font-bold text-on-surface-dim uppercase tracking-widest mb-1">Followers / step</div>
-          <svg id="tsFollowers" class="w-full h-24" viewBox="0 0 320 96" preserveAspectRatio="xMidYMid meet"></svg>
-          <div class="dash-hover-hint">Total followers over time (simulated count).</div>
+          <svg id="tsFollowers" class="w-full h-24" viewBox="0 0 360 112" preserveAspectRatio="xMidYMid meet"></svg>
         </div>
-        <div class="glass-solid p-4 rounded-xl overflow-hidden dash-tip-parent">
+        <div class="glass-solid p-4 rounded-xl overflow-hidden">
           <div class="text-[10px] font-bold text-on-surface-dim uppercase tracking-widest mb-1">Follower Δ / step</div>
-          <svg id="tsFollowDelta" class="w-full h-24" viewBox="0 0 320 96" preserveAspectRatio="xMidYMid meet"></svg>
-          <div class="dash-hover-hint">Change in followers vs previous step. Spikes often follow posts on competitive tasks.</div>
+          <svg id="tsFollowDelta" class="w-full h-24" viewBox="0 0 360 112" preserveAspectRatio="xMidYMid meet"></svg>
         </div>
-        <div class="glass-solid p-4 rounded-xl overflow-hidden dash-tip-parent">
+        <div class="glass-solid p-4 rounded-xl overflow-hidden">
           <div class="text-[10px] font-bold text-on-surface-dim uppercase tracking-widest mb-1">Engagement rate / step</div>
-          <svg id="tsEngagement" class="w-full h-24" viewBox="0 0 320 96" preserveAspectRatio="xMidYMid meet"></svg>
-          <div class="dash-hover-hint">Rolling engagement rate from the environment after each step.</div>
+          <svg id="tsEngagement" class="w-full h-24" viewBox="0 0 360 112" preserveAspectRatio="xMidYMid meet"></svg>
         </div>
-        <div class="glass-solid p-4 rounded-xl overflow-hidden dash-tip-parent">
+        <div class="glass-solid p-4 rounded-xl overflow-hidden">
           <div class="text-[10px] font-bold text-on-surface-dim uppercase tracking-widest mb-1">Reward / step</div>
-          <svg id="tsReward" class="w-full h-24" viewBox="0 0 320 96" preserveAspectRatio="xMidYMid meet"></svg>
-          <div class="dash-hover-hint">RL reward returned each step (same series as the main forecast chart).</div>
+          <svg id="tsReward" class="w-full h-24" viewBox="0 0 360 112" preserveAspectRatio="xMidYMid meet"></svg>
         </div>
-        <div class="glass-solid p-4 rounded-xl overflow-hidden dash-tip-parent">
+        <div class="glass-solid p-4 rounded-xl overflow-hidden">
           <div class="text-[10px] font-bold text-on-surface-dim uppercase tracking-widest mb-1">Niche saturation / step</div>
-          <svg id="tsSat" class="w-full h-24" viewBox="0 0 320 96" preserveAspectRatio="xMidYMid meet"></svg>
-          <div class="dash-hover-hint">Overlap with competitor topics in the last 12 sim hours.</div>
+          <svg id="tsSat" class="w-full h-24" viewBox="0 0 360 112" preserveAspectRatio="xMidYMid meet"></svg>
         </div>
-        <div class="glass-solid p-4 rounded-xl overflow-hidden dash-tip-parent">
+        <div class="glass-solid p-4 rounded-xl overflow-hidden">
           <div class="text-[10px] font-bold text-on-surface-dim uppercase tracking-widest mb-1">Content queue / step</div>
-          <svg id="tsQueue" class="w-full h-24" viewBox="0 0 320 96" preserveAspectRatio="xMidYMid meet"></svg>
-          <div class="dash-hover-hint">Queued drafts from Create; publishing from queue costs less energy.</div>
+          <svg id="tsQueue" class="w-full h-24" viewBox="0 0 360 112" preserveAspectRatio="xMidYMid meet"></svg>
         </div>
-        <div class="glass-solid p-4 rounded-xl overflow-hidden dash-tip-parent">
+        <div class="glass-solid p-4 rounded-xl overflow-hidden">
           <div class="text-[10px] font-bold text-on-surface-dim uppercase tracking-widest mb-1">Competitor avg engagement / step</div>
-          <svg id="tsComp" class="w-full h-24" viewBox="0 0 320 96" preserveAspectRatio="xMidYMid meet"></svg>
-          <div class="dash-hover-hint">Mean engagement on simulated rivals’ recent posts.</div>
+          <svg id="tsComp" class="w-full h-24" viewBox="0 0 360 112" preserveAspectRatio="xMidYMid meet"></svg>
         </div>
-        <div class="glass-solid p-4 rounded-xl overflow-hidden dash-tip-parent">
+        <div class="glass-solid p-4 rounded-xl overflow-hidden">
           <div class="text-[10px] font-bold text-on-surface-dim uppercase tracking-widest mb-1">Sleep debt / step</div>
-          <svg id="tsSleep" class="w-full h-24" viewBox="0 0 320 96" preserveAspectRatio="xMidYMid meet"></svg>
-          <div class="dash-hover-hint">Accumulated sleep debt (0 rested → 1 severe). Rest reduces it in the sim.</div>
+          <svg id="tsSleep" class="w-full h-24" viewBox="0 0 360 112" preserveAspectRatio="xMidYMid meet"></svg>
         </div>
-        <div class="glass-solid p-4 rounded-xl overflow-hidden dash-tip-parent">
+        <div class="glass-solid p-4 rounded-xl overflow-hidden">
           <div class="text-[10px] font-bold text-on-surface-dim uppercase tracking-widest mb-1">Hours since sleep / step</div>
-          <svg id="tsAwake" class="w-full h-24" viewBox="0 0 320 96" preserveAspectRatio="xMidYMid meet"></svg>
-          <div class="dash-hover-hint">Hours awake in simulation; long stretches hurt quality until you rest.</div>
+          <svg id="tsAwake" class="w-full h-24" viewBox="0 0 360 112" preserveAspectRatio="xMidYMid meet"></svg>
         </div>
-        <div class="glass-solid p-4 rounded-xl overflow-hidden dash-tip-parent">
+        <div class="glass-solid p-4 rounded-xl overflow-hidden">
           <div class="text-[10px] font-bold text-on-surface-dim uppercase tracking-widest mb-1">Posts by clock hour (0–23)</div>
           <svg id="tsPostsHour" class="w-full h-20" viewBox="0 0 320 72" preserveAspectRatio="xMidYMid meet"></svg>
           <div class="text-[10px] font-bold text-on-surface-dim uppercase tracking-widest mt-2 mb-0.5">Action counts (run)</div>
           <svg id="tsActionMix" class="w-full h-14" viewBox="0 0 320 52" preserveAspectRatio="xMidYMid meet"></svg>
-          <div class="dash-hover-hint">Histogram: when you posted by simulated clock. Bars below: total rest vs create vs post steps in this session.</div>
         </div>
       </div>
     </div>
 
     <!-- Bottom Stats -->
     <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-      <div class="glass-solid p-4 rounded-xl overflow-hidden dash-tip-parent">
+      <div class="glass-solid p-4 rounded-xl overflow-hidden">
         <div class="text-[9px] font-label text-on-surface-dim uppercase tracking-widest mb-1">Avg Reward</div>
         <div id="bottomAvgReward" class="text-3xl font-black tracking-tight">0.00</div>
         <div id="bottomAvgDelta" class="text-[10px] font-label text-on-surface-dim mt-1">—</div>
-        <div class="dash-hover-hint">Mean reward signal returned each step—what an RL agent would try to maximize for this task.</div>
       </div>
-      <div class="glass-solid p-4 rounded-xl overflow-hidden dash-tip-parent">
+      <div class="glass-solid p-4 rounded-xl overflow-hidden">
         <div class="text-[9px] font-label text-on-surface-dim uppercase tracking-widest mb-1">Total Posts</div>
         <div id="bottomTotalPosts" class="text-3xl font-black tracking-tight">0</div>
         <div class="text-[10px] font-label text-on-surface-dim mt-1">across episode</div>
-        <div class="dash-hover-hint">All Post actions since reset. Does not count Rest or Create alone.</div>
       </div>
-      <div class="glass-solid p-4 rounded-xl overflow-hidden dash-tip-parent">
+      <div class="glass-solid relative p-4 rounded-xl overflow-hidden">
         <div class="text-[9px] font-label text-on-surface-dim uppercase tracking-widest mb-1">Viral Probability</div>
         <div id="bottomViralProb" class="text-3xl font-black tracking-tight">LOW (0%)</div>
-        <div class="absolute bottom-0 right-0 w-2/3 h-10 opacity-30">
+        <p id="viralFormulaNote" class="text-[9px] font-label text-on-surface-dim/90 leading-snug mt-2">From current engagement rate only (UI heuristic).</p>
+        <div class="absolute bottom-0 right-0 w-2/3 h-10 opacity-30 pointer-events-none">
           <svg viewBox="0 0 200 30" class="w-full h-full" preserveAspectRatio="none">
             <defs><linearGradient id="viralGrad" x1="0%" y1="0%" x2="100%" y2="0%"><stop offset="0%" style="stop-color:#d0bcff;stop-opacity:.5"/><stop offset="50%" style="stop-color:#ea6479;stop-opacity:.5"/><stop offset="100%" style="stop-color:#7bd0ff;stop-opacity:.5"/></linearGradient></defs>
             <path d="M0,25 Q30,5 60,20 Q90,30 120,10 Q150,0 180,15 Q200,25 200,30 L0,30Z" fill="url(#viralGrad)"/>
           </svg>
         </div>
-        <div class="dash-hover-hint">Heuristic label from recent engagement momentum—not a prediction of real virality.</div>
       </div>
     </div>
 
@@ -356,7 +313,7 @@ body{background:#0b1326;color:#dae2fd;font-family:'Inter',sans-serif}
       <div class="lg:col-span-8 space-y-5">
 
         <!-- Action Panel -->
-        <div class="glass-solid p-5 rounded-xl overflow-hidden dash-tip-parent">
+        <div class="glass-solid p-5 rounded-xl overflow-hidden">
           <h3 class="text-sm font-bold mb-4 flex items-center gap-2"><span class="material-symbols-outlined text-primary text-lg">gamepad</span>Send Action</h3>
           <div class="grid grid-cols-3 gap-3 mb-3">
             <button type="button" title="Advance one hour, recover energy, reduce burnout. Competitors still simulate." onclick="doAction('rest')" class="action-btn group p-4 rounded-xl bg-gradient-to-br from-tertiary/5 to-tertiary/10 border border-tertiary/15 hover:border-tertiary/40 hover:from-tertiary/10 hover:to-tertiary/20 text-center">
@@ -392,11 +349,10 @@ body{background:#0b1326;color:#dae2fd;font-family:'Inter',sans-serif}
               <button type="button" onclick="hidePostForm()" class="px-5 py-2 rounded-lg border border-outline/30 text-sm text-on-surface-dim hover:bg-white/5 transition">Cancel</button>
             </div>
           </div>
-          <div class="dash-hover-hint">Each click sends one OpenEnv step to the server. Rest / Create / Post change state and return a new observation for the UI.</div>
         </div>
 
         <!-- Simulate Scenarios (loaded from /dashboard/scenarios) -->
-        <div class="glass-solid p-5 rounded-xl overflow-hidden dash-tip-parent">
+        <div class="glass-solid p-5 rounded-xl overflow-hidden">
           <div class="flex flex-wrap justify-between items-center gap-2 mb-3">
             <h3 class="text-sm font-bold flex items-center gap-2"><span class="material-symbols-outlined text-secondary text-lg">science</span>Simulate Scenarios</h3>
             <div class="flex flex-col items-end gap-0.5">
@@ -405,6 +361,20 @@ body{background:#0b1326;color:#dae2fd;font-family:'Inter',sans-serif}
                 <span class="text-[9px] font-label text-on-surface-dim">168-step episode</span>
               </div>
               <span class="text-[8px] font-label text-on-surface-dim/70 max-w-[16rem] text-right leading-tight">All strategies below — scroll the grid or search. Count updates after load.</span>
+            </div>
+          </div>
+          <div class="mb-3 space-y-2">
+            <div class="text-[9px] font-label text-on-surface-dim uppercase tracking-widest">Suggested — Easy</div>
+            <div class="flex flex-wrap gap-2">
+              <button type="button" class="sim-btn px-2.5 py-1.5 rounded-lg bg-tertiary/10 border border-tertiary/25 text-[10px] font-label text-tertiary hover:bg-tertiary/20" onclick="runSim('easy_morning_story')">Morning story</button>
+              <button type="button" class="sim-btn px-2.5 py-1.5 rounded-lg bg-tertiary/10 border border-tertiary/25 text-[10px] font-label text-tertiary hover:bg-tertiary/20" onclick="runSim('easy_one_a_day')">One text @ 1pm</button>
+              <button type="button" class="sim-btn px-2.5 py-1.5 rounded-lg bg-tertiary/10 border border-tertiary/25 text-[10px] font-label text-tertiary hover:bg-tertiary/20" onclick="runSim('easy_relaxed')">Afternoon story</button>
+            </div>
+            <div class="text-[9px] font-label text-on-surface-dim uppercase tracking-widest">Suggested — Medium</div>
+            <div class="flex flex-wrap gap-2">
+              <button type="button" class="sim-btn px-2.5 py-1.5 rounded-lg bg-secondary/10 border border-secondary/25 text-[10px] font-label text-secondary hover:bg-secondary/20" onclick="runSim('medium_queue_cycle')">Create → post</button>
+              <button type="button" class="sim-btn px-2.5 py-1.5 rounded-lg bg-secondary/10 border border-secondary/25 text-[10px] font-label text-secondary hover:bg-secondary/20" onclick="runSim('medium_trend_rotate')">Trend + formats</button>
+              <button type="button" class="sim-btn px-2.5 py-1.5 rounded-lg bg-secondary/10 border border-secondary/25 text-[10px] font-label text-secondary hover:bg-secondary/20" onclick="runSim('medium_two_format')">Reel + carousel</button>
             </div>
           </div>
           <input type="search" id="scenarioFilter" autocomplete="off" placeholder="Search strategies by name or description…" class="w-full mb-2 bg-surface-low border border-outline/30 rounded-lg px-3 py-2 text-sm focus:ring-1 focus:ring-primary focus:outline-none"/>
@@ -419,18 +389,16 @@ body{background:#0b1326;color:#dae2fd;font-family:'Inter',sans-serif}
             </div>
             <div id="simResult" class="hidden"></div>
           </div>
-          <div class="dash-hover-hint">Runs a full 168-step episode with a fixed bot strategy. Compare scores across tactics; does not change your manual session until you Reset.</div>
         </div>
 
         <!-- Step History -->
-        <div class="glass-solid rounded-xl overflow-hidden dash-tip-parent">
+        <div class="glass-solid rounded-xl overflow-hidden">
           <div class="p-4 border-b border-white/5 flex justify-between items-center">
             <h3 class="text-sm font-bold flex items-center gap-2"><span class="material-symbols-outlined text-on-surface-dim text-lg">history</span>Step History</h3>
           </div>
           <div id="historyLog" class="p-4 space-y-1.5 max-h-72 overflow-y-auto text-[11px] font-mono leading-relaxed">
             <div class="text-on-surface-dim italic">Reset the environment to begin...</div>
           </div>
-          <div class="dash-hover-hint">Raw log of rewards and actions for each step you took in this session (after Reset).</div>
         </div>
       </div>
 
@@ -438,7 +406,7 @@ body{background:#0b1326;color:#dae2fd;font-family:'Inter',sans-serif}
       <div class="lg:col-span-4 space-y-5">
 
         <!-- Grader Score (shown when done) -->
-        <div id="graderCard" class="hidden glass-solid p-5 rounded-xl border-2 border-primary pulse-glow overflow-hidden dash-tip-parent">
+        <div id="graderCard" class="hidden glass-solid p-5 rounded-xl border-2 border-primary pulse-glow overflow-hidden">
           <div class="flex justify-between items-start">
             <div>
               <div class="text-[9px] font-label text-primary uppercase tracking-widest">Final Score</div>
@@ -447,11 +415,10 @@ body{background:#0b1326;color:#dae2fd;font-family:'Inter',sans-serif}
             <span class="material-symbols-outlined text-primary/20 text-5xl">emoji_events</span>
           </div>
           <div id="graderLabel" class="mt-2 text-xs font-label text-on-surface-dim">Episode complete</div>
-          <div class="dash-hover-hint">End-of-episode grade for the selected task (engagement, burnout, tags, competitors, etc., per task rules).</div>
         </div>
 
         <!-- Trending -->
-        <div class="glass-solid p-5 rounded-xl overflow-hidden dash-tip-parent">
+        <div class="glass-solid p-5 rounded-xl overflow-hidden">
           <h3 class="text-sm font-bold mb-3 flex items-center gap-2"><span class="material-symbols-outlined text-secondary text-lg">trending_up</span>Trending Now</h3>
           <div class="mb-3">
             <div class="text-[9px] font-label text-on-surface-dim uppercase tracking-widest mb-1.5">Topics</div>
@@ -461,20 +428,18 @@ body{background:#0b1326;color:#dae2fd;font-family:'Inter',sans-serif}
             <div class="text-[9px] font-label text-on-surface-dim uppercase tracking-widest mb-1.5">Tags</div>
             <div id="trendTags" class="flex flex-wrap gap-1.5"></div>
           </div>
-          <div class="dash-hover-hint">Simulated platform trends this step. Using these tags in posts can give a small boost in the environment math.</div>
         </div>
 
         <!-- Tag Performance -->
-        <div class="glass-solid p-5 rounded-xl overflow-hidden dash-tip-parent">
+        <div class="glass-solid p-5 rounded-xl overflow-hidden">
           <h3 class="text-sm font-bold mb-3 flex items-center gap-2"><span class="material-symbols-outlined text-primary text-lg">science</span>Tag Performance</h3>
           <div id="tagPerf" class="space-y-2.5 text-xs">
             <div class="text-on-surface-dim italic">No data yet</div>
           </div>
-          <div class="dash-hover-hint">Per-tag rolling average engagement from your own posts (last few samples). Helps you see which hashtags worked in the sim.</div>
         </div>
 
         <!-- Competitors -->
-        <div class="glass-solid p-5 rounded-xl overflow-hidden dash-tip-parent">
+        <div class="glass-solid p-5 rounded-xl overflow-hidden">
           <h3 class="text-sm font-bold mb-3 flex items-center gap-2"><span class="material-symbols-outlined text-tertiary text-lg">groups</span>Competitors</h3>
           <div class="mb-3 flex justify-between items-center">
             <span class="text-[9px] font-label text-on-surface-dim uppercase tracking-widest">Avg Engagement</span>
@@ -483,13 +448,12 @@ body{background:#0b1326;color:#dae2fd;font-family:'Inter',sans-serif}
           <div id="compPosts" class="space-y-2 text-xs">
             <div class="text-on-surface-dim italic">No competitor posts yet</div>
           </div>
-          <div class="dash-hover-hint">Three simulated rival creators: their recent posts and engagement. Used for saturation and “vs competitors” on the main stats.</div>
         </div>
       </div>
     </div>
 
     <!-- Simulation History -->
-    <div class="glass-solid rounded-xl overflow-hidden dash-tip-parent">
+    <div class="glass-solid rounded-xl overflow-hidden">
       <div class="p-4 border-b border-white/5 flex justify-between items-center">
         <h3 class="text-sm font-bold flex items-center gap-2"><span class="material-symbols-outlined text-primary text-lg">history</span>Simulation History</h3>
         <div class="flex items-center gap-2">
@@ -518,7 +482,6 @@ body{background:#0b1326;color:#dae2fd;font-family:'Inter',sans-serif}
           </tbody>
         </table>
       </div>
-      <div class="dash-hover-hint">Past scenario runs saved on the server (JSON). Refresh to reload; Clear wipes the log.</div>
     </div>
 
   </main>
@@ -527,6 +490,26 @@ body{background:#0b1326;color:#dae2fd;font-family:'Inter',sans-serif}
 <script>
 const API=window.location.origin;
 const DAYS=["Mon","Tue","Wed","Thu","Fri","Sat","Sun"];
+function fmtAxisNum(v){
+  const a=Math.abs(v);
+  if(a>=1e6)return (v/1e6).toFixed(1)+"M";
+  if(a>=1e3)return (v/1e3).toFixed(1)+"k";
+  if(a>=100)return v.toFixed(0);
+  if(a>=10)return v.toFixed(1);
+  return v.toFixed(2);
+}
+function refreshTaskScoreBlurb(){
+  const el=document.getElementById("taskScoreBlurb");
+  if(!el)return;
+  const t=document.getElementById("taskSelect").value;
+  if(t==="weekly_engage"){
+    el.innerHTML="<span class=\"text-on-surface font-semibold\">Easy (Engage):</span> final score = min(1, total episode engagement ÷ theoretical maximum). If energy hits 0 at the end, the score is multiplied by 0.3.";
+  }else if(t==="weekly_strategic"){
+    el.innerHTML="<span class=\"text-on-surface font-semibold\">Medium (Strategic):</span> 35% normalized engagement + 25% tag mix (discovery + top-tag performance) + 25% average energy + 15% days with solid posts. Penalties if energy ever crashes low or you use fewer than 5 unique tags.";
+  }else{
+    el.innerHTML="<span class=\"text-on-surface font-semibold\">Hard (Competitive):</span> 25% engagement + 20% tags + 20% follower growth + 15% beating rival avg engagement + 10% differentiated topics + 10% minimum energy floor. Score is 0 if burned out; ×0.5 if fewer than 3 content types; ×0.7 if fewer than 8 unique tags.";
+  }
+}
 let currentObs=null;
 const energyHistory=[];
 const rewardHistory=[];
@@ -584,19 +567,20 @@ function drawStepLineChart(svgId,key,color){
   const svg=document.getElementById(svgId);
   const data=timelineHistory;
   if(!svg)return;
+  const W=360,H=112,pL=48,pR=10,pT=10,pB=28;
+  const plotW=W-pL-pR,plotH=H-pT-pB;
   if(!data.length){
-    svg.innerHTML='<text x="160" y="52" text-anchor="middle" fill="#958ea0" font-size="10" font-family="Space Grotesk,sans-serif">No steps yet</text>';
+    svg.innerHTML=`<text x="${W/2}" y="${H/2}" text-anchor="middle" fill="#958ea0" font-size="10" font-family="Space Grotesk,sans-serif">No steps yet</text>`;
     return;
   }
-  const W=320,H=88,pL=4,pR=4,pT=4,pB=12;
   const vals=data.map(d=>Number(d[key]??0));
   let minV=Math.min(...vals),maxV=Math.max(...vals);
   if(maxV-minV<1e-9){minV-=0.5;maxV+=0.5;}
   const n=data.length;
   const pts=data.map((d,i)=>{
-    const x=pL+(n<=1?0.5:i/(n-1))*(W-pL-pR);
+    const x=pL+(n<=1?plotW/2:i/(n-1)*plotW);
     const v=Number(d[key]??0);
-    const y=pT+(1-(v-minV)/(maxV-minV))*(H-pT-pB);
+    const y=pT+(1-(v-minV)/(maxV-minV))*plotH;
     return {x,y};
   });
   let lineD;
@@ -605,29 +589,59 @@ function drawStepLineChart(svgId,key,color){
   const last=pts[pts.length-1],first=pts[0];
   const areaD=lineD+` L${last.x},${H-pB} L${first.x},${H-pB} Z`;
   const gid="g_"+svgId.replace(/[^a-zA-Z0-9_]/g,"_");
-  svg.innerHTML=`<defs><linearGradient id="${gid}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${color}" stop-opacity="0.22"/><stop offset="1" stop-color="${color}" stop-opacity="0"/></linearGradient></defs><path d="${areaD}" fill="url(#${gid})"/><path d="${lineD}" fill="none" stroke="${color}" stroke-width="2"/>`;
+  let h="";
+  for(let g=0;g<=4;g++){
+    const y=pT+(g/4)*plotH;
+    const val=maxV-(g/4)*(maxV-minV);
+    h+=`<line x1="${pL}" y1="${y}" x2="${W-pR}" y2="${y}" stroke="#494454" stroke-width="0.5" opacity="0.35"/>`;
+    h+=`<text x="${pL-5}" y="${y+3}" text-anchor="end" fill="#958ea0" font-size="8" font-family="Space Grotesk,sans-serif">${fmtAxisNum(val)}</text>`;
+  }
+  h+=`<line x1="${pL}" y1="${pT}" x2="${pL}" y2="${H-pB}" stroke="#cbc3d7" stroke-width="0.9"/>`;
+  h+=`<line x1="${pL}" y1="${H-pB}" x2="${W-pR}" y2="${H-pB}" stroke="#cbc3d7" stroke-width="0.9"/>`;
+  h+=`<defs><linearGradient id="${gid}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${color}" stop-opacity="0.22"/><stop offset="1" stop-color="${color}" stop-opacity="0"/></linearGradient></defs>`;
+  h+=`<path d="${areaD}" fill="url(#${gid})"/><path d="${lineD}" fill="none" stroke="${color}" stroke-width="2"/>`;
+  const lastI=n-1;
+  h+=`<text x="${pL}" y="${H-8}" fill="#958ea0" font-size="8" font-family="Space Grotesk,sans-serif">0</text>`;
+  h+=`<text x="${pL+plotW/2}" y="${H-8}" text-anchor="middle" fill="#958ea0" font-size="8" font-family="Space Grotesk,sans-serif">${Math.floor(lastI/2)}</text>`;
+  h+=`<text x="${W-pR}" y="${H-8}" text-anchor="end" fill="#958ea0" font-size="8" font-family="Space Grotesk,sans-serif">${lastI}</text>`;
+  h+=`<text x="${pL+plotW/2}" y="${H-1}" text-anchor="middle" fill="#958ea0" font-size="7" font-family="Space Grotesk,sans-serif" opacity="0.75">step</text>`;
+  svg.innerHTML=h;
 }
 
 function drawFollowerDeltaChart(svgId){
   const svg=document.getElementById(svgId);
   const data=timelineHistory;
   if(!svg)return;
+  const W=360,H=112,pL=48,pR=10,pT=10,pB=28;
+  const plotW=W-pL-pR,plotH=H-pT-pB;
   if(data.length<2){
-    svg.innerHTML='<text x="160" y="52" text-anchor="middle" fill="#958ea0" font-size="10" font-family="Space Grotesk,sans-serif">Need 2+ steps</text>';
+    svg.innerHTML=`<text x="${W/2}" y="${H/2}" text-anchor="middle" fill="#958ea0" font-size="10" font-family="Space Grotesk,sans-serif">Need 2+ steps</text>`;
     return;
   }
   const dlt=data.map((d,i)=>i===0?0:d.followers-data[i-1].followers);
   const maxA=Math.max(...dlt.map(a=>Math.abs(a)),1);
-  const W=320,H=88,pL=4,pR=4,pT=4,pB=12;
-  const midY=pT+(H-pT-pB)/2;
+  const midY=pT+plotH/2;
+  const amp=(plotH/2-4);
   const n=data.length;
   const pts=dlt.map((dv,i)=>{
-    const x=pL+(n<=1?0.5:i/(n-1))*(W-pL-pR);
-    const y=midY-(dv/maxA)*((H-pT-pB)/2-2);
+    const x=pL+(n<=1?plotW/2:i/(n-1)*plotW);
+    const y=midY-(dv/maxA)*amp;
     return {x,y};
   });
   const lineD=smoothPath(pts);
-  svg.innerHTML=`<line x1="${pL}" y1="${midY}" x2="${W-pR}" y2="${midY}" stroke="#494454" stroke-width="0.5" opacity="0.5"/><path d="${lineD}" fill="none" stroke="#7bd0ff" stroke-width="2"/>`;
+  let h="";
+  h+=`<line x1="${pL}" y1="${midY}" x2="${W-pR}" y2="${midY}" stroke="#494454" stroke-width="0.6" opacity="0.45"/>`;
+  h+=`<text x="${pL-5}" y="${pT+8}" text-anchor="end" fill="#958ea0" font-size="8" font-family="Space Grotesk,sans-serif">+${fmtAxisNum(maxA)}</text>`;
+  h+=`<text x="${pL-5}" y="${H-pB}" text-anchor="end" fill="#958ea0" font-size="8" font-family="Space Grotesk,sans-serif">${fmtAxisNum(-maxA)}</text>`;
+  h+=`<line x1="${pL}" y1="${pT}" x2="${pL}" y2="${H-pB}" stroke="#cbc3d7" stroke-width="0.9"/>`;
+  h+=`<line x1="${pL}" y1="${H-pB}" x2="${W-pR}" y2="${H-pB}" stroke="#cbc3d7" stroke-width="0.9"/>`;
+  h+=`<path d="${lineD}" fill="none" stroke="#7bd0ff" stroke-width="2"/>`;
+  const lastI=n-1;
+  h+=`<text x="${pL}" y="${H-8}" fill="#958ea0" font-size="8" font-family="Space Grotesk,sans-serif">0</text>`;
+  h+=`<text x="${pL+plotW/2}" y="${H-8}" text-anchor="middle" fill="#958ea0" font-size="8" font-family="Space Grotesk,sans-serif">${Math.floor(lastI/2)}</text>`;
+  h+=`<text x="${W-pR}" y="${H-8}" text-anchor="end" fill="#958ea0" font-size="8" font-family="Space Grotesk,sans-serif">${lastI}</text>`;
+  h+=`<text x="${pL+plotW/2}" y="${H-1}" text-anchor="middle" fill="#958ea0" font-size="7" font-family="Space Grotesk,sans-serif" opacity="0.75">step · Δ followers</text>`;
+  svg.innerHTML=h;
 }
 
 function drawPostsByHour(svgId){
@@ -698,9 +712,7 @@ async function doReset(){
     updateUI(d);
     document.getElementById("historyLog").innerHTML='<div class="text-secondary font-bold">Environment reset — task: '+task+'</div>';
     document.getElementById("graderCard").classList.add("hidden");
-    document.getElementById("engLine").setAttribute("d","");
-    document.getElementById("engArea").setAttribute("d","");
-    document.getElementById("engPredLine").setAttribute("d","");
+    document.getElementById("engagementChart").innerHTML="";
     document.getElementById("followerChart").innerHTML="";
     document.getElementById("recentActions").innerHTML='<div class="text-on-surface-dim italic text-[10px]">No actions yet</div>';
     drawBurnoutMeter(1);
@@ -859,21 +871,40 @@ function smoothPath(pts){
 }
 
 function drawEngagementChart(){
+  const svg=document.getElementById("engagementChart");
   const data=rewardHistory;
-  if(!data.length)return;
-  const W=700,H=180,PAD=10;
-  const max=Math.max(...data,0.01)*1.1;
-  const pts=data.map((v,i)=>({x:PAD+(i/Math.max(data.length-1,1))*(W-PAD*2),y:H-PAD-(v/max)*(H-PAD*2)}));
+  if(!svg||!data.length)return;
+  const W=760,H=200,pL=56,pR=14,pT=12,pB=40;
+  const plotW=W-pL-pR,plotH=H-pT-pB;
+  const minR=Math.min(0,Math.min(...data));
+  const maxR=Math.max(...data,0.01);
+  const span=Math.max(maxR-minR,1e-6)*1.08;
+  const y0=minR;
+  const pts=data.map((v,i)=>({
+    x:pL+(i/Math.max(data.length-1,1))*plotW,
+    y:pT+(1-(v-y0)/span)*plotH,
+  }));
   const lineD=smoothPath(pts);
-  const areaD=lineD+` L${pts[pts.length-1].x.toFixed(1)},${H} L${pts[0].x.toFixed(1)},${H} Z`;
-  document.getElementById("engLine").setAttribute("d",lineD);
-  document.getElementById("engArea").setAttribute("d",areaD);
-  // predicted extension (last 20% dashed)
-  const split=Math.max(0,Math.floor(pts.length*0.8));
-  if(pts.length>4){
-    const predPts=pts.slice(split);
-    document.getElementById("engPredLine").setAttribute("d",smoothPath(predPts));
+  const areaD=lineD+` L${pts[pts.length-1].x.toFixed(1)},${(H-pB).toFixed(1)} L${pts[0].x.toFixed(1)},${(H-pB).toFixed(1)} Z`;
+  const gid="eng_reward_grad";
+  let h="";
+  for(let g=0;g<=4;g++){
+    const y=pT+(g/4)*plotH;
+    const val=y0+(1-g/4)*span;
+    h+=`<line x1="${pL}" y1="${y}" x2="${W-pR}" y2="${y}" stroke="#494454" stroke-width="0.5" opacity="0.35"/>`;
+    h+=`<text x="${pL-6}" y="${y+3}" text-anchor="end" fill="#958ea0" font-size="9" font-family="Space Grotesk,sans-serif">${val.toFixed(2)}</text>`;
   }
+  h+=`<line x1="${pL}" y1="${pT}" x2="${pL}" y2="${H-pB}" stroke="#cbc3d7" stroke-width="1"/>`;
+  h+=`<line x1="${pL}" y1="${H-pB}" x2="${W-pR}" y2="${H-pB}" stroke="#cbc3d7" stroke-width="1"/>`;
+  h+=`<defs><linearGradient id="${gid}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#7bd0ff" stop-opacity="0.28"/><stop offset="1" stop-color="#7bd0ff" stop-opacity="0"/></linearGradient></defs>`;
+  h+=`<path d="${areaD}" fill="url(#${gid})"/><path d="${lineD}" fill="none" stroke="#7bd0ff" stroke-width="2.5"/>`;
+  const lastI=data.length-1;
+  h+=`<text x="${pL}" y="${H-18}" fill="#958ea0" font-size="9" font-family="Space Grotesk,sans-serif">step 0</text>`;
+  h+=`<text x="${pL+plotW/2}" y="${H-18}" text-anchor="middle" fill="#958ea0" font-size="9" font-family="Space Grotesk,sans-serif">step ${Math.floor(lastI/2)}</text>`;
+  h+=`<text x="${W-pR}" y="${H-18}" text-anchor="end" fill="#958ea0" font-size="9" font-family="Space Grotesk,sans-serif">step ${lastI}</text>`;
+  h+=`<text x="${pL+plotW/2}" y="${H-4}" text-anchor="middle" fill="#958ea0" font-size="9" font-family="Space Grotesk,sans-serif" opacity="0.85">simulation step index</text>`;
+  h+=`<text x="12" y="${pT+plotH/2}" transform="rotate(-90 12 ${pT+plotH/2})" text-anchor="middle" fill="#958ea0" font-size="9" font-family="Space Grotesk,sans-serif" opacity="0.85">reward</text>`;
+  svg.innerHTML=h;
 }
 
 function drawBurnoutMeter(energy){
@@ -892,7 +923,7 @@ function drawFollowerBars(){
   const svg=document.getElementById("followerChart");
   const data=followerHistory;
   if(data.length<2){svg.innerHTML="";return}
-  const W=280,H=110,PAD=5;
+  const W=300,H=120,pL=40,pR=8,pT=6,pB=22,plotW=W-pL-pR,plotH=H-pT-pB;
   const chunks=Math.min(data.length,7);
   const chunkSize=Math.max(1,Math.floor(data.length/chunks));
   const bars=[];
@@ -902,18 +933,22 @@ function drawFollowerBars(){
     const avg=data.slice(start,end).reduce((a,b)=>a+b,0)/(end-start);
     bars.push(avg);
   }
-  const base=Math.min(...bars)*0.998;
+  const fMin=Math.min(...bars),fMax=Math.max(...bars);
+  const base=fMin*0.998;
   const maxDelta=Math.max(...bars.map(b=>b-base),1);
-  const barW=(W-PAD*2)/bars.length*0.6;
-  const gap=(W-PAD*2)/bars.length*0.4;
-  let html='';
+  const barW=plotW/bars.length*0.58;
+  const gap=plotW/bars.length*0.42;
+  let html="";
+  html+=`<text x="4" y="${pT+10}" fill="#958ea0" font-size="7" font-family="Space Grotesk,sans-serif">${Math.round(fMax)}</text>`;
+  html+=`<text x="4" y="${pT+plotH}" fill="#958ea0" font-size="7" font-family="Space Grotesk,sans-serif">${Math.round(fMin)}</text>`;
+  html+=`<text transform="rotate(-90 14 ${pT+plotH/2})" x="14" y="${pT+plotH/2}" text-anchor="middle" fill="#958ea0" font-size="7" font-family="Space Grotesk,sans-serif">followers</text>`;
   bars.forEach((v,i)=>{
-    const h=Math.max(4,((v-base)/maxDelta)*(H-30));
-    const x=PAD+i*((W-PAD*2)/bars.length)+(gap/2);
-    const y=H-10-h;
+    const h=Math.max(4,((v-base)/maxDelta)*plotH);
+    const x=pL+i*(plotW/bars.length)+(gap/2);
+    const y=pT+plotH-h;
     const opacity=0.5+0.5*(i/bars.length);
     html+=`<rect x="${x.toFixed(1)}" y="${y.toFixed(1)}" width="${barW.toFixed(1)}" height="${h.toFixed(1)}" rx="3" fill="#7bd0ff" opacity="${opacity.toFixed(2)}"/>`;
-    html+=`<text x="${(x+barW/2).toFixed(1)}" y="${H-1}" text-anchor="middle" fill="#494454" font-size="7" font-family="Space Grotesk">${DAYS[i%7]}</text>`;
+    html+=`<text x="${(x+barW/2).toFixed(1)}" y="${H-4}" text-anchor="middle" fill="#958ea0" font-size="7" font-family="Space Grotesk,sans-serif">${DAYS[i%7]}</text>`;
   });
   svg.innerHTML=html;
   const delta=data[data.length-1]-data[0];
@@ -939,6 +974,8 @@ function updateBottomStats(){
   const viral=Math.min(100,Math.round(eng*1000));
   const label=viral>=70?"HIGH":viral>=40?"MEDIUM":"LOW";
   document.getElementById("bottomViralProb").textContent=label+" ("+viral+"%)";
+  const vn=document.getElementById("viralFormulaNote");
+  if(vn)vn.textContent="min(100, round("+eng.toFixed(3)+" × 1000)) = "+viral+" — labels LOW/MED/HIGH at 40 and 70 (display only).";
 }
 
 function addRecentAction(d){
@@ -1119,6 +1156,7 @@ async function runSim(scenario){
       }
 
       document.getElementById("compEng").textContent=lastStep.competitor_avg_engagement.toFixed(3);
+      currentObs={engagement_rate:lastStep.engagement_rate,metadata:{}};
     }
 
     // Show grader card
@@ -1146,6 +1184,7 @@ async function runSim(scenario){
           <div class="flex justify-between"><span class="text-on-surface-dim">Total Posts</span><span>${totalPostsCount}</span></div>
         </div>
       </div>`;
+    updateBottomStats();
     setStatus("Simulation Done");
     loadHistory();
   }catch(e){setStatus("Error: "+e.message)}
@@ -1179,9 +1218,13 @@ async function loadHistory(){
       const scoreColor=h.score>=0.7?"text-primary":h.score>=0.3?"text-secondary":"text-tertiary";
       const status=f.burned_out?'<span class="text-tertiary font-bold">BURNED</span>':h.total_steps>=168?'<span class="text-secondary">DONE</span>':'<span class="text-on-surface-dim">PARTIAL</span>';
       const energyColor=f.energy>=0.5?"text-secondary":f.energy>0?"text-tertiary":"text-error";
+      const desc=(h.description||"").trim();
       return `<tr class="border-b border-white/5 hover:bg-white/[.02] transition">
         <td class="px-4 py-2.5 text-on-surface-dim whitespace-nowrap">${time}</td>
-        <td class="px-4 py-2.5 text-on-surface font-bold whitespace-nowrap">${h.scenario}</td>
+        <td class="px-4 py-2.5 min-w-[12rem] max-w-md">
+          <div class="text-on-surface font-bold">${_escapeHtml(h.scenario)}</div>
+          ${desc?`<div class="text-[9px] text-on-surface-dim mt-0.5 leading-snug">${_escapeHtml(desc)}</div>`:""}
+        </td>
         <td class="px-4 py-2.5 text-on-surface-dim">${taskLabels[h.task]||h.task}</td>
         <td class="px-4 py-2.5 text-right ${scoreColor} font-bold">${h.score.toFixed(4)}</td>
         <td class="px-4 py-2.5 text-right text-on-surface-dim">${h.total_steps}</td>
@@ -1219,7 +1262,7 @@ async function loadScenarioButtons(){
     const data=await r.json();
     _scenarioItems=data.scenarios||[];
     if(countEl)countEl.textContent=_scenarioItems.length+" strategies";
-    const pin=new Set(["smart","balanced","high_freq","optimal_sleep","sleep_conscious","sleep_debt_aware"]);
+    const pin=new Set(["easy_morning_story","easy_one_a_day","easy_relaxed","medium_queue_cycle","medium_trend_rotate","medium_two_format","smart","balanced","high_freq","optimal_sleep","sleep_conscious","sleep_debt_aware"]);
     _scenarioItems.sort((a,b)=>{
       const pa=pin.has(a.id)?0:1,pb=pin.has(b.id)?0:1;
       if(pa!==pb)return pa-pb;
@@ -1257,6 +1300,7 @@ async function loadScenarioButtons(){
 loadScenarioButtons();
 loadHistory();
 doReset();
+refreshTaskScoreBlurb();
 </script>
 </body>
 </html>

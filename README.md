@@ -117,11 +117,15 @@ openenv push
 ### Run Inference
 
 ```bash
-export HF_TOKEN=your_token
+export HF_TOKEN=your_token   # or OPENAI_API_KEY / API_KEY
 export API_BASE_URL=https://router.huggingface.co/v1
 export MODEL_NAME=Qwen/Qwen2.5-72B-Instruct
+# Optional: LOCAL_IMAGE_NAME / IMAGE_NAME for ViraltestEnv.from_docker_image()
+# Optional: ALLOW_SHORT_EPISODE=1 to cap steps below 168 (no final grader score unless episode ends)
 python inference.py
 ```
+
+**Pre-submission checks:** Automated validation posts to **`{your_space_url}/reset`** at the Space **root** (same host as the Space, not the `/web` UI path). Ensure that URL returns HTTP 200.
 
 ## Baseline Scores
 

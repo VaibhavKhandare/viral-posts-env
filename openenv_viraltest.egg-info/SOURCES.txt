@@ -5,6 +5,7 @@ inference.py
 models.py
 pyproject.toml
 test_scenarios.py
+visualize_optimal.py
 ./__init__.py
 ./client.py
 ./inference.py
@@ -19,4 +20,5 @@ openenv_viraltest.egg-info/requires.txt
 openenv_viraltest.egg-info/top_level.txt
 server/__init__.py
 server/app.py
+server/dashboard.html
 server/viraltest_environment.py
