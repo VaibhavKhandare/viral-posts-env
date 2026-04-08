@@ -150,8 +150,9 @@ class ViraltestEnvironment(Environment):
     """
     Weekly creator optimization simulation.
 
-    The agent manages a social media creator's posting strategy over 7 days
-    (168 hourly steps), balancing engagement, energy, tags, and competition.
+    The agent manages a social media creator's posting strategy over 7 daily
+    steps (each day runs 24 simulated hours from a sparse schedule), balancing
+    engagement, energy, tags, and competition.
     """
 
     SUPPORTS_CONCURRENT_SESSIONS: bool = True
