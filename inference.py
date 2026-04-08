@@ -26,8 +26,12 @@ from typing import Any, Dict, List, Optional
 
 from openai import OpenAI
 
-from viraltest import ViraltestAction, ViraltestEnv
-from viraltest.server.viraltest_environment import TAG_POOL, TASK_HORIZON
+from viraltest import ScheduledAction, ViraltestAction, ViraltestEnv
+from viraltest.server.viraltest_environment import (
+    TAG_POOL,
+    TASK_HORIZON,
+    TOPIC_CATEGORIES,
+)
 
 DOCKER_IMAGE = os.getenv("IMAGE_NAME") or os.getenv("LOCAL_IMAGE_NAME")
 API_KEY = os.getenv("HF_TOKEN") or os.getenv("OPENAI_API_KEY") or os.getenv("API_KEY")
@@ -45,6 +49,16 @@ SUCCESS_SCORE_THRESHOLD = 0.1
 
 VALID_TAGS_TEXT = ", ".join(TAG_POOL)
 
+# Flatten env topic categories — posts must use these exact strings (see sanitize_predefined_topics).
+PREDEFINED_TOPICS: tuple[str, ...] = tuple(
+    topic for topics in TOPIC_CATEGORIES.values() for topic in topics
+)
+_TOPIC_CANONICAL: dict[str, str] = {t.lower(): t for t in PREDEFINED_TOPICS}
+PREDEFINED_TOPICS_TEXT = ", ".join(PREDEFINED_TOPICS)
+
+# When energy is at or below this level, skip the model and rest the full day (avoid burnout).
+NEAR_ZERO_ENERGY_THRESHOLD = 0.25
+
 SYSTEM_PROMPT = textwrap.dedent(f"""\
 You are a social media content strategy agent. Each step is one full day (24 hours).
 You receive the current day's state and must plan your actions for the entire day.
@@ -56,8 +70,8 @@ FORMAT (JSON only, no markdown, no prose):
 {{
   "scheduled_actions": [
     {{"hour": 10, "action_type": "create_content"}},
-    {{"hour": 12, "action_type": "post", "content_type": "reel", "topic": "AI trends", "tags": ["ai", "coding"]}},
-    {{"hour": 18, "action_type": "post", "content_type": "carousel", "topic": "startup tips", "tags": ["startup", "growth"]}}
+    {{"hour": 12, "action_type": "post", "content_type": "reel", "topic": "AI tools", "tags": ["ai", "coding"]}},
+    {{"hour": 18, "action_type": "post", "content_type": "carousel", "topic": "startup life", "tags": ["startup", "growth"]}}
   ]
 }}
 
@@ -65,6 +79,7 @@ RULES:
 - hour: 0-23 (which hour of the day to perform the action)
 - action_type: "post" or "create_content" (rest is automatic for unlisted hours)
 - For posts: content_type (reel|story|carousel|text_post), topic, and tags are required
+- Topic must be exactly one of these strings (no paraphrasing): {PREDEFINED_TOPICS_TEXT}
 - Tags must be from this pool: {VALID_TAGS_TEXT}
 - Max 5 tags per post
 - Empty scheduled_actions means rest all day
@@ -77,9 +92,9 @@ and use create_content to build a content queue for cheaper posts later.""")
 
 
 def should_force_rest_day(obs: Any) -> bool:
-    """If energy is critically low, submit an empty schedule (all rest)."""
+    """If energy is near zero, always submit an empty schedule (all rest)."""
     energy = float(getattr(obs, "creator_energy", 1.0))
-    return energy <= 0.15
+    return energy <= NEAR_ZERO_ENERGY_THRESHOLD
 
 
 def log_start(task: str, env: str, model: str) -> None:
@@ -162,6 +177,30 @@ def parse_daily_plan(response_text: str) -> ViraltestAction:
         return ViraltestAction(scheduled_actions=[])
 
 
+def _resolve_predefined_topic(raw: Optional[str], obs: Any, hour: int) -> str:
+    """Map a model-provided topic to a canonical string from TOPIC_CATEGORIES."""
+    if raw and raw.strip():
+        key = raw.strip().lower()
+        if key in _TOPIC_CANONICAL:
+            return _TOPIC_CANONICAL[key]
+    for tt in obs.trending_topics or []:
+        tl = (tt or "").strip().lower()
+        if tl in _TOPIC_CANONICAL:
+            return _TOPIC_CANONICAL[tl]
+    return PREDEFINED_TOPICS[hour % len(PREDEFINED_TOPICS)]
+
+
+def sanitize_predefined_topics(action: ViraltestAction, obs: Any) -> ViraltestAction:
+    """Force every post topic to match the environment's predefined topic set."""
+    out: List[ScheduledAction] = []
+    for sa in action.scheduled_actions:
+        if sa.action_type == "post":
+            out.append(sa.model_copy(update={"topic": _resolve_predefined_topic(sa.topic, obs, sa.hour)}))
+        else:
+            out.append(sa)
+    return ViraltestAction(scheduled_actions=out)
+
+
 def format_action_str(action: ViraltestAction) -> str:
     """Format daily plan for [STEP] log line."""
     if not action.scheduled_actions:
@@ -201,7 +240,8 @@ def get_model_daily_plan(
             stream=False,
         )
         text = (completion.choices[0].message.content or "").strip()
-        return parse_daily_plan(text) if text else ViraltestAction(scheduled_actions=[])
+        plan = parse_daily_plan(text) if text else ViraltestAction(scheduled_actions=[])
+        return sanitize_predefined_topics(plan, obs)
     except Exception as exc:
         err_str = str(exc)
         print(f"[DEBUG] Model request failed: {exc}", flush=True)
