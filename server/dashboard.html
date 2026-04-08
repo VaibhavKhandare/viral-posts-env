@@ -66,7 +66,7 @@ body{background:#0b1326;color:#dae2fd;font-family:'Inter',sans-serif}
   <header class="flex justify-between items-center px-6 h-14 border-b border-white/5 bg-surface/60 backdrop-blur-xl sticky top-0 z-40">
     <div class="flex items-center gap-5">
       <span id="statusDot" class="flex items-center gap-2 text-xs font-label text-secondary"><span class="w-2 h-2 rounded-full bg-secondary"></span>Ready</span>
-      <span class="text-xs font-label text-on-surface-dim">Step <span id="stepNum" class="text-on-surface font-bold">0</span> / 168</span>
+      <span class="text-xs font-label text-on-surface-dim">Day <span id="stepNum" class="text-on-surface font-bold">0</span> / <span id="episodeHorizon">7</span></span>
     </div>
     <div class="flex items-center gap-3">
       <span id="rewardBadge" class="text-xs font-label text-on-surface-dim">Last reward: —</span>
@@ -136,13 +136,13 @@ body{background:#0b1326;color:#dae2fd;font-family:'Inter',sans-serif}
       <div class="flex gap-3 items-start">
         <span class="material-symbols-outlined text-secondary text-lg shrink-0">info</span>
         <p class="text-[11px] font-label text-on-surface-dim leading-relaxed flex-1 min-w-0">
-          <span class="text-on-surface font-semibold">Simulation only</span> — not live social data. Each <span class="text-on-surface">step</span> is ~1 hour; <span class="text-on-surface">Post</span> drives engagement and tags; <span class="text-on-surface">Rest</span> restores energy while rivals keep posting.
+          <span class="text-on-surface font-semibold">Simulation only</span> — not live social data. Each <span class="text-on-surface">step</span> is one full simulated day (24 hours of hourly actions inside the env). You submit a daily plan; <span class="text-on-surface">Post</span> and <span class="text-on-surface">Create</span> are scheduled at hours you choose; unlisted hours are rest while rivals keep posting.
         </p>
       </div>
       <div class="border-t border-white/5 pt-3 space-y-2">
         <div class="text-[10px] font-bold text-on-surface uppercase tracking-widest">Niche saturation</div>
         <p class="text-[10px] font-label text-on-surface-dim leading-relaxed">
-          Shown after each step for your <span class="text-on-surface">last post topic</span>. The sim collects competitor posts from the last <span class="text-on-surface">12 simulated hours</span>, counts how many topics overlap yours (≥50% shared words), and divides by the number of those recent competitor posts. Result is capped at 1.0. High saturation usually means more crowd overlap; the environment can lower engagement when you post into a crowded topic.
+          Shown after each day for your <span class="text-on-surface">last post topic</span>. The sim collects competitor posts from the last <span class="text-on-surface">12 simulated hours</span>, counts how many topics overlap yours (≥50% shared words), and divides by the number of those recent competitor posts. Result is capped at 1.0. High saturation usually means more crowd overlap; the environment can lower engagement when you post into a crowded topic.
         </p>
       </div>
       <div class="border-t border-white/5 pt-3 space-y-2">
@@ -161,7 +161,7 @@ body{background:#0b1326;color:#dae2fd;font-family:'Inter',sans-serif}
         <div class="flex justify-between items-center mb-2">
           <div>
             <h3 class="text-sm font-bold">Reward history</h3>
-            <p class="text-[10px] text-on-surface-dim mt-0.5">Per-step RL reward after each action (axes: step index × reward)</p>
+            <p class="text-[10px] text-on-surface-dim mt-0.5">Per-day RL reward after each day (axes: day index × reward)</p>
           </div>
           <span class="flex items-center gap-1.5 text-[10px] font-label text-on-surface-dim"><span class="w-2 h-2 rounded-full bg-secondary"></span>Reward</span>
         </div>
@@ -224,52 +224,52 @@ body{background:#0b1326;color:#dae2fd;font-family:'Inter',sans-serif}
       </div>
     </div>
 
-    <!-- Step & hour analytics -->
+    <!-- Day & hour analytics -->
     <div class="space-y-3">
       <div class="flex items-center gap-2 px-1">
         <span class="material-symbols-outlined text-secondary text-lg">show_chart</span>
-        <h2 class="text-sm font-bold">Step &amp; hour analytics</h2>
-        <span class="text-[9px] font-label text-on-surface-dim uppercase tracking-widest">X = simulation step (~1h); posts histogram = clock hour (0–23)</span>
+        <h2 class="text-sm font-bold">Day &amp; hour analytics</h2>
+        <span class="text-[9px] font-label text-on-surface-dim uppercase tracking-widest">X = day index (1–7); line charts = metrics per day; posts histogram = clock hour (0–23) within days</span>
       </div>
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-3">
         <div class="glass-solid p-4 rounded-xl overflow-hidden">
-          <div class="text-[10px] font-bold text-on-surface-dim uppercase tracking-widest mb-1">Energy / step</div>
+          <div class="text-[10px] font-bold text-on-surface-dim uppercase tracking-widest mb-1">Energy / day</div>
           <svg id="tsEnergy" class="w-full h-24" viewBox="0 0 360 112" preserveAspectRatio="xMidYMid meet"></svg>
         </div>
         <div class="glass-solid p-4 rounded-xl overflow-hidden">
-          <div class="text-[10px] font-bold text-on-surface-dim uppercase tracking-widest mb-1">Followers / step</div>
+          <div class="text-[10px] font-bold text-on-surface-dim uppercase tracking-widest mb-1">Followers / day</div>
           <svg id="tsFollowers" class="w-full h-24" viewBox="0 0 360 112" preserveAspectRatio="xMidYMid meet"></svg>
         </div>
         <div class="glass-solid p-4 rounded-xl overflow-hidden">
-          <div class="text-[10px] font-bold text-on-surface-dim uppercase tracking-widest mb-1">Follower Δ / step</div>
+          <div class="text-[10px] font-bold text-on-surface-dim uppercase tracking-widest mb-1">Follower Δ / day</div>
           <svg id="tsFollowDelta" class="w-full h-24" viewBox="0 0 360 112" preserveAspectRatio="xMidYMid meet"></svg>
         </div>
         <div class="glass-solid p-4 rounded-xl overflow-hidden">
-          <div class="text-[10px] font-bold text-on-surface-dim uppercase tracking-widest mb-1">Engagement rate / step</div>
+          <div class="text-[10px] font-bold text-on-surface-dim uppercase tracking-widest mb-1">Engagement rate / day</div>
           <svg id="tsEngagement" class="w-full h-24" viewBox="0 0 360 112" preserveAspectRatio="xMidYMid meet"></svg>
         </div>
         <div class="glass-solid p-4 rounded-xl overflow-hidden">
-          <div class="text-[10px] font-bold text-on-surface-dim uppercase tracking-widest mb-1">Reward / step</div>
+          <div class="text-[10px] font-bold text-on-surface-dim uppercase tracking-widest mb-1">Reward / day</div>
           <svg id="tsReward" class="w-full h-24" viewBox="0 0 360 112" preserveAspectRatio="xMidYMid meet"></svg>
         </div>
         <div class="glass-solid p-4 rounded-xl overflow-hidden">
-          <div class="text-[10px] font-bold text-on-surface-dim uppercase tracking-widest mb-1">Niche saturation / step</div>
+          <div class="text-[10px] font-bold text-on-surface-dim uppercase tracking-widest mb-1">Niche saturation / day</div>
           <svg id="tsSat" class="w-full h-24" viewBox="0 0 360 112" preserveAspectRatio="xMidYMid meet"></svg>
         </div>
         <div class="glass-solid p-4 rounded-xl overflow-hidden">
-          <div class="text-[10px] font-bold text-on-surface-dim uppercase tracking-widest mb-1">Content queue / step</div>
+          <div class="text-[10px] font-bold text-on-surface-dim uppercase tracking-widest mb-1">Content queue / day</div>
           <svg id="tsQueue" class="w-full h-24" viewBox="0 0 360 112" preserveAspectRatio="xMidYMid meet"></svg>
         </div>
         <div class="glass-solid p-4 rounded-xl overflow-hidden">
-          <div class="text-[10px] font-bold text-on-surface-dim uppercase tracking-widest mb-1">Competitor avg engagement / step</div>
+          <div class="text-[10px] font-bold text-on-surface-dim uppercase tracking-widest mb-1">Competitor avg engagement / day</div>
           <svg id="tsComp" class="w-full h-24" viewBox="0 0 360 112" preserveAspectRatio="xMidYMid meet"></svg>
         </div>
         <div class="glass-solid p-4 rounded-xl overflow-hidden">
-          <div class="text-[10px] font-bold text-on-surface-dim uppercase tracking-widest mb-1">Sleep debt / step</div>
+          <div class="text-[10px] font-bold text-on-surface-dim uppercase tracking-widest mb-1">Sleep debt / day</div>
           <svg id="tsSleep" class="w-full h-24" viewBox="0 0 360 112" preserveAspectRatio="xMidYMid meet"></svg>
         </div>
         <div class="glass-solid p-4 rounded-xl overflow-hidden">
-          <div class="text-[10px] font-bold text-on-surface-dim uppercase tracking-widest mb-1">Hours since sleep / step</div>
+          <div class="text-[10px] font-bold text-on-surface-dim uppercase tracking-widest mb-1">Hours since sleep / day</div>
           <svg id="tsAwake" class="w-full h-24" viewBox="0 0 360 112" preserveAspectRatio="xMidYMid meet"></svg>
         </div>
         <div class="glass-solid p-4 rounded-xl overflow-hidden">
@@ -316,17 +316,17 @@ body{background:#0b1326;color:#dae2fd;font-family:'Inter',sans-serif}
         <div class="glass-solid p-5 rounded-xl overflow-hidden">
           <h3 class="text-sm font-bold mb-4 flex items-center gap-2"><span class="material-symbols-outlined text-primary text-lg">gamepad</span>Send Action</h3>
           <div class="grid grid-cols-3 gap-3 mb-3">
-            <button type="button" title="Advance one hour, recover energy, reduce burnout. Competitors still simulate." onclick="doAction('rest')" class="action-btn group p-4 rounded-xl bg-gradient-to-br from-tertiary/5 to-tertiary/10 border border-tertiary/15 hover:border-tertiary/40 hover:from-tertiary/10 hover:to-tertiary/20 text-center">
+            <button type="button" title="Submit a full rest day (empty schedule). Advances one simulated day; competitors still simulate." onclick="doAction('rest')" class="action-btn group p-4 rounded-xl bg-gradient-to-br from-tertiary/5 to-tertiary/10 border border-tertiary/15 hover:border-tertiary/40 hover:from-tertiary/10 hover:to-tertiary/20 text-center">
               <span class="material-symbols-outlined text-tertiary text-3xl group-hover:scale-110 transition-transform">hotel</span>
               <div class="text-sm font-bold text-tertiary mt-1">Rest</div>
               <div class="text-[9px] text-on-surface-dim mt-0.5">+0.12 energy recovery</div>
             </button>
-            <button type="button" title="Add one item to the queue. Costs a little energy; use before Post for cheaper publishes." onclick="doAction('create_content')" class="action-btn group p-4 rounded-xl bg-gradient-to-br from-secondary/5 to-secondary/10 border border-secondary/15 hover:border-secondary/40 hover:from-secondary/10 hover:to-secondary/20 text-center">
+            <button type="button" title="Schedule create_content at a default hour for this day (daily plan). Queue lowers post energy cost." onclick="doAction('create_content')" class="action-btn group p-4 rounded-xl bg-gradient-to-br from-secondary/5 to-secondary/10 border border-secondary/15 hover:border-secondary/40 hover:from-secondary/10 hover:to-secondary/20 text-center">
               <span class="material-symbols-outlined text-secondary text-3xl group-hover:scale-110 transition-transform">edit_note</span>
               <div class="text-sm font-bold text-secondary mt-1">Create</div>
               <div class="text-[9px] text-on-surface-dim mt-0.5">-0.05 energy, +1 queue</div>
             </button>
-            <button type="button" title="Publish to the feed: choose format, topic, and tags. Drives engagement and tag stats." onclick="showPostForm()" id="postBtn" class="action-btn group p-4 rounded-xl bg-gradient-to-br from-primary/5 to-primary/10 border border-primary/15 hover:border-primary/40 hover:from-primary/10 hover:to-primary/20 text-center">
+            <button type="button" title="Schedule a post at a default hour for this day (daily plan). Drives engagement and tag stats." onclick="showPostForm()" id="postBtn" class="action-btn group p-4 rounded-xl bg-gradient-to-br from-primary/5 to-primary/10 border border-primary/15 hover:border-primary/40 hover:from-primary/10 hover:to-primary/20 text-center">
               <span class="material-symbols-outlined text-primary text-3xl group-hover:scale-110 transition-transform">send</span>
               <div class="text-sm font-bold text-primary mt-1">Post</div>
               <div class="text-[9px] text-on-surface-dim mt-0.5">type + topic + tags</div>
@@ -358,7 +358,7 @@ body{background:#0b1326;color:#dae2fd;font-family:'Inter',sans-serif}
             <div class="flex flex-col items-end gap-0.5">
               <div class="flex items-center gap-2">
                 <span id="scenarioCount" class="text-[9px] font-label text-primary font-bold">…</span>
-                <span class="text-[9px] font-label text-on-surface-dim">168-step episode</span>
+                <span class="text-[9px] font-label text-on-surface-dim">7-day episode</span>
               </div>
               <span class="text-[8px] font-label text-on-surface-dim/70 max-w-[16rem] text-right leading-tight">All strategies below — scroll the grid or search. Count updates after load.</span>
             </div>
@@ -391,10 +391,10 @@ body{background:#0b1326;color:#dae2fd;font-family:'Inter',sans-serif}
           </div>
         </div>
 
-        <!-- Step History -->
+        <!-- Day History -->
         <div class="glass-solid rounded-xl overflow-hidden">
           <div class="p-4 border-b border-white/5 flex justify-between items-center">
-            <h3 class="text-sm font-bold flex items-center gap-2"><span class="material-symbols-outlined text-on-surface-dim text-lg">history</span>Step History</h3>
+            <h3 class="text-sm font-bold flex items-center gap-2"><span class="material-symbols-outlined text-on-surface-dim text-lg">history</span>Day History</h3>
           </div>
           <div id="historyLog" class="p-4 space-y-1.5 max-h-72 overflow-y-auto text-[11px] font-mono leading-relaxed">
             <div class="text-on-surface-dim italic">Reset the environment to begin...</div>
@@ -469,7 +469,7 @@ body{background:#0b1326;color:#dae2fd;font-family:'Inter',sans-serif}
               <th class="text-left px-4 py-2.5">Scenario</th>
               <th class="text-left px-4 py-2.5">Task</th>
               <th class="text-right px-4 py-2.5">Score</th>
-              <th class="text-right px-4 py-2.5">Steps</th>
+              <th class="text-right px-4 py-2.5">Days</th>
               <th class="text-right px-4 py-2.5">Posts</th>
               <th class="text-right px-4 py-2.5">Followers</th>
               <th class="text-right px-4 py-2.5">Delta</th>
@@ -489,6 +489,7 @@ body{background:#0b1326;color:#dae2fd;font-family:'Inter',sans-serif}
 
 <script>
 const API=window.location.origin;
+const EPISODE_DAYS=7;
 const DAYS=["Mon","Tue","Wed","Thu","Fri","Sat","Sun"];
 function fmtAxisNum(v){
   const a=Math.abs(v);
@@ -570,7 +571,7 @@ function drawStepLineChart(svgId,key,color){
   const W=360,H=112,pL=48,pR=10,pT=10,pB=28;
   const plotW=W-pL-pR,plotH=H-pT-pB;
   if(!data.length){
-    svg.innerHTML=`<text x="${W/2}" y="${H/2}" text-anchor="middle" fill="#958ea0" font-size="10" font-family="Space Grotesk,sans-serif">No steps yet</text>`;
+    svg.innerHTML=`<text x="${W/2}" y="${H/2}" text-anchor="middle" fill="#958ea0" font-size="10" font-family="Space Grotesk,sans-serif">No days yet</text>`;
     return;
   }
   const vals=data.map(d=>Number(d[key]??0));
@@ -604,7 +605,7 @@ function drawStepLineChart(svgId,key,color){
   h+=`<text x="${pL}" y="${H-8}" fill="#958ea0" font-size="8" font-family="Space Grotesk,sans-serif">0</text>`;
   h+=`<text x="${pL+plotW/2}" y="${H-8}" text-anchor="middle" fill="#958ea0" font-size="8" font-family="Space Grotesk,sans-serif">${Math.floor(lastI/2)}</text>`;
   h+=`<text x="${W-pR}" y="${H-8}" text-anchor="end" fill="#958ea0" font-size="8" font-family="Space Grotesk,sans-serif">${lastI}</text>`;
-  h+=`<text x="${pL+plotW/2}" y="${H-1}" text-anchor="middle" fill="#958ea0" font-size="7" font-family="Space Grotesk,sans-serif" opacity="0.75">step</text>`;
+  h+=`<text x="${pL+plotW/2}" y="${H-1}" text-anchor="middle" fill="#958ea0" font-size="7" font-family="Space Grotesk,sans-serif" opacity="0.75">day</text>`;
   svg.innerHTML=h;
 }
 
@@ -615,7 +616,7 @@ function drawFollowerDeltaChart(svgId){
   const W=360,H=112,pL=48,pR=10,pT=10,pB=28;
   const plotW=W-pL-pR,plotH=H-pT-pB;
   if(data.length<2){
-    svg.innerHTML=`<text x="${W/2}" y="${H/2}" text-anchor="middle" fill="#958ea0" font-size="10" font-family="Space Grotesk,sans-serif">Need 2+ steps</text>`;
+    svg.innerHTML=`<text x="${W/2}" y="${H/2}" text-anchor="middle" fill="#958ea0" font-size="10" font-family="Space Grotesk,sans-serif">Need 2+ days</text>`;
     return;
   }
   const dlt=data.map((d,i)=>i===0?0:d.followers-data[i-1].followers);
@@ -640,7 +641,7 @@ function drawFollowerDeltaChart(svgId){
   h+=`<text x="${pL}" y="${H-8}" fill="#958ea0" font-size="8" font-family="Space Grotesk,sans-serif">0</text>`;
   h+=`<text x="${pL+plotW/2}" y="${H-8}" text-anchor="middle" fill="#958ea0" font-size="8" font-family="Space Grotesk,sans-serif">${Math.floor(lastI/2)}</text>`;
   h+=`<text x="${W-pR}" y="${H-8}" text-anchor="end" fill="#958ea0" font-size="8" font-family="Space Grotesk,sans-serif">${lastI}</text>`;
-  h+=`<text x="${pL+plotW/2}" y="${H-1}" text-anchor="middle" fill="#958ea0" font-size="7" font-family="Space Grotesk,sans-serif" opacity="0.75">step · Δ followers</text>`;
+  h+=`<text x="${pL+plotW/2}" y="${H-1}" text-anchor="middle" fill="#958ea0" font-size="7" font-family="Space Grotesk,sans-serif" opacity="0.75">day · Δ followers</text>`;
   svg.innerHTML=h;
 }
 
@@ -678,7 +679,7 @@ function drawActionMix(svgId){
   const svg=document.getElementById(svgId);
   if(!svg)return;
   if(!timelineHistory.length){
-    svg.innerHTML='<text x="160" y="28" text-anchor="middle" fill="#958ea0" font-size="10" font-family="Space Grotesk,sans-serif">No steps yet</text>';
+    svg.innerHTML='<text x="160" y="28" text-anchor="middle" fill="#958ea0" font-size="10" font-family="Space Grotesk,sans-serif">No days yet</text>';
     return;
   }
   let r=0,c=0,p=0;
@@ -721,7 +722,7 @@ async function doReset(){
 }
 
 async function doAction(type){
-  setStatus("Stepping...");
+  setStatus("Running day…");
   try{
     const r=await fetch(API+"/dashboard/step",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({action:{action_type:type}})});
     const d=await r.json();
@@ -736,7 +737,7 @@ async function doPost(){
   const tagsRaw=document.getElementById("tagsInput").value.trim();
   const tags=tagsRaw?tagsRaw.split(",").map(t=>t.trim()).filter(Boolean):[];
   if(!topic){alert("Enter a topic");return}
-  setStatus("Stepping...");
+  setStatus("Running day…");
   try{
     const body={action:{action_type:"post",content_type:ct,topic,tags:tags.length?tags:undefined}};
     const r=await fetch(API+"/dashboard/step",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)});
@@ -899,10 +900,10 @@ function drawEngagementChart(){
   h+=`<defs><linearGradient id="${gid}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#7bd0ff" stop-opacity="0.28"/><stop offset="1" stop-color="#7bd0ff" stop-opacity="0"/></linearGradient></defs>`;
   h+=`<path d="${areaD}" fill="url(#${gid})"/><path d="${lineD}" fill="none" stroke="#7bd0ff" stroke-width="2.5"/>`;
   const lastI=data.length-1;
-  h+=`<text x="${pL}" y="${H-18}" fill="#958ea0" font-size="9" font-family="Space Grotesk,sans-serif">step 0</text>`;
-  h+=`<text x="${pL+plotW/2}" y="${H-18}" text-anchor="middle" fill="#958ea0" font-size="9" font-family="Space Grotesk,sans-serif">step ${Math.floor(lastI/2)}</text>`;
-  h+=`<text x="${W-pR}" y="${H-18}" text-anchor="end" fill="#958ea0" font-size="9" font-family="Space Grotesk,sans-serif">step ${lastI}</text>`;
-  h+=`<text x="${pL+plotW/2}" y="${H-4}" text-anchor="middle" fill="#958ea0" font-size="9" font-family="Space Grotesk,sans-serif" opacity="0.85">simulation step index</text>`;
+  h+=`<text x="${pL}" y="${H-18}" fill="#958ea0" font-size="9" font-family="Space Grotesk,sans-serif">day 0</text>`;
+  h+=`<text x="${pL+plotW/2}" y="${H-18}" text-anchor="middle" fill="#958ea0" font-size="9" font-family="Space Grotesk,sans-serif">day ${Math.floor(lastI/2)}</text>`;
+  h+=`<text x="${W-pR}" y="${H-18}" text-anchor="end" fill="#958ea0" font-size="9" font-family="Space Grotesk,sans-serif">day ${lastI}</text>`;
+  h+=`<text x="${pL+plotW/2}" y="${H-4}" text-anchor="middle" fill="#958ea0" font-size="9" font-family="Space Grotesk,sans-serif" opacity="0.85">day index (1–${EPISODE_DAYS})</text>`;
   h+=`<text x="12" y="${pT+plotH/2}" transform="rotate(-90 12 ${pT+plotH/2})" text-anchor="middle" fill="#958ea0" font-size="9" font-family="Space Grotesk,sans-serif" opacity="0.85">reward</text>`;
   svg.innerHTML=h;
 }
@@ -914,7 +915,7 @@ function drawBurnoutMeter(energy){
   document.getElementById("burnoutArc").setAttribute("stroke-dasharray",fill.toFixed(1)+" "+circ.toFixed(1));
   document.getElementById("burnoutPct").textContent=burnout+"%";
   const rec=document.getElementById("burnoutRec");
-  if(burnout>=70)rec.textContent="Recommendation: Limit posting for 45 mins to prevent creative fatigue.";
+  if(burnout>=70)rec.textContent="Recommendation: Ease off scheduled posts for the next day to prevent creative fatigue.";
   else if(burnout>=40)rec.textContent="Recommendation: Alternate between creating and resting to maintain output quality.";
   else rec.textContent="Recommendation: Energy levels healthy. Good window for high-effort content.";
 }
@@ -987,7 +988,7 @@ function addRecentAction(d){
   const action=d.action_type||d.observation?.last_action||"step";
   const icon=icons[action]||"play_arrow";
   const c=colors[action]||"on-surface-dim";
-  const entry=`<div class="flex items-start gap-2.5 fade-in"><span class="material-symbols-outlined text-${c} text-lg mt-0.5 shrink-0">${icon}</span><div class="flex-1 min-w-0"><div class="text-xs font-bold text-on-surface truncate">${action.replace("_"," ")}</div><div class="text-[9px] text-on-surface-dim">${step} steps ago · r=${reward.toFixed(2)}</div></div></div>`;
+  const entry=`<div class="flex items-start gap-2.5 fade-in"><span class="material-symbols-outlined text-${c} text-lg mt-0.5 shrink-0">${icon}</span><div class="flex-1 min-w-0"><div class="text-xs font-bold text-on-surface truncate">${action.replace("_"," ")}</div><div class="text-[9px] text-on-surface-dim">day ${step} · r=${reward.toFixed(2)}</div></div></div>`;
   if(el.querySelector(".italic"))el.innerHTML="";
   el.innerHTML=entry+el.innerHTML;
   if(el.children.length>8)el.removeChild(el.lastChild);
@@ -1000,7 +1001,7 @@ function addLog(action,reward,done,error){
   const errStr=error?` <span class="text-error">err=${error}</span>`:"";
   const color=reward>0.5?"text-secondary":reward>0.2?"text-primary":"text-on-surface-dim";
   const doneStr=done?'<span class="text-tertiary font-bold"> DONE</span>':"";
-  log.innerHTML+=`<div class="fade-in py-0.5"><span class="text-on-surface-dim/50">[${step}]</span> <span class="text-on-surface">${action}</span> <span class="${color}">r=${(reward??0).toFixed(2)}</span>${doneStr}${errStr}</div>`;
+  log.innerHTML+=`<div class="fade-in py-0.5"><span class="text-on-surface-dim/50">[day ${step}]</span> <span class="text-on-surface">${action}</span> <span class="${color}">r=${(reward??0).toFixed(2)}</span>${doneStr}${errStr}</div>`;
   log.scrollTop=log.scrollHeight;
   document.getElementById("rewardBadge").textContent="Last reward: "+(reward??0).toFixed(2);
 }
@@ -1056,69 +1057,64 @@ async function runSim(scenario){
       document.getElementById("simBar").style.width=pct+"%";
       document.getElementById("simPct").textContent=pct+"%";
 
-      // Live stat card updates every 5 steps
-      if(i%5===0||i===total-1){
-        document.getElementById("energyVal").textContent=s.energy.toFixed(2);
-        document.getElementById("energyBar").style.width=(s.energy*100)+"%";
-        document.getElementById("followersVal").textContent=s.followers.toLocaleString();
-        document.getElementById("engVal").textContent=s.engagement_rate.toFixed(3);
-        document.getElementById("stepNum").textContent=s.step;
-        document.getElementById("timeVal").textContent=s.hour+":00";
-        document.getElementById("dayVal").textContent=DAYS[s.day];
-        document.getElementById("postsVal").textContent=s.posts_today;
-        document.getElementById("queueVal").textContent=s.queue;
-        document.getElementById("satVal").textContent=s.niche_saturation.toFixed(2);
-        document.getElementById("compEng").textContent=s.competitor_avg_engagement.toFixed(3);
-        const diff=s.engagement_rate-s.competitor_avg_engagement;
-        const evc=document.getElementById("engVsComp");
-        evc.textContent="vs competitors: "+(diff>=0?"+":"")+diff.toFixed(3);
-        evc.className="mt-1.5 text-[9px] font-label "+(diff>0?"text-secondary":"text-tertiary");
-        const fdelta=s.followers-10000;
-        const fdEl=document.getElementById("followersDelta");
-        fdEl.textContent=(fdelta>=0?"+":"")+fdelta+" since start";
-        fdEl.className="mt-1.5 text-[9px] font-label "+(fdelta>0?"text-secondary":fdelta<0?"text-tertiary":"text-on-surface-dim");
+      document.getElementById("energyVal").textContent=s.energy.toFixed(2);
+      document.getElementById("energyBar").style.width=(s.energy*100)+"%";
+      document.getElementById("followersVal").textContent=s.followers.toLocaleString();
+      document.getElementById("engVal").textContent=s.engagement_rate.toFixed(3);
+      document.getElementById("stepNum").textContent=s.step;
+      document.getElementById("timeVal").textContent=s.hour+":00";
+      document.getElementById("dayVal").textContent=DAYS[s.day];
+      document.getElementById("postsVal").textContent=s.posts_today;
+      document.getElementById("queueVal").textContent=s.queue;
+      document.getElementById("satVal").textContent=s.niche_saturation.toFixed(2);
+      document.getElementById("compEng").textContent=s.competitor_avg_engagement.toFixed(3);
+      const diff=s.engagement_rate-s.competitor_avg_engagement;
+      const evc=document.getElementById("engVsComp");
+      evc.textContent="vs competitors: "+(diff>=0?"+":"")+diff.toFixed(3);
+      evc.className="mt-1.5 text-[9px] font-label "+(diff>0?"text-secondary":"text-tertiary");
+      const fdelta=s.followers-10000;
+      const fdEl=document.getElementById("followersDelta");
+      fdEl.textContent=(fdelta>=0?"+":"")+fdelta+" since start";
+      fdEl.className="mt-1.5 text-[9px] font-label "+(fdelta>0?"text-secondary":fdelta<0?"text-tertiary":"text-on-surface-dim");
 
-        drawEngagementChart();
-        drawBurnoutMeter(s.energy);
-        drawFollowerBars();
-        updateBottomStats();
-        redrawTimelineCharts();
+      drawEngagementChart();
+      drawBurnoutMeter(s.energy);
+      drawFollowerBars();
+      updateBottomStats();
+      redrawTimelineCharts();
 
-        // Update trending
-        const tt=document.getElementById("trendTopics");
-        tt.innerHTML=(s.trending_topics||[]).map(t=>`<span class="px-2 py-1 rounded-lg bg-secondary/10 border border-secondary/15 text-secondary text-[10px] font-label">${t}</span>`).join("");
-        const tg=document.getElementById("trendTags");
-        tg.innerHTML=(s.trending_tags||[]).map(t=>`<span class="px-2 py-1 rounded-lg bg-primary/10 border border-primary/15 text-primary text-[10px] font-label">#${t}</span>`).join("");
+      const tt=document.getElementById("trendTopics");
+      tt.innerHTML=(s.trending_topics||[]).map(t=>`<span class="px-2 py-1 rounded-lg bg-secondary/10 border border-secondary/15 text-secondary text-[10px] font-label">${t}</span>`).join("");
+      const tg=document.getElementById("trendTags");
+      tg.innerHTML=(s.trending_tags||[]).map(t=>`<span class="px-2 py-1 rounded-lg bg-primary/10 border border-primary/15 text-primary text-[10px] font-label">#${t}</span>`).join("");
 
-        // Update tag perf
-        const perf=s.tag_performance||{};
-        const entries=Object.entries(perf).sort((a,b)=>b[1]-a[1]);
-        const tp=document.getElementById("tagPerf");
-        if(entries.length){
-          const maxV=Math.max(...entries.map(e=>e[1]),0.01);
-          tp.innerHTML=entries.slice(0,6).map(([tag,val],j)=>{
-            const c=j%2===0?"primary":"secondary";
-            const w=Math.min(100,(val/maxV)*100);
-            return `<div><div class="flex justify-between font-label text-[10px]"><span class="text-on-surface">#${tag}</span><span class="text-${c}">${val.toFixed(3)}</span></div><div class="h-1.5 bg-surface-top rounded-full mt-1 overflow-hidden"><div class="h-full bg-gradient-to-r from-${c} to-${c}-ctr rounded-full" style="width:${w}%"></div></div></div>`;
-          }).join("");
-        }
-        const ttl=document.getElementById("topTagsList");
-        const colors=["secondary","primary","tertiary","on-surface-dim"];
-        if(entries.length){
-          ttl.innerHTML=entries.slice(0,4).map(([tag,val],j)=>{
-            const c=colors[j%colors.length];
-            const fmtVal=val>=1000?(val/1000).toFixed(1)+"k":val.toFixed(1);
-            return `<div class="flex items-center justify-between"><div class="flex items-center gap-2.5"><span class="w-2 h-2 rounded-full bg-${c}"></span><span class="text-sm font-label text-on-surface">#${tag}</span></div><span class="text-sm font-bold font-label text-${c}">${fmtVal}</span></div>`;
-          }).join("");
-        }
-
-        await new Promise(r=>setTimeout(r,12));
+      const perf=s.tag_performance||{};
+      const entries=Object.entries(perf).sort((a,b)=>b[1]-a[1]);
+      const tp=document.getElementById("tagPerf");
+      if(entries.length){
+        const maxV=Math.max(...entries.map(e=>e[1]),0.01);
+        tp.innerHTML=entries.slice(0,6).map(([tag,val],j)=>{
+          const c=j%2===0?"primary":"secondary";
+          const w=Math.min(100,(val/maxV)*100);
+          return `<div><div class="flex justify-between font-label text-[10px]"><span class="text-on-surface">#${tag}</span><span class="text-${c}">${val.toFixed(3)}</span></div><div class="h-1.5 bg-surface-top rounded-full mt-1 overflow-hidden"><div class="h-full bg-gradient-to-r from-${c} to-${c}-ctr rounded-full" style="width:${w}%"></div></div></div>`;
+        }).join("");
       }
+      const ttl=document.getElementById("topTagsList");
+      const colors=["secondary","primary","tertiary","on-surface-dim"];
+      if(entries.length){
+        ttl.innerHTML=entries.slice(0,4).map(([tag,val],j)=>{
+          const c=colors[j%colors.length];
+          const fmtVal=val>=1000?(val/1000).toFixed(1)+"k":val.toFixed(1);
+          return `<div class="flex items-center justify-between"><div class="flex items-center gap-2.5"><span class="w-2 h-2 rounded-full bg-${c}"></span><span class="text-sm font-label text-on-surface">#${tag}</span></div><span class="text-sm font-bold font-label text-${c}">${fmtVal}</span></div>`;
+        }).join("");
+      }
+
+      await new Promise(r=>setTimeout(r,12));
 
       const color=s.reward>0.5?"text-secondary":s.reward>0.2?"text-primary":"text-on-surface-dim";
       const err=s.error?` <span class="text-error">err=${s.error}</span>`:"";
       const dn=s.done?'<span class="text-tertiary font-bold"> DONE</span>':"";
-      log.innerHTML+=`<div class="fade-in py-0.5"><span class="text-on-surface-dim/50">[${s.step}]</span> <span class="text-on-surface">${s.action}</span> <span class="${color}">r=${s.reward.toFixed(2)}</span>${dn}${err}</div>`;
+      log.innerHTML+=`<div class="fade-in py-0.5"><span class="text-on-surface-dim/50">[day ${s.step}]</span> <span class="text-on-surface">${s.action}</span> <span class="${color}">r=${s.reward.toFixed(2)}</span>${dn}${err}</div>`;
       log.scrollTop=log.scrollHeight;
     }
 
@@ -1176,7 +1172,7 @@ async function runSim(scenario){
       <div class="p-4 rounded-xl border ${scoreBg} space-y-2">
         <div class="flex justify-between items-center"><span class="text-[10px] font-label text-on-surface-dim uppercase tracking-widest">Grader Score</span><span class="text-3xl font-black ${scoreColor}">${sc.toFixed(4)}</span></div>
         <div class="grid grid-cols-2 gap-x-6 gap-y-1 text-[10px] font-label">
-          <div class="flex justify-between"><span class="text-on-surface-dim">Steps</span><span>${d.total_steps}</span></div>
+          <div class="flex justify-between"><span class="text-on-surface-dim">Days</span><span>${d.total_steps}</span></div>
           <div class="flex justify-between"><span class="text-on-surface-dim">Burned Out</span><span class="${f.burned_out?"text-tertiary":"text-secondary"}">${f.burned_out?"YES":"NO"}</span></div>
           <div class="flex justify-between"><span class="text-on-surface-dim">Final Energy</span><span>${f.energy.toFixed(2)}</span></div>
           <div class="flex justify-between"><span class="text-on-surface-dim">Followers</span><span>${f.followers.toLocaleString()}</span></div>
@@ -1216,7 +1212,7 @@ async function loadHistory(){
       const deltaStr=(delta>=0?"+":"")+delta.toLocaleString();
       const deltaClass=delta>0?"text-secondary":delta<0?"text-tertiary":"text-on-surface-dim";
       const scoreColor=h.score>=0.7?"text-primary":h.score>=0.3?"text-secondary":"text-tertiary";
-      const status=f.burned_out?'<span class="text-tertiary font-bold">BURNED</span>':h.total_steps>=168?'<span class="text-secondary">DONE</span>':'<span class="text-on-surface-dim">PARTIAL</span>';
+      const status=f.burned_out?'<span class="text-tertiary font-bold">BURNED</span>':h.total_steps>=EPISODE_DAYS?'<span class="text-secondary">DONE</span>':'<span class="text-on-surface-dim">PARTIAL</span>';
       const energyColor=f.energy>=0.5?"text-secondary":f.energy>0?"text-tertiary":"text-error";
       const desc=(h.description||"").trim();
       return `<tr class="border-b border-white/5 hover:bg-white/[.02] transition">
@@ -1297,6 +1293,7 @@ async function loadScenarioButtons(){
   }
 }
 
+(function(){const h=document.getElementById("episodeHorizon");if(h)h.textContent=String(EPISODE_DAYS);})();
 loadScenarioButtons();
 loadHistory();
 doReset();

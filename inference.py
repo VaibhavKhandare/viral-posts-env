@@ -35,8 +35,8 @@ from viraltest.server.viraltest_environment import (
 
 DOCKER_IMAGE = os.getenv("IMAGE_NAME") or os.getenv("LOCAL_IMAGE_NAME")
 API_KEY = os.getenv("HF_TOKEN") or os.getenv("OPENAI_API_KEY") or os.getenv("API_KEY")
-API_BASE_URL = os.getenv("API_BASE_URL") or "http://127.0.0.1:1337/v1"
-MODEL_NAME = os.getenv("MODEL_NAME") or "gemma-4-E4B-it-IQ4_XS"
+API_BASE_URL = os.getenv("API_BASE_URL") or "https://router.huggingface.co/v1"
+MODEL_NAME = os.getenv("MODEL_NAME") or "Qwen/Qwen2.5-7B-Instruct"
 BENCHMARK = os.getenv("VIRALTEST_BENCHMARK", "viraltest")
 
 TASKS = ["weekly_engage", "weekly_strategic", "weekly_competitive"]
@@ -228,7 +228,7 @@ def get_model_daily_plan(
 
     user_prompt = format_observation(obs)
     messages = [{"role": "system", "content": SYSTEM_PROMPT}]
-    messages.extend(history[-12:])
+    messages.extend(history[-7:])
     messages.append({"role": "user", "content": user_prompt})
 
     try:
