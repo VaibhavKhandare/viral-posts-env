@@ -1,0 +1,13 @@
+# Local secrets (HF_TOKEN, etc.) — never commit
+.env
+.env.*
+!.env.example
+
+# Generated visualization outputs (regenerate: python visualize_optimal.py)
+# Hugging Face Spaces rejects plain-git binary files; keep charts local or use Git LFS elsewhere.
+*.png
+
+__pycache__/
+*.py[cod]
+*.egg-info/
+.mplconfig/

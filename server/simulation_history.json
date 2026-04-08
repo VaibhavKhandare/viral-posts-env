@@ -1,0 +1,1802 @@
+[
+  {
+    "id": "2026-04-05T10:50:54.850500+00:00",
+    "scenario": "Always Rest",
+    "scenario_id": "always_rest",
+    "task": "weekly_competitive",
+    "score": 0.035,
+    "total_steps": 168,
+    "total_posts": 0,
+    "avg_reward": 0.15,
+    "final": {
+      "energy": 1.0,
+      "hours_since_sleep": 1,
+      "sleep_debt": 0.0,
+      "followers": 5497,
+      "engagement_rate": 0.0,
+      "burned_out": false
+    }
+  },
+  {
+    "id": "2026-04-05T10:50:54.859097+00:00",
+    "scenario": "Anti-Trend",
+    "scenario_id": "anti_trend",
+    "task": "weekly_competitive",
+    "score": 0.2316,
+    "total_steps": 168,
+    "total_posts": 14,
+    "avg_reward": 0.2201,
+    "final": {
+      "energy": 1.0,
+      "hours_since_sleep": 1,
+      "sleep_debt": 0.0,
+      "followers": 11125,
+      "engagement_rate": 0.747,
+      "burned_out": false
+    }
+  },
+  {
+    "id": "2026-04-05T10:50:54.868624+00:00",
+    "scenario": "Bad Timing",
+    "scenario_id": "bad_timing",
+    "task": "weekly_competitive",
+    "score": 0.0937,
+    "total_steps": 168,
+    "total_posts": 49,
+    "avg_reward": 0.1611,
+    "final": {
+      "energy": 0.59,
+      "hours_since_sleep": 5,
+      "sleep_debt": 0.0,
+      "followers": 10237,
+      "engagement_rate": 0.0358,
+      "burned_out": false
+    }
+  },
+  {
+    "id": "2026-04-05T10:50:54.878099+00:00",
+    "scenario": "Balanced Creator",
+    "scenario_id": "balanced",
+    "task": "weekly_competitive",
+    "score": 0.8775,
+    "total_steps": 168,
+    "total_posts": 28,
+    "avg_reward": 0.2187,
+    "final": {
+      "energy": 1.0,
+      "hours_since_sleep": 2,
+      "sleep_debt": 0.0,
+      "followers": 12534,
+      "engagement_rate": 0.8273,
+      "burned_out": false
+    }
+  },
+  {
+    "id": "2026-04-05T10:50:54.891038+00:00",
+    "scenario": "Burst Poster",
+    "scenario_id": "burst",
+    "task": "weekly_competitive",
+    "score": 0.6111,
+    "total_steps": 168,
+    "total_posts": 57,
+    "avg_reward": 0.2318,
+    "final": {
+      "energy": 0.44,
+      "hours_since_sleep": 1,
+      "sleep_debt": 0.0,
+      "followers": 11701,
+      "engagement_rate": 0.2076,
+      "burned_out": false
+    }
+  },
+  {
+    "id": "2026-04-05T10:50:54.901147+00:00",
+    "scenario": "Carousel Only",
+    "scenario_id": "carousel_only",
+    "task": "weekly_competitive",
+    "score": 0.417,
+    "total_steps": 168,
+    "total_posts": 14,
+    "avg_reward": 0.2353,
+    "final": {
+      "energy": 1.0,
+      "hours_since_sleep": 1,
+      "sleep_debt": 0.0,
+      "followers": 12074,
+      "engagement_rate": 1.3175,
+      "burned_out": false
+    }
+  },
+  {
+    "id": "2026-04-05T10:50:54.911264+00:00",
+    "scenario": "Competitor Avoider",
+    "scenario_id": "comp_avoider",
+    "task": "weekly_competitive",
+    "score": 0.446,
+    "total_steps": 168,
+    "total_posts": 14,
+    "avg_reward": 0.2365,
+    "final": {
+      "energy": 1.0,
+      "hours_since_sleep": 1,
+      "sleep_debt": 0.0,
+      "followers": 12678,
+      "engagement_rate": 1.8163,
+      "burned_out": false
+    }
+  },
+  {
+    "id": "2026-04-05T10:50:54.921231+00:00",
+    "scenario": "Conservative Energy",
+    "scenario_id": "conservative",
+    "task": "weekly_competitive",
+    "score": 0.2181,
+    "total_steps": 168,
+    "total_posts": 7,
+    "avg_reward": 0.1967,
+    "final": {
+      "energy": 1.0,
+      "hours_since_sleep": 1,
+      "sleep_debt": 0.0,
+      "followers": 10239,
+      "engagement_rate": 0.3439,
+      "burned_out": false
+    }
+  },
+  {
+    "id": "2026-04-05T10:50:54.931980+00:00",
+    "scenario": "Content Creator",
+    "scenario_id": "content_creator",
+    "task": "weekly_competitive",
+    "score": 0.6434,
+    "total_steps": 168,
+    "total_posts": 12,
+    "avg_reward": 0.2065,
+    "final": {
+      "energy": 0.309,
+      "hours_since_sleep": 28,
+      "sleep_debt": 0.017,
+      "followers": 10931,
+      "engagement_rate": 0.525,
+      "burned_out": false
+    }
+  },
+  {
+    "id": "2026-04-05T10:50:54.942037+00:00",
+    "scenario": "Copycat",
+    "scenario_id": "copycat",
+    "task": "weekly_competitive",
+    "score": 0.6136,
+    "total_steps": 168,
+    "total_posts": 21,
+    "avg_reward": 0.1887,
+    "final": {
+      "energy": 1.0,
+      "hours_since_sleep": 1,
+      "sleep_debt": 0.0,
+      "followers": 11589,
+      "engagement_rate": 0.497,
+      "burned_out": false
+    }
+  },
+  {
+    "id": "2026-04-05T10:50:54.951850+00:00",
+    "scenario": "Creator Economy",
+    "scenario_id": "creator_economy",
+    "task": "weekly_competitive",
+    "score": 0.2515,
+    "total_steps": 168,
+    "total_posts": 14,
+    "avg_reward": 0.2226,
+    "final": {
+      "energy": 1.0,
+      "hours_since_sleep": 1,
+      "sleep_debt": 0.0,
+      "followers": 11994,
+      "engagement_rate": 1.3918,
+      "burned_out": false
+    }
+  },
+  {
+    "id": "2026-04-05T10:50:54.961166+00:00",
+    "scenario": "Crypto/Web3",
+    "scenario_id": "crypto_niche",
+    "task": "weekly_competitive",
+    "score": 0.2879,
+    "total_steps": 168,
+    "total_posts": 14,
+    "avg_reward": 0.2324,
+    "final": {
+      "energy": 1.0,
+      "hours_since_sleep": 1,
+      "sleep_debt": 0.0,
+      "followers": 12444,
+      "engagement_rate": 1.6187,
+      "burned_out": false
+    }
+  },
+  {
+    "id": "2026-04-05T10:50:54.970461+00:00",
+    "scenario": "Double Peak",
+    "scenario_id": "double_peak",
+    "task": "weekly_competitive",
+    "score": 0.4519,
+    "total_steps": 168,
+    "total_posts": 14,
+    "avg_reward": 0.2352,
+    "final": {
+      "energy": 1.0,
+      "hours_since_sleep": 1,
+      "sleep_debt": 0.0,
+      "followers": 13138,
+      "engagement_rate": 2.0814,
+      "burned_out": false
+    }
+  },
+  {
+    "id": "2026-04-05T10:50:54.980718+00:00",
+    "scenario": "Early Bird",
+    "scenario_id": "early_bird",
+    "task": "weekly_competitive",
+    "score": 0.2075,
+    "total_steps": 168,
+    "total_posts": 16,
+    "avg_reward": 0.2284,
+    "final": {
+      "energy": 0.62,
+      "hours_since_sleep": 2,
+      "sleep_debt": 0.0,
+      "followers": 10818,
+      "engagement_rate": 0.4138,
+      "burned_out": false
+    }
+  },
+  {
+    "id": "2026-04-05T10:50:54.989979+00:00",
+    "scenario": "Energy Saver",
+    "scenario_id": "energy_saver",
+    "task": "weekly_competitive",
+    "score": 0.3744,
+    "total_steps": 168,
+    "total_posts": 7,
+    "avg_reward": 0.2111,
+    "final": {
+      "energy": 1.0,
+      "hours_since_sleep": 1,
+      "sleep_debt": 0.0,
+      "followers": 11080,
+      "engagement_rate": 1.5483,
+      "burned_out": false
+    }
+  },
+  {
+    "id": "2026-04-05T10:50:55.000118+00:00",
+    "scenario": "Engagement Chaser",
+    "scenario_id": "engagement_chaser",
+    "task": "weekly_competitive",
+    "score": 0.4194,
+    "total_steps": 168,
+    "total_posts": 21,
+    "avg_reward": 0.2224,
+    "final": {
+      "energy": 1.0,
+      "hours_since_sleep": 1,
+      "sleep_debt": 0.0,
+      "followers": 15287,
+      "engagement_rate": 2.2466,
+      "burned_out": false
+    }
+  },
+  {
+    "id": "2026-04-05T10:50:55.009873+00:00",
+    "scenario": "Events/News",
+    "scenario_id": "events",
+    "task": "weekly_competitive",
+    "score": 0.158,
+    "total_steps": 168,
+    "total_posts": 4,
+    "avg_reward": 0.1732,
+    "final": {
+      "energy": 1.0,
+      "hours_since_sleep": 1,
+      "sleep_debt": 0.0,
+      "followers": 7491,
+      "engagement_rate": 1.4388,
+      "burned_out": false
+    }
+  },
+  {
+    "id": "2026-04-05T10:50:55.018674+00:00",
+    "scenario": "Fashion Content",
+    "scenario_id": "fashion",
+    "task": "weekly_competitive",
+    "score": 0.2181,
+    "total_steps": 168,
+    "total_posts": 14,
+    "avg_reward": 0.2147,
+    "final": {
+      "energy": 1.0,
+      "hours_since_sleep": 1,
+      "sleep_debt": 0.0,
+      "followers": 11135,
+      "engagement_rate": 0.7898,
+      "burned_out": false
+    }
+  },
+  {
+    "id": "2026-04-05T10:50:55.027894+00:00",
+    "scenario": "Food Creator",
+    "scenario_id": "food_creator",
+    "task": "weekly_competitive",
+    "score": 0.2612,
+    "total_steps": 168,
+    "total_posts": 15,
+    "avg_reward": 0.2293,
+    "final": {
+      "energy": 0.7,
+      "hours_since_sleep": 2,
+      "sleep_debt": 0.0,
+      "followers": 12091,
+      "engagement_rate": 1.1978,
+      "burned_out": false
+    }
+  },
+  {
+    "id": "2026-04-05T10:50:55.037230+00:00",
+    "scenario": "Gaming Niche",
+    "scenario_id": "gaming_niche",
+    "task": "weekly_competitive",
+    "score": 0.2188,
+    "total_steps": 168,
+    "total_posts": 14,
+    "avg_reward": 0.2062,
+    "final": {
+      "energy": 1.0,
+      "hours_since_sleep": 1,
+      "sleep_debt": 0.0,
+      "followers": 11364,
+      "engagement_rate": 0.9138,
+      "burned_out": false
+    }
+  },
+  {
+    "id": "2026-04-05T10:50:55.047589+00:00",
+    "scenario": "Growth Focus",
+    "scenario_id": "growth_focus",
+    "task": "weekly_competitive",
+    "score": 0.2764,
+    "total_steps": 168,
+    "total_posts": 14,
+    "avg_reward": 0.2205,
+    "final": {
+      "energy": 1.0,
+      "hours_since_sleep": 1,
+      "sleep_debt": 0.0,
+      "followers": 12621,
+      "engagement_rate": 1.7101,
+      "burned_out": false
+    }
+  },
+  {
+    "id": "2026-04-05T10:50:55.059854+00:00",
+    "scenario": "High Frequency",
+    "scenario_id": "high_freq",
+    "task": "weekly_competitive",
+    "score": 0.8611,
+    "total_steps": 168,
+    "total_posts": 22,
+    "avg_reward": 0.2058,
+    "final": {
+      "energy": 0.92,
+      "hours_since_sleep": 2,
+      "sleep_debt": 0.0,
+      "followers": 12654,
+      "engagement_rate": 1.079,
+      "burned_out": false
+    }
+  },
+  {
+    "id": "2026-04-05T10:50:55.072522+00:00",
+    "scenario": "Lifestyle Niche",
+    "scenario_id": "lifestyle_niche",
+    "task": "weekly_competitive",
+    "score": 0.2612,
+    "total_steps": 168,
+    "total_posts": 14,
+    "avg_reward": 0.2288,
+    "final": {
+      "energy": 1.0,
+      "hours_since_sleep": 1,
+      "sleep_debt": 0.0,
+      "followers": 12251,
+      "engagement_rate": 1.6295,
+      "burned_out": false
+    }
+  },
+  {
+    "id": "2026-04-05T10:50:55.081957+00:00",
+    "scenario": "Low Frequency",
+    "scenario_id": "low_freq",
+    "task": "weekly_competitive",
+    "score": 0.3241,
+    "total_steps": 168,
+    "total_posts": 4,
+    "avg_reward": 0.1768,
+    "final": {
+      "energy": 1.0,
+      "hours_since_sleep": 1,
+      "sleep_debt": 0.0,
+      "followers": 10461,
+      "engagement_rate": 1.1563,
+      "burned_out": false
+    }
+  },
+  {
+    "id": "2026-04-05T10:50:55.089553+00:00",
+    "scenario": "Marathon Runner",
+    "scenario_id": "marathon",
+    "task": "weekly_competitive",
+    "score": 0.0,
+    "total_steps": 50,
+    "total_posts": 9,
+    "avg_reward": 0.1323,
+    "final": {
+      "energy": 0.0,
+      "hours_since_sleep": 22,
+      "sleep_debt": 0.028,
+      "followers": 10137,
+      "engagement_rate": 0.157,
+      "burned_out": true
+    }
+  },
+  {
+    "id": "2026-04-05T10:50:55.095782+00:00",
+    "scenario": "Midday Focus",
+    "scenario_id": "midday",
+    "task": "weekly_competitive",
+    "score": 0.4317,
+    "total_steps": 168,
+    "total_posts": 14,
+    "avg_reward": 0.2306,
+    "final": {
+      "energy": 1.0,
+      "hours_since_sleep": 1,
+      "sleep_debt": 0.0,
+      "followers": 13537,
+      "engagement_rate": 2.3076,
+      "burned_out": false
+    }
+  },
+  {
+    "id": "2026-04-05T10:50:55.106103+00:00",
+    "scenario": "Minimal Poster",
+    "scenario_id": "minimal",
+    "task": "weekly_competitive",
+    "score": 0.3658,
+    "total_steps": 168,
+    "total_posts": 7,
+    "avg_reward": 0.2039,
+    "final": {
+      "energy": 1.0,
+      "hours_since_sleep": 1,
+      "sleep_debt": 0.0,
+      "followers": 10907,
+      "engagement_rate": 1.3002,
+      "burned_out": false
+    }
+  },
+  {
+    "id": "2026-04-05T10:50:55.116369+00:00",
+    "scenario": "ML/AI Deep Dive",
+    "scenario_id": "ml_deep",
+    "task": "weekly_competitive",
+    "score": 0.2266,
+    "total_steps": 168,
+    "total_posts": 14,
+    "avg_reward": 0.2197,
+    "final": {
+      "energy": 1.0,
+      "hours_since_sleep": 1,
+      "sleep_debt": 0.0,
+      "followers": 11180,
+      "engagement_rate": 0.7014,
+      "burned_out": false
+    }
+  },
+  {
+    "id": "2026-04-05T10:50:55.125451+00:00",
+    "scenario": "Monday Motivation",
+    "scenario_id": "monday",
+    "task": "weekly_competitive",
+    "score": 0.2606,
+    "total_steps": 168,
+    "total_posts": 4,
+    "avg_reward": 0.159,
+    "final": {
+      "energy": 0.75,
+      "hours_since_sleep": 2,
+      "sleep_debt": 0.0,
+      "followers": 5827,
+      "engagement_rate": 0.911,
+      "burned_out": false
+    }
+  },
+  {
+    "id": "2026-04-05T10:50:55.134737+00:00",
+    "scenario": "Napper",
+    "scenario_id": "napper",
+    "task": "weekly_competitive",
+    "score": 0.3623,
+    "total_steps": 168,
+    "total_posts": 14,
+    "avg_reward": 0.2264,
+    "final": {
+      "energy": 1.0,
+      "hours_since_sleep": 1,
+      "sleep_debt": 0.0,
+      "followers": 11322,
+      "engagement_rate": 0.8914,
+      "burned_out": false
+    }
+  },
+  {
+    "id": "2026-04-05T10:50:55.144641+00:00",
+    "scenario": "Night Owl",
+    "scenario_id": "night_owl",
+    "task": "weekly_competitive",
+    "score": 0.266,
+    "total_steps": 168,
+    "total_posts": 14,
+    "avg_reward": 0.194,
+    "final": {
+      "energy": 1.0,
+      "hours_since_sleep": 1,
+      "sleep_debt": 0.0,
+      "followers": 11927,
+      "engagement_rate": 1.328,
+      "burned_out": false
+    }
+  },
+  {
+    "id": "2026-04-05T10:50:55.153554+00:00",
+    "scenario": "Night Shift",
+    "scenario_id": "night_shift",
+    "task": "weekly_competitive",
+    "score": 0.2105,
+    "total_steps": 168,
+    "total_posts": 16,
+    "avg_reward": 0.2453,
+    "final": {
+      "energy": 1.0,
+      "hours_since_sleep": 1,
+      "sleep_debt": 0.0,
+      "followers": 11069,
+      "engagement_rate": 0.5602,
+      "burned_out": false
+    }
+  },
+  {
+    "id": "2026-04-05T10:50:55.159353+00:00",
+    "scenario": "No Rest",
+    "scenario_id": "no_rest",
+    "task": "weekly_competitive",
+    "score": 0.0,
+    "total_steps": 8,
+    "total_posts": 8,
+    "avg_reward": 0.2686,
+    "final": {
+      "energy": 0.0,
+      "hours_since_sleep": 10,
+      "sleep_debt": 0.0,
+      "followers": 10213,
+      "engagement_rate": 0.2732,
+      "burned_out": true
+    }
+  },
+  {
+    "id": "2026-04-05T10:50:55.164846+00:00",
+    "scenario": "Optimal Sleep",
+    "scenario_id": "optimal_sleep",
+    "task": "weekly_competitive",
+    "score": 0.3635,
+    "total_steps": 168,
+    "total_posts": 14,
+    "avg_reward": 0.2257,
+    "final": {
+      "energy": 0.9,
+      "hours_since_sleep": 3,
+      "sleep_debt": 0.0,
+      "followers": 11305,
+      "engagement_rate": 0.8729,
+      "burned_out": false
+    }
+  },
+  {
+    "id": "2026-04-05T10:50:55.174882+00:00",
+    "scenario": "Photography Focus",
+    "scenario_id": "photography",
+    "task": "weekly_competitive",
+    "score": 0.1838,
+    "total_steps": 168,
+    "total_posts": 16,
+    "avg_reward": 0.22,
+    "final": {
+      "energy": 0.5,
+      "hours_since_sleep": 3,
+      "sleep_debt": 0.0,
+      "followers": 10736,
+      "engagement_rate": 0.4388,
+      "burned_out": false
+    }
+  },
+  {
+    "id": "2026-04-05T10:50:55.184216+00:00",
+    "scenario": "Productivity Guru",
+    "scenario_id": "productivity",
+    "task": "weekly_competitive",
+    "score": 0.184,
+    "total_steps": 168,
+    "total_posts": 16,
+    "avg_reward": 0.227,
+    "final": {
+      "energy": 0.62,
+      "hours_since_sleep": 2,
+      "sleep_debt": 0.0,
+      "followers": 10741,
+      "engagement_rate": 0.3797,
+      "burned_out": false
+    }
+  },
+  {
+    "id": "2026-04-05T10:50:55.192896+00:00",
+    "scenario": "Queue Heavy",
+    "scenario_id": "queue_heavy",
+    "task": "weekly_competitive",
+    "score": 0.1933,
+    "total_steps": 168,
+    "total_posts": 8,
+    "avg_reward": 0.1923,
+    "final": {
+      "energy": 1.0,
+      "hours_since_sleep": 1,
+      "sleep_debt": 0.0,
+      "followers": 9453,
+      "engagement_rate": 0.781,
+      "burned_out": false
+    }
+  },
+  {
+    "id": "2026-04-05T10:50:55.202107+00:00",
+    "scenario": "Queue Optimizer",
+    "scenario_id": "queue_optimizer",
+    "task": "weekly_competitive",
+    "score": 0.352,
+    "total_steps": 168,
+    "total_posts": 14,
+    "avg_reward": 0.2233,
+    "final": {
+      "energy": 1.0,
+      "hours_since_sleep": 1,
+      "sleep_debt": 0.0,
+      "followers": 11215,
+      "engagement_rate": 0.8701,
+      "burned_out": false
+    }
+  },
+  {
+    "id": "2026-04-05T10:50:55.209453+00:00",
+    "scenario": "Random Actor",
+    "scenario_id": "random",
+    "task": "weekly_competitive",
+    "score": 0.0,
+    "total_steps": 22,
+    "total_posts": 11,
+    "avg_reward": 0.2318,
+    "final": {
+      "energy": 0.0,
+      "hours_since_sleep": 17,
+      "sleep_debt": 0.033,
+      "followers": 10159,
+      "engagement_rate": 0.087,
+      "burned_out": true
+    }
+  },
+  {
+    "id": "2026-04-05T10:50:55.215343+00:00",
+    "scenario": "Reel Maximizer",
+    "scenario_id": "reel_max",
+    "task": "weekly_competitive",
+    "score": 0.4344,
+    "total_steps": 168,
+    "total_posts": 14,
+    "avg_reward": 0.2295,
+    "final": {
+      "energy": 1.0,
+      "hours_since_sleep": 1,
+      "sleep_debt": 0.0,
+      "followers": 13314,
+      "engagement_rate": 2.1201,
+      "burned_out": false
+    }
+  },
+  {
+    "id": "2026-04-05T10:50:55.225542+00:00",
+    "scenario": "SaaS/Business",
+    "scenario_id": "saas",
+    "task": "weekly_competitive",
+    "score": 0.2015,
+    "total_steps": 168,
+    "total_posts": 14,
+    "avg_reward": 0.2182,
+    "final": {
+      "energy": 1.0,
+      "hours_since_sleep": 1,
+      "sleep_debt": 0.0,
+      "followers": 10958,
+      "engagement_rate": 0.6072,
+      "burned_out": false
+    }
+  },
+  {
+    "id": "2026-04-05T10:50:55.234793+00:00",
+    "scenario": "Sleep Conscious",
+    "scenario_id": "sleep_conscious",
+    "task": "weekly_competitive",
+    "score": 0.3635,
+    "total_steps": 168,
+    "total_posts": 14,
+    "avg_reward": 0.2257,
+    "final": {
+      "energy": 0.9,
+      "hours_since_sleep": 3,
+      "sleep_debt": 0.0,
+      "followers": 11305,
+      "engagement_rate": 0.8729,
+      "burned_out": false
+    }
+  },
+  {
+    "id": "2026-04-05T10:50:55.245249+00:00",
+    "scenario": "Sleep Debt Aware",
+    "scenario_id": "sleep_debt_aware",
+    "task": "weekly_competitive",
+    "score": 0.3745,
+    "total_steps": 168,
+    "total_posts": 14,
+    "avg_reward": 0.2293,
+    "final": {
+      "energy": 1.0,
+      "hours_since_sleep": 1,
+      "sleep_debt": 0.0,
+      "followers": 11412,
+      "engagement_rate": 0.9425,
+      "burned_out": false
+    }
+  },
+  {
+    "id": "2026-04-05T10:50:55.252673+00:00",
+    "scenario": "Sleep Deprived",
+    "scenario_id": "sleep_deprived",
+    "task": "weekly_competitive",
+    "score": 0.0,
+    "total_steps": 16,
+    "total_posts": 2,
+    "avg_reward": 0.2248,
+    "final": {
+      "energy": 0.0,
+      "hours_since_sleep": 18,
+      "sleep_debt": 0.045,
+      "followers": 10215,
+      "engagement_rate": 1.0806,
+      "burned_out": true
+    }
+  },
+  {
+    "id": "2026-04-05T10:50:55.258355+00:00",
+    "scenario": "Sleep Respecting",
+    "scenario_id": "sleep_respecting",
+    "task": "weekly_competitive",
+    "score": 0.3623,
+    "total_steps": 168,
+    "total_posts": 14,
+    "avg_reward": 0.2264,
+    "final": {
+      "energy": 1.0,
+      "hours_since_sleep": 1,
+      "sleep_debt": 0.0,
+      "followers": 11322,
+      "engagement_rate": 0.8914,
+      "burned_out": false
+    }
+  },
+  {
+    "id": "2026-04-05T10:50:55.268389+00:00",
+    "scenario": "Smart Agent",
+    "scenario_id": "smart",
+    "task": "weekly_competitive",
+    "score": 0.8745,
+    "total_steps": 168,
+    "total_posts": 14,
+    "avg_reward": 0.2301,
+    "final": {
+      "energy": 1.0,
+      "hours_since_sleep": 1,
+      "sleep_debt": 0.0,
+      "followers": 12200,
+      "engagement_rate": 1.5557,
+      "burned_out": false
+    }
+  },
+  {
+    "id": "2026-04-05T10:50:55.276258+00:00",
+    "scenario": "Spam Post",
+    "scenario_id": "spam",
+    "task": "weekly_competitive",
+    "score": 0.0,
+    "total_steps": 4,
+    "total_posts": 4,
+    "avg_reward": 0.387,
+    "final": {
+      "energy": 0.0,
+      "hours_since_sleep": 6,
+      "sleep_debt": 0.0,
+      "followers": 10625,
+      "engagement_rate": 1.567,
+      "burned_out": true
+    }
+  },
+  {
+    "id": "2026-04-05T10:50:55.281752+00:00",
+    "scenario": "Split Schedule",
+    "scenario_id": "split_schedule",
+    "task": "weekly_competitive",
+    "score": 0.385,
+    "total_steps": 168,
+    "total_posts": 15,
+    "avg_reward": 0.2347,
+    "final": {
+      "energy": 0.75,
+      "hours_since_sleep": 2,
+      "sleep_debt": 0.0,
+      "followers": 11689,
+      "engagement_rate": 0.9724,
+      "burned_out": false
+    }
+  },
+  {
+    "id": "2026-04-05T10:50:55.291899+00:00",
+    "scenario": "Stoic Philosophy",
+    "scenario_id": "stoic",
+    "task": "weekly_competitive",
+    "score": 0.1071,
+    "total_steps": 168,
+    "total_posts": 7,
+    "avg_reward": 0.2069,
+    "final": {
+      "energy": 1.0,
+      "hours_since_sleep": 1,
+      "sleep_debt": 0.0,
+      "followers": 10108,
+      "engagement_rate": 0.1578,
+      "burned_out": false
+    }
+  },
+  {
+    "id": "2026-04-05T10:50:55.301186+00:00",
+    "scenario": "Story Spammer",
+    "scenario_id": "story_spammer",
+    "task": "weekly_competitive",
+    "score": 0.1632,
+    "total_steps": 168,
+    "total_posts": 29,
+    "avg_reward": 0.1592,
+    "final": {
+      "energy": 0.87,
+      "hours_since_sleep": 2,
+      "sleep_debt": 0.0,
+      "followers": 10504,
+      "engagement_rate": 0.1285,
+      "burned_out": false
+    }
+  },
+  {
+    "id": "2026-04-05T10:50:55.310194+00:00",
+    "scenario": "Tag Exploiter",
+    "scenario_id": "tag_exploiter",
+    "task": "weekly_competitive",
+    "score": 0.2922,
+    "total_steps": 168,
+    "total_posts": 14,
+    "avg_reward": 0.2358,
+    "final": {
+      "energy": 1.0,
+      "hours_since_sleep": 1,
+      "sleep_debt": 0.0,
+      "followers": 13696,
+      "engagement_rate": 2.2487,
+      "burned_out": false
+    }
+  },
+  {
+    "id": "2026-04-05T10:50:55.320255+00:00",
+    "scenario": "Tag Explorer",
+    "scenario_id": "tag_explorer",
+    "task": "weekly_competitive",
+    "score": 0.8323,
+    "total_steps": 168,
+    "total_posts": 15,
+    "avg_reward": 0.2253,
+    "final": {
+      "energy": 0.94,
+      "hours_since_sleep": 2,
+      "sleep_debt": 0.0,
+      "followers": 11351,
+      "engagement_rate": 0.7735,
+      "burned_out": false
+    }
+  },
+  {
+    "id": "2026-04-05T10:50:55.333620+00:00",
+    "scenario": "Tech Niche",
+    "scenario_id": "tech_niche",
+    "task": "weekly_competitive",
+    "score": 0.2001,
+    "total_steps": 168,
+    "total_posts": 14,
+    "avg_reward": 0.215,
+    "final": {
+      "energy": 1.0,
+      "hours_since_sleep": 1,
+      "sleep_debt": 0.0,
+      "followers": 10770,
+      "engagement_rate": 0.533,
+      "burned_out": false
+    }
+  },
+  {
+    "id": "2026-04-05T10:50:55.343185+00:00",
+    "scenario": "Text Only",
+    "scenario_id": "text_only",
+    "task": "weekly_competitive",
+    "score": 0.1583,
+    "total_steps": 168,
+    "total_posts": 21,
+    "avg_reward": 0.1857,
+    "final": {
+      "energy": 1.0,
+      "hours_since_sleep": 1,
+      "sleep_debt": 0.0,
+      "followers": 10485,
+      "engagement_rate": 0.234,
+      "burned_out": false
+    }
+  },
+  {
+    "id": "2026-04-05T10:50:55.352680+00:00",
+    "scenario": "Travel Blogger",
+    "scenario_id": "travel",
+    "task": "weekly_competitive",
+    "score": 0.2975,
+    "total_steps": 168,
+    "total_posts": 14,
+    "avg_reward": 0.2307,
+    "final": {
+      "energy": 1.0,
+      "hours_since_sleep": 1,
+      "sleep_debt": 0.0,
+      "followers": 12749,
+      "engagement_rate": 1.9614,
+      "burned_out": false
+    }
+  },
+  {
+    "id": "2026-04-05T10:50:55.362329+00:00",
+    "scenario": "Trend Chaser",
+    "scenario_id": "trend_chaser",
+    "task": "weekly_competitive",
+    "score": 0.4344,
+    "total_steps": 168,
+    "total_posts": 14,
+    "avg_reward": 0.2413,
+    "final": {
+      "energy": 1.0,
+      "hours_since_sleep": 1,
+      "sleep_debt": 0.0,
+      "followers": 14148,
+      "engagement_rate": 2.6985,
+      "burned_out": false
+    }
+  },
+  {
+    "id": "2026-04-05T10:50:55.373024+00:00",
+    "scenario": "Tuesday Thursday",
+    "scenario_id": "tue_thu",
+    "task": "weekly_competitive",
+    "score": 0.1826,
+    "total_steps": 168,
+    "total_posts": 4,
+    "avg_reward": 0.1731,
+    "final": {
+      "energy": 1.0,
+      "hours_since_sleep": 1,
+      "sleep_debt": 0.0,
+      "followers": 9154,
+      "engagement_rate": 3.4748,
+      "burned_out": false
+    }
+  },
+  {
+    "id": "2026-04-05T10:50:55.382708+00:00",
+    "scenario": "Weekday Only",
+    "scenario_id": "weekday_only",
+    "task": "weekly_competitive",
+    "score": 0.2366,
+    "total_steps": 168,
+    "total_posts": 10,
+    "avg_reward": 0.2046,
+    "final": {
+      "energy": 1.0,
+      "hours_since_sleep": 1,
+      "sleep_debt": 0.0,
+      "followers": 9810,
+      "engagement_rate": 1.0028,
+      "burned_out": false
+    }
+  },
+  {
+    "id": "2026-04-05T10:50:55.392284+00:00",
+    "scenario": "Weekend Warrior",
+    "scenario_id": "weekend",
+    "task": "weekly_competitive",
+    "score": 0.1257,
+    "total_steps": 168,
+    "total_posts": 6,
+    "avg_reward": 0.1648,
+    "final": {
+      "energy": 1.0,
+      "hours_since_sleep": 1,
+      "sleep_debt": 0.0,
+      "followers": 7659,
+      "engagement_rate": 0.635,
+      "burned_out": false
+    }
+  },
+  {
+    "id": "2026-04-05T10:51:44.770556+00:00",
+    "scenario": "Aggressive Energy",
+    "scenario_id": "aggressive",
+    "task": "weekly_competitive",
+    "score": 0.8255,
+    "total_steps": 168,
+    "total_posts": 29,
+    "avg_reward": 0.1875,
+    "final": {
+      "energy": 0.75,
+      "hours_since_sleep": 2,
+      "sleep_debt": 0.0,
+      "followers": 13021,
+      "engagement_rate": 0.8084,
+      "burned_out": false
+    }
+  },
+  {
+    "id": "2026-04-06T14:25:47.636598+00:00",
+    "scenario": "Sleep Respecting",
+    "scenario_id": "sleep_respecting",
+    "task": "weekly_competitive",
+    "score": 0.3623,
+    "total_steps": 168,
+    "total_posts": 14,
+    "avg_reward": 0.2264,
+    "final": {
+      "energy": 1.0,
+      "hours_since_sleep": 1,
+      "sleep_debt": 0.0,
+      "followers": 11322,
+      "engagement_rate": 0.8914,
+      "burned_out": false
+    }
+  },
+  {
+    "id": "2026-04-06T14:26:41.631567+00:00",
+    "scenario": "Creator Economy",
+    "scenario_id": "creator_economy",
+    "task": "weekly_competitive",
+    "score": 0.2515,
+    "total_steps": 168,
+    "total_posts": 14,
+    "avg_reward": 0.2226,
+    "final": {
+      "energy": 1.0,
+      "hours_since_sleep": 1,
+      "sleep_debt": 0.0,
+      "followers": 11994,
+      "engagement_rate": 1.3918,
+      "burned_out": false
+    }
+  },
+  {
+    "id": "2026-04-06T14:27:32.195059+00:00",
+    "scenario": "Weekday Only",
+    "scenario_id": "weekday_only",
+    "task": "weekly_competitive",
+    "score": 0.2366,
+    "total_steps": 168,
+    "total_posts": 10,
+    "avg_reward": 0.2046,
+    "final": {
+      "energy": 1.0,
+      "hours_since_sleep": 1,
+      "sleep_debt": 0.0,
+      "followers": 9810,
+      "engagement_rate": 1.0028,
+      "burned_out": false
+    }
+  },
+  {
+    "id": "2026-04-06T14:28:12.547146+00:00",
+    "scenario": "Weekday Only",
+    "scenario_id": "weekday_only",
+    "task": "weekly_competitive",
+    "score": 0.2366,
+    "total_steps": 168,
+    "total_posts": 10,
+    "avg_reward": 0.2046,
+    "final": {
+      "energy": 1.0,
+      "hours_since_sleep": 1,
+      "sleep_debt": 0.0,
+      "followers": 9810,
+      "engagement_rate": 1.0028,
+      "burned_out": false
+    }
+  },
+  {
+    "id": "2026-04-06T14:29:19.356814+00:00",
+    "scenario": "No Rest",
+    "scenario_id": "no_rest",
+    "task": "weekly_engage",
+    "score": 0.027,
+    "total_steps": 8,
+    "total_posts": 8,
+    "avg_reward": 0.2686,
+    "final": {
+      "energy": 0.0,
+      "hours_since_sleep": 10,
+      "sleep_debt": 0.0,
+      "followers": 10213,
+      "engagement_rate": 0.2732,
+      "burned_out": true
+    }
+  },
+  {
+    "id": "2026-04-06T14:29:21.996045+00:00",
+    "scenario": "No Rest",
+    "scenario_id": "no_rest",
+    "task": "weekly_engage",
+    "score": 0.027,
+    "total_steps": 8,
+    "total_posts": 8,
+    "avg_reward": 0.2686,
+    "final": {
+      "energy": 0.0,
+      "hours_since_sleep": 10,
+      "sleep_debt": 0.0,
+      "followers": 10213,
+      "engagement_rate": 0.2732,
+      "burned_out": true
+    }
+  },
+  {
+    "id": "2026-04-06T14:29:33.742894+00:00",
+    "scenario": "Text Only",
+    "scenario_id": "text_only",
+    "task": "weekly_engage",
+    "score": 0.2049,
+    "total_steps": 168,
+    "total_posts": 21,
+    "avg_reward": 0.1857,
+    "final": {
+      "energy": 1.0,
+      "hours_since_sleep": 1,
+      "sleep_debt": 0.0,
+      "followers": 10485,
+      "engagement_rate": 0.234,
+      "burned_out": false
+    }
+  },
+  {
+    "id": "2026-04-06T14:29:39.176314+00:00",
+    "scenario": "Gaming Niche",
+    "scenario_id": "gaming_niche",
+    "task": "weekly_engage",
+    "score": 0.5658,
+    "total_steps": 168,
+    "total_posts": 14,
+    "avg_reward": 0.2062,
+    "final": {
+      "energy": 1.0,
+      "hours_since_sleep": 1,
+      "sleep_debt": 0.0,
+      "followers": 11364,
+      "engagement_rate": 0.9138,
+      "burned_out": false
+    }
+  },
+  {
+    "id": "2026-04-06T14:29:50.321368+00:00",
+    "scenario": "Midday Focus",
+    "scenario_id": "midday",
+    "task": "weekly_engage",
+    "score": 1.0,
+    "total_steps": 168,
+    "total_posts": 14,
+    "avg_reward": 0.2306,
+    "final": {
+      "energy": 1.0,
+      "hours_since_sleep": 1,
+      "sleep_debt": 0.0,
+      "followers": 13537,
+      "engagement_rate": 2.3076,
+      "burned_out": false
+    }
+  },
+  {
+    "id": "2026-04-06T17:52:48.224991+00:00",
+    "scenario": "Double Peak",
+    "scenario_id": "double_peak",
+    "task": "weekly_competitive",
+    "score": 0.4519,
+    "total_steps": 168,
+    "total_posts": 14,
+    "avg_reward": 0.2352,
+    "final": {
+      "energy": 1.0,
+      "hours_since_sleep": 1,
+      "sleep_debt": 0.0,
+      "followers": 13138,
+      "engagement_rate": 2.0814,
+      "burned_out": false
+    }
+  },
+  {
+    "id": "2026-04-06T17:53:45.401024+00:00",
+    "scenario": "Photography Focus",
+    "scenario_id": "photography",
+    "task": "weekly_competitive",
+    "score": 0.1838,
+    "total_steps": 168,
+    "total_posts": 16,
+    "avg_reward": 0.22,
+    "final": {
+      "energy": 0.5,
+      "hours_since_sleep": 3,
+      "sleep_debt": 0.0,
+      "followers": 10736,
+      "engagement_rate": 0.4388,
+      "burned_out": false
+    }
+  },
+  {
+    "id": "2026-04-06T17:54:16.540951+00:00",
+    "scenario": "Burst Poster",
+    "scenario_id": "burst",
+    "task": "weekly_competitive",
+    "score": 0.6111,
+    "total_steps": 168,
+    "total_posts": 57,
+    "avg_reward": 0.2318,
+    "final": {
+      "energy": 0.44,
+      "hours_since_sleep": 1,
+      "sleep_debt": 0.0,
+      "followers": 11701,
+      "engagement_rate": 0.2076,
+      "burned_out": false
+    }
+  },
+  {
+    "id": "2026-04-06T17:54:39.699482+00:00",
+    "scenario": "Engagement Chaser",
+    "scenario_id": "engagement_chaser",
+    "task": "weekly_competitive",
+    "score": 0.4194,
+    "total_steps": 168,
+    "total_posts": 21,
+    "avg_reward": 0.2224,
+    "final": {
+      "energy": 1.0,
+      "hours_since_sleep": 1,
+      "sleep_debt": 0.0,
+      "followers": 15287,
+      "engagement_rate": 2.2466,
+      "burned_out": false
+    }
+  },
+  {
+    "id": "2026-04-06T18:09:31.470202+00:00",
+    "scenario": "Lifestyle Niche",
+    "scenario_id": "lifestyle_niche",
+    "task": "weekly_competitive",
+    "score": 0.2612,
+    "total_steps": 168,
+    "total_posts": 14,
+    "avg_reward": 0.2288,
+    "final": {
+      "energy": 1.0,
+      "hours_since_sleep": 1,
+      "sleep_debt": 0.0,
+      "followers": 12251,
+      "engagement_rate": 1.6295,
+      "burned_out": false
+    }
+  },
+  {
+    "id": "2026-04-06T18:09:42.791462+00:00",
+    "scenario": "Content Creator",
+    "scenario_id": "content_creator",
+    "task": "weekly_competitive",
+    "score": 0.6434,
+    "total_steps": 168,
+    "total_posts": 12,
+    "avg_reward": 0.2065,
+    "final": {
+      "energy": 0.309,
+      "hours_since_sleep": 28,
+      "sleep_debt": 0.017,
+      "followers": 10931,
+      "engagement_rate": 0.525,
+      "burned_out": false
+    }
+  },
+  {
+    "id": "2026-04-06T18:25:35.360345+00:00",
+    "scenario": "Anti-Trend",
+    "scenario_id": "anti_trend",
+    "task": "weekly_competitive",
+    "score": 0.2316,
+    "total_steps": 168,
+    "total_posts": 14,
+    "avg_reward": 0.2201,
+    "final": {
+      "energy": 1.0,
+      "hours_since_sleep": 1,
+      "sleep_debt": 0.0,
+      "followers": 11125,
+      "engagement_rate": 0.747,
+      "burned_out": false
+    }
+  },
+  {
+    "id": "2026-04-06T18:28:21.455943+00:00",
+    "scenario": "Fashion Content",
+    "scenario_id": "fashion",
+    "task": "weekly_competitive",
+    "score": 0.2181,
+    "total_steps": 168,
+    "total_posts": 14,
+    "avg_reward": 0.2147,
+    "final": {
+      "energy": 1.0,
+      "hours_since_sleep": 1,
+      "sleep_debt": 0.0,
+      "followers": 11135,
+      "engagement_rate": 0.7898,
+      "burned_out": false
+    }
+  },
+  {
+    "id": "2026-04-06T18:28:26.860641+00:00",
+    "scenario": "Low Frequency",
+    "scenario_id": "low_freq",
+    "task": "weekly_competitive",
+    "score": 0.3241,
+    "total_steps": 168,
+    "total_posts": 4,
+    "avg_reward": 0.1768,
+    "final": {
+      "energy": 1.0,
+      "hours_since_sleep": 1,
+      "sleep_debt": 0.0,
+      "followers": 10461,
+      "engagement_rate": 1.1563,
+      "burned_out": false
+    }
+  },
+  {
+    "id": "2026-04-06T18:28:36.279972+00:00",
+    "scenario": "Balanced Creator",
+    "scenario_id": "balanced",
+    "task": "weekly_competitive",
+    "score": 0.8775,
+    "total_steps": 168,
+    "total_posts": 28,
+    "avg_reward": 0.2187,
+    "final": {
+      "energy": 1.0,
+      "hours_since_sleep": 2,
+      "sleep_debt": 0.0,
+      "followers": 12534,
+      "engagement_rate": 0.8273,
+      "burned_out": false
+    }
+  },
+  {
+    "id": "2026-04-06T18:29:19.542258+00:00",
+    "scenario": "Napper",
+    "scenario_id": "napper",
+    "task": "weekly_competitive",
+    "score": 0.3623,
+    "total_steps": 168,
+    "total_posts": 14,
+    "avg_reward": 0.2264,
+    "final": {
+      "energy": 1.0,
+      "hours_since_sleep": 1,
+      "sleep_debt": 0.0,
+      "followers": 11322,
+      "engagement_rate": 0.8914,
+      "burned_out": false
+    }
+  },
+  {
+    "id": "2026-04-06T19:48:37.931282+00:00",
+    "scenario": "Optimal Sleep",
+    "scenario_id": "optimal_sleep",
+    "task": "weekly_competitive",
+    "score": 0.3635,
+    "total_steps": 168,
+    "total_posts": 14,
+    "avg_reward": 0.2257,
+    "final": {
+      "energy": 0.9,
+      "hours_since_sleep": 3,
+      "sleep_debt": 0.0,
+      "followers": 11305,
+      "engagement_rate": 0.8729,
+      "burned_out": false
+    }
+  },
+  {
+    "id": "2026-04-06T19:49:01.327141+00:00",
+    "scenario": "Marathon Runner",
+    "scenario_id": "marathon",
+    "task": "weekly_competitive",
+    "score": 0.0,
+    "total_steps": 50,
+    "total_posts": 9,
+    "avg_reward": 0.1323,
+    "final": {
+      "energy": 0.0,
+      "hours_since_sleep": 22,
+      "sleep_debt": 0.028,
+      "followers": 10137,
+      "engagement_rate": 0.157,
+      "burned_out": true
+    }
+  },
+  {
+    "id": "2026-04-06T19:49:13.972097+00:00",
+    "scenario": "Balanced Creator",
+    "scenario_id": "balanced",
+    "task": "weekly_competitive",
+    "score": 0.8775,
+    "total_steps": 168,
+    "total_posts": 28,
+    "avg_reward": 0.2187,
+    "final": {
+      "energy": 1.0,
+      "hours_since_sleep": 2,
+      "sleep_debt": 0.0,
+      "followers": 12534,
+      "engagement_rate": 0.8273,
+      "burned_out": false
+    }
+  },
+  {
+    "id": "2026-04-06T19:49:37.864235+00:00",
+    "scenario": "Engagement Chaser",
+    "scenario_id": "engagement_chaser",
+    "task": "weekly_competitive",
+    "score": 0.4194,
+    "total_steps": 168,
+    "total_posts": 21,
+    "avg_reward": 0.2224,
+    "final": {
+      "energy": 1.0,
+      "hours_since_sleep": 1,
+      "sleep_debt": 0.0,
+      "followers": 15287,
+      "engagement_rate": 2.2466,
+      "burned_out": false
+    }
+  },
+  {
+    "id": "2026-04-06T19:50:08.348742+00:00",
+    "scenario": "Early Bird",
+    "scenario_id": "early_bird",
+    "task": "weekly_competitive",
+    "score": 0.2075,
+    "total_steps": 168,
+    "total_posts": 16,
+    "avg_reward": 0.2284,
+    "final": {
+      "energy": 0.62,
+      "hours_since_sleep": 2,
+      "sleep_debt": 0.0,
+      "followers": 10818,
+      "engagement_rate": 0.4138,
+      "burned_out": false
+    }
+  },
+  {
+    "id": "2026-04-06T19:50:15.765261+00:00",
+    "scenario": "Queue Heavy",
+    "scenario_id": "queue_heavy",
+    "task": "weekly_competitive",
+    "score": 0.1933,
+    "total_steps": 168,
+    "total_posts": 8,
+    "avg_reward": 0.1923,
+    "final": {
+      "energy": 1.0,
+      "hours_since_sleep": 1,
+      "sleep_debt": 0.0,
+      "followers": 9453,
+      "engagement_rate": 0.781,
+      "burned_out": false
+    }
+  },
+  {
+    "id": "2026-04-06T19:50:26.015235+00:00",
+    "scenario": "Balanced Creator",
+    "scenario_id": "balanced",
+    "task": "weekly_competitive",
+    "score": 0.8775,
+    "total_steps": 168,
+    "total_posts": 28,
+    "avg_reward": 0.2187,
+    "final": {
+      "energy": 1.0,
+      "hours_since_sleep": 2,
+      "sleep_debt": 0.0,
+      "followers": 12534,
+      "engagement_rate": 0.8273,
+      "burned_out": false
+    }
+  },
+  {
+    "id": "2026-04-06T19:50:30.364460+00:00",
+    "scenario": "High Frequency",
+    "scenario_id": "high_freq",
+    "task": "weekly_competitive",
+    "score": 0.8611,
+    "total_steps": 168,
+    "total_posts": 22,
+    "avg_reward": 0.2058,
+    "final": {
+      "energy": 0.92,
+      "hours_since_sleep": 2,
+      "sleep_debt": 0.0,
+      "followers": 12654,
+      "engagement_rate": 1.079,
+      "burned_out": false
+    }
+  },
+  {
+    "id": "2026-04-06T19:50:38.185556+00:00",
+    "scenario": "Sleep Conscious",
+    "scenario_id": "sleep_conscious",
+    "task": "weekly_competitive",
+    "score": 0.3635,
+    "total_steps": 168,
+    "total_posts": 14,
+    "avg_reward": 0.2257,
+    "final": {
+      "energy": 0.9,
+      "hours_since_sleep": 3,
+      "sleep_debt": 0.0,
+      "followers": 11305,
+      "engagement_rate": 0.8729,
+      "burned_out": false
+    }
+  },
+  {
+    "id": "2026-04-06T19:50:44.256241+00:00",
+    "scenario": "Burst Poster",
+    "scenario_id": "burst",
+    "task": "weekly_competitive",
+    "score": 0.6111,
+    "total_steps": 168,
+    "total_posts": 57,
+    "avg_reward": 0.2318,
+    "final": {
+      "energy": 0.44,
+      "hours_since_sleep": 1,
+      "sleep_debt": 0.0,
+      "followers": 11701,
+      "engagement_rate": 0.2076,
+      "burned_out": false
+    }
+  },
+  {
+    "id": "2026-04-06T19:51:00.755964+00:00",
+    "scenario": "Queue Optimizer",
+    "scenario_id": "queue_optimizer",
+    "task": "weekly_competitive",
+    "score": 0.352,
+    "total_steps": 168,
+    "total_posts": 14,
+    "avg_reward": 0.2233,
+    "final": {
+      "energy": 1.0,
+      "hours_since_sleep": 1,
+      "sleep_debt": 0.0,
+      "followers": 11215,
+      "engagement_rate": 0.8701,
+      "burned_out": false
+    }
+  },
+  {
+    "id": "2026-04-07T19:19:06.982475+00:00",
+    "scenario": "Easy: Afternoon story",
+    "scenario_id": "easy_relaxed",
+    "task": "weekly_engage",
+    "score": 0.0776,
+    "total_steps": 168,
+    "total_posts": 7,
+    "avg_reward": 0.1885,
+    "final": {
+      "energy": 1.0,
+      "hours_since_sleep": 1,
+      "sleep_debt": 0.0,
+      "followers": 10185,
+      "engagement_rate": 0.2689,
+      "burned_out": false
+    }
+  },
+  {
+    "id": "2026-04-07T19:25:22.760913+00:00",
+    "scenario": "Medium: Reel + carousel day",
+    "scenario_id": "medium_two_format",
+    "task": "weekly_engage",
+    "score": 1.0,
+    "total_steps": 168,
+    "total_posts": 14,
+    "avg_reward": 0.2305,
+    "final": {
+      "energy": 1.0,
+      "hours_since_sleep": 1,
+      "sleep_debt": 0.0,
+      "followers": 13498,
+      "engagement_rate": 2.3223,
+      "burned_out": false
+    }
+  },
+  {
+    "id": "2026-04-07T19:37:07.163654+00:00",
+    "scenario": "Easy: Morning story",
+    "scenario_id": "easy_morning_story",
+    "task": "weekly_engage",
+    "score": 0.1126,
+    "total_steps": 168,
+    "total_posts": 7,
+    "avg_reward": 0.2064,
+    "final": {
+      "energy": 1.0,
+      "hours_since_sleep": 1,
+      "sleep_debt": 0.0,
+      "followers": 10269,
+      "engagement_rate": 0.3903,
+      "burned_out": false
+    }
+  },
+  {
+    "id": "2026-04-07T19:37:08.936466+00:00",
+    "scenario": "Easy: One text at 1pm",
+    "scenario_id": "easy_one_a_day",
+    "task": "weekly_engage",
+    "score": 0.0992,
+    "total_steps": 168,
+    "total_posts": 7,
+    "avg_reward": 0.1933,
+    "final": {
+      "energy": 1.0,
+      "hours_since_sleep": 1,
+      "sleep_debt": 0.0,
+      "followers": 10239,
+      "engagement_rate": 0.3439,
+      "burned_out": false
+    }
+  },
+  {
+    "id": "2026-04-07T19:37:10.555676+00:00",
+    "scenario": "Easy: Afternoon story",
+    "scenario_id": "easy_relaxed",
+    "task": "weekly_engage",
+    "score": 0.0776,
+    "total_steps": 168,
+    "total_posts": 7,
+    "avg_reward": 0.1885,
+    "final": {
+      "energy": 1.0,
+      "hours_since_sleep": 1,
+      "sleep_debt": 0.0,
+      "followers": 10185,
+      "engagement_rate": 0.2689,
+      "burned_out": false
+    }
+  },
+  {
+    "id": "2026-04-07T19:37:12.240540+00:00",
+    "scenario": "Medium: Create then post",
+    "scenario_id": "medium_queue_cycle",
+    "task": "weekly_engage",
+    "score": 0.8459,
+    "total_steps": 168,
+    "total_posts": 14,
+    "avg_reward": 0.2318,
+    "final": {
+      "energy": 1.0,
+      "hours_since_sleep": 1,
+      "sleep_debt": 0.0,
+      "followers": 12045,
+      "engagement_rate": 1.3511,
+      "burned_out": false
+    }
+  },
+  {
+    "id": "2026-04-07T19:37:14.032300+00:00",
+    "scenario": "Medium: Trend + format rotation",
+    "scenario_id": "medium_trend_rotate",
+    "task": "weekly_engage",
+    "score": 0.5524,
+    "total_steps": 168,
+    "total_posts": 14,
+    "avg_reward": 0.2265,
+    "final": {
+      "energy": 1.0,
+      "hours_since_sleep": 1,
+      "sleep_debt": 0.0,
+      "followers": 11332,
+      "engagement_rate": 0.9003,
+      "burned_out": false
+    }
+  },
+  {
+    "id": "2026-04-07T19:37:15.697454+00:00",
+    "scenario": "Medium: Reel + carousel day",
+    "scenario_id": "medium_two_format",
+    "task": "weekly_engage",
+    "score": 1.0,
+    "total_steps": 168,
+    "total_posts": 14,
+    "avg_reward": 0.2305,
+    "final": {
+      "energy": 1.0,
+      "hours_since_sleep": 1,
+      "sleep_debt": 0.0,
+      "followers": 13498,
+      "engagement_rate": 2.3223,
+      "burned_out": false
+    }
+  },
+  {
+    "id": "2026-04-07T19:38:24.165792+00:00",
+    "scenario": "Easy: One text at 1pm",
+    "scenario_id": "easy_one_a_day",
+    "task": "weekly_engage",
+    "score": 0.0992,
+    "total_steps": 168,
+    "total_posts": 7,
+    "avg_reward": 0.1933,
+    "final": {
+      "energy": 1.0,
+      "hours_since_sleep": 1,
+      "sleep_debt": 0.0,
+      "followers": 10239,
+      "engagement_rate": 0.3439,
+      "burned_out": false
+    }
+  }
+]
