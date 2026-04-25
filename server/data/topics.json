@@ -1,0 +1,102 @@
+{
+  "_meta": {
+    "description": "Niche → topics with engagement multipliers and seasonal trending calendar. Multipliers from Rival IQ 2025 Benchmark (1.9M IG posts, 14 industries). Normalized so overall avg ≈ 1.0.",
+    "multiplier_source": "Rival IQ 2025: Animals 2.00%, Photo 1.99%, Outdoors 1.91%, Travel 1.83%, Sports/Fitness 1.75%, Music 1.63%, Entertainment 1.55%, Food 1.55%, Lifestyle 1.53%, Education 1.48%, Finance 1.34%, Tech 1.31%, Real Estate 1.25%, Fashion 1.24%, Beauty 1.19%. Normalized by dividing by median (1.53)."
+  },
+  "niches": {
+    "tech": {
+      "engagement_multiplier": 0.86,
+      "topics": [
+        "AI tools", "coding tips", "startup life", "tech news",
+        "SaaS growth", "dev workflow", "open source", "gadget review",
+        "prompt engineering", "AI art"
+      ]
+    },
+    "lifestyle": {
+      "engagement_multiplier": 1.00,
+      "topics": [
+        "morning routine", "minimalist living", "self improvement",
+        "productivity hacks", "mental health", "stoic philosophy",
+        "journaling", "digital detox", "work life balance", "slow living"
+      ]
+    },
+    "fitness": {
+      "engagement_multiplier": 1.14,
+      "topics": [
+        "fitness routine", "home workout", "running tips",
+        "gym transformation", "meal prep", "yoga flow",
+        "strength training", "recovery", "marathon training", "calisthenics"
+      ]
+    },
+    "business": {
+      "engagement_multiplier": 0.88,
+      "topics": [
+        "growth hacks", "marketing strategy", "creator economy",
+        "monetization", "brand deals", "analytics deep dive",
+        "side hustle", "personal branding", "email marketing", "sales funnel"
+      ]
+    },
+    "food": {
+      "engagement_multiplier": 1.01,
+      "topics": [
+        "food recipe", "meal prep ideas", "restaurant review",
+        "baking tutorial", "healthy eating", "vegan recipes",
+        "street food", "coffee culture", "kitchen hacks", "food photography"
+      ]
+    },
+    "travel": {
+      "engagement_multiplier": 1.20,
+      "topics": [
+        "travel guide", "hidden gems", "budget travel",
+        "solo travel tips", "road trip", "beach destinations",
+        "cultural immersion", "travel photography", "hostel life", "digital nomad"
+      ]
+    },
+    "fashion": {
+      "engagement_multiplier": 0.81,
+      "topics": [
+        "fashion haul", "outfit of the day", "streetwear",
+        "sustainable fashion", "thrift finds", "seasonal trends",
+        "capsule wardrobe", "accessory styling", "luxury fashion", "sneaker culture"
+      ]
+    },
+    "beauty": {
+      "engagement_multiplier": 0.78,
+      "topics": [
+        "skincare routine", "makeup tutorial", "hair care",
+        "clean beauty", "anti aging", "nail art",
+        "fragrance review", "dermatologist tips", "glow up", "beauty on budget"
+      ]
+    },
+    "photography": {
+      "engagement_multiplier": 1.30,
+      "topics": [
+        "photo editing", "golden hour shots", "street photography",
+        "landscape photography", "portrait tips", "mobile photography",
+        "lightroom presets", "composition rules", "astrophotography", "film photography"
+      ]
+    },
+    "education": {
+      "engagement_multiplier": 0.97,
+      "topics": [
+        "study tips", "online courses", "career advice",
+        "book recommendations", "science explainer", "history facts",
+        "language learning", "financial literacy", "college life", "exam prep"
+      ]
+    }
+  },
+  "seasonal_trends": [
+    {"topic": "New Year goals", "peak_month": 1, "halflife_hours": 72, "niches": ["lifestyle", "fitness", "business"]},
+    {"topic": "Valentine gift guide", "peak_month": 2, "halflife_hours": 48, "niches": ["fashion", "food", "lifestyle"]},
+    {"topic": "Oscar predictions", "peak_month": 3, "halflife_hours": 36, "niches": ["lifestyle", "photography"]},
+    {"topic": "Spring fitness challenge", "peak_month": 4, "halflife_hours": 96, "niches": ["fitness"]},
+    {"topic": "Summer travel plans", "peak_month": 6, "halflife_hours": 120, "niches": ["travel", "photography"]},
+    {"topic": "World Cup watch party", "peak_month": 7, "halflife_hours": 60, "niches": ["lifestyle", "food"]},
+    {"topic": "Back to school essentials", "peak_month": 8, "halflife_hours": 72, "niches": ["education", "tech", "fashion"]},
+    {"topic": "Fall fashion lookbook", "peak_month": 9, "halflife_hours": 96, "niches": ["fashion", "beauty"]},
+    {"topic": "Halloween costumes", "peak_month": 10, "halflife_hours": 48, "niches": ["fashion", "lifestyle", "food"]},
+    {"topic": "Black Friday deals", "peak_month": 11, "halflife_hours": 36, "niches": ["tech", "business", "fashion"]},
+    {"topic": "Holiday gift guide", "peak_month": 12, "halflife_hours": 96, "niches": ["tech", "fashion", "food", "beauty"]},
+    {"topic": "Year in review", "peak_month": 12, "halflife_hours": 48, "niches": ["lifestyle", "business", "photography"]}
+  ]
+}

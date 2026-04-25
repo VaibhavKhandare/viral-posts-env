@@ -1,0 +1,149 @@
+{
+  "_meta": {
+    "description": "Instagram tag pool tiered by usage volume. Sources: Rival IQ 2025 Benchmark (1.9M IG posts), Socialinsider 2026 (31M posts).",
+    "tiers": {
+      "broad": "High-volume generic tags (>100M posts). High reach, low engagement lift.",
+      "niche": "Mid-volume vertical tags (1M-100M). Better engagement, narrower audience.",
+      "trending": "Rotated daily by env. Volatile reach bonus.",
+      "seasonal": "Calendar-driven. Active only near their season window."
+    }
+  },
+  "broad": [
+    {"tag": "love", "volume_hint": "2.1B"},
+    {"tag": "instagood", "volume_hint": "1.9B"},
+    {"tag": "photography", "volume_hint": "1.1B"},
+    {"tag": "photooftheday", "volume_hint": "1B"},
+    {"tag": "reels", "volume_hint": "985M"},
+    {"tag": "beautiful", "volume_hint": "854M"},
+    {"tag": "nature", "volume_hint": "838M"},
+    {"tag": "travel", "volume_hint": "767M"},
+    {"tag": "happy", "volume_hint": "728M"},
+    {"tag": "style", "volume_hint": "683M"},
+    {"tag": "fitness", "volume_hint": "560M"},
+    {"tag": "food", "volume_hint": "538M"},
+    {"tag": "life", "volume_hint": "471M"},
+    {"tag": "motivation", "volume_hint": "423M"},
+    {"tag": "art", "volume_hint": "900M"},
+    {"tag": "music", "volume_hint": "491M"},
+    {"tag": "trending", "volume_hint": "350M"},
+    {"tag": "lifestyle", "volume_hint": "340M"},
+    {"tag": "explore", "volume_hint": "330M"},
+    {"tag": "health", "volume_hint": "280M"},
+    {"tag": "design", "volume_hint": "360M"},
+    {"tag": "inspiration", "volume_hint": "400M"},
+    {"tag": "viral", "volume_hint": "200M"},
+    {"tag": "tips", "volume_hint": "180M"},
+    {"tag": "howto", "volume_hint": "120M"}
+  ],
+  "niche": {
+    "tech": [
+      {"tag": "ai", "volume_hint": "85M"},
+      {"tag": "ml", "volume_hint": "12M"},
+      {"tag": "coding", "volume_hint": "45M"},
+      {"tag": "startup", "volume_hint": "38M"},
+      {"tag": "saas", "volume_hint": "4M"},
+      {"tag": "devtools", "volume_hint": "2M"},
+      {"tag": "techreview", "volume_hint": "8M"},
+      {"tag": "artificialintelligence", "volume_hint": "22M"},
+      {"tag": "futuretech", "volume_hint": "5M"},
+      {"tag": "programming", "volume_hint": "30M"},
+      {"tag": "webdev", "volume_hint": "15M"},
+      {"tag": "buildinpublic", "volume_hint": "1.5M"},
+      {"tag": "technews", "volume_hint": "10M"},
+      {"tag": "gadgets", "volume_hint": "18M"}
+    ],
+    "lifestyle": [
+      {"tag": "grwm", "volume_hint": "45M"},
+      {"tag": "wellness", "volume_hint": "65M"},
+      {"tag": "selfcare", "volume_hint": "55M"},
+      {"tag": "minimalism", "volume_hint": "18M"},
+      {"tag": "stoic", "volume_hint": "5M"},
+      {"tag": "productivity", "volume_hint": "25M"},
+      {"tag": "mentalhealth", "volume_hint": "40M"},
+      {"tag": "healthylifestyle", "volume_hint": "80M"},
+      {"tag": "luxurylifestyle", "volume_hint": "30M"},
+      {"tag": "goodlife", "volume_hint": "20M"}
+    ],
+    "fitness": [
+      {"tag": "gym", "volume_hint": "120M"},
+      {"tag": "workout", "volume_hint": "95M"},
+      {"tag": "fitfam", "volume_hint": "55M"},
+      {"tag": "bodybuilding", "volume_hint": "42M"},
+      {"tag": "running", "volume_hint": "38M"},
+      {"tag": "yoga", "volume_hint": "60M"},
+      {"tag": "fitover40", "volume_hint": "2M"},
+      {"tag": "homeworkout", "volume_hint": "15M"},
+      {"tag": "gymlife", "volume_hint": "35M"},
+      {"tag": "nutrition", "volume_hint": "28M"}
+    ],
+    "business": [
+      {"tag": "entrepreneur", "volume_hint": "90M"},
+      {"tag": "smallbusiness", "volume_hint": "75M"},
+      {"tag": "businesstips", "volume_hint": "20M"},
+      {"tag": "sidehustle", "volume_hint": "15M"},
+      {"tag": "growyourbusiness", "volume_hint": "10M"},
+      {"tag": "financialfreedom", "volume_hint": "18M"},
+      {"tag": "passiveincome", "volume_hint": "12M"},
+      {"tag": "growth", "volume_hint": "45M"},
+      {"tag": "leadership", "volume_hint": "22M"},
+      {"tag": "digitalmarketing", "volume_hint": "35M"}
+    ],
+    "food": [
+      {"tag": "foodie", "volume_hint": "110M"},
+      {"tag": "recipe", "volume_hint": "55M"},
+      {"tag": "healthyfood", "volume_hint": "65M"},
+      {"tag": "cooking", "volume_hint": "45M"},
+      {"tag": "mealprep", "volume_hint": "18M"},
+      {"tag": "vegan", "volume_hint": "40M"},
+      {"tag": "baking", "volume_hint": "30M"}
+    ],
+    "travel": [
+      {"tag": "wanderlust", "volume_hint": "85M"},
+      {"tag": "travelgram", "volume_hint": "70M"},
+      {"tag": "adventure", "volume_hint": "60M"},
+      {"tag": "backpacking", "volume_hint": "20M"},
+      {"tag": "roadtrip", "volume_hint": "25M"},
+      {"tag": "solotravel", "volume_hint": "12M"},
+      {"tag": "islandlife", "volume_hint": "15M"}
+    ],
+    "fashion": [
+      {"tag": "ootd", "volume_hint": "95M"},
+      {"tag": "fashionblogger", "volume_hint": "65M"},
+      {"tag": "streetstyle", "volume_hint": "40M"},
+      {"tag": "skincare", "volume_hint": "55M"},
+      {"tag": "makeup", "volume_hint": "80M"}
+    ],
+    "web3": [
+      {"tag": "web3", "volume_hint": "8M"},
+      {"tag": "crypto", "volume_hint": "35M"},
+      {"tag": "nft", "volume_hint": "25M"},
+      {"tag": "blockchain", "volume_hint": "18M"},
+      {"tag": "defi", "volume_hint": "5M"},
+      {"tag": "gaming", "volume_hint": "50M"}
+    ]
+  },
+  "trending": [
+    {"tag": "aitools2026", "volume_hint": "3M"},
+    {"tag": "techtrends2026", "volume_hint": "2M"},
+    {"tag": "chatgpt", "volume_hint": "15M"},
+    {"tag": "midjourney", "volume_hint": "8M"},
+    {"tag": "threads", "volume_hint": "12M"},
+    {"tag": "climateaction", "volume_hint": "6M"},
+    {"tag": "genai", "volume_hint": "4M"},
+    {"tag": "remotework", "volume_hint": "18M"},
+    {"tag": "creatoreconomy", "volume_hint": "5M"},
+    {"tag": "sustainableliving", "volume_hint": "10M"}
+  ],
+  "seasonal": [
+    {"tag": "summer", "volume_hint": "300M", "active_months": [5, 6, 7, 8]},
+    {"tag": "newyear", "volume_hint": "150M", "active_months": [12, 1]},
+    {"tag": "worldcup", "volume_hint": "80M", "active_months": [6, 7]},
+    {"tag": "oscars", "volume_hint": "45M", "active_months": [2, 3]},
+    {"tag": "election", "volume_hint": "60M", "active_months": [10, 11]},
+    {"tag": "blackfriday", "volume_hint": "55M", "active_months": [11]},
+    {"tag": "christmas", "volume_hint": "200M", "active_months": [11, 12]},
+    {"tag": "backtoschool", "volume_hint": "30M", "active_months": [8, 9]},
+    {"tag": "valentines", "volume_hint": "70M", "active_months": [1, 2]},
+    {"tag": "halloween", "volume_hint": "90M", "active_months": [10]}
+  ]
+}

@@ -1,0 +1,85 @@
+{
+  "_meta": {
+    "description": "7 competitor archetypes. posts_per_week from Buffer 2.1M study (3-5 optimal). base_engagement_rate from Rival IQ 2025 per-industry. posting_frequency is posts/WEEK (divide by 7 for daily probability).",
+    "sources": ["Buffer 2026 frequency study (2.1M posts, 102K accounts)", "Rival IQ 2025 Benchmark (1.9M IG posts, 14 industries)"]
+  },
+  "archetypes": [
+    {
+      "id": "niche_expert",
+      "name": "Creator Alpha (Niche Expert)",
+      "niche": "tech",
+      "niche_topics": ["AI tools", "coding tips", "tech news", "prompt engineering"],
+      "preferred_types": ["carousel", "text_post"],
+      "posts_per_week": 3,
+      "base_engagement_rate": 0.55,
+      "tag_preferences": ["ai", "coding", "devtools", "buildinpublic"],
+      "style": "low_frequency_high_depth"
+    },
+    {
+      "id": "viral_chaser",
+      "name": "Creator Beta (Viral Chaser)",
+      "niche": "lifestyle",
+      "niche_topics": ["morning routine", "self improvement", "productivity hacks", "digital detox"],
+      "preferred_types": ["reel", "story"],
+      "posts_per_week": 7,
+      "base_engagement_rate": 0.38,
+      "tag_preferences": ["viral", "trending", "motivation", "grwm"],
+      "style": "high_frequency_volatile"
+    },
+    {
+      "id": "lifestyle_blogger",
+      "name": "Creator Gamma (Lifestyle Blogger)",
+      "niche": "lifestyle",
+      "niche_topics": ["minimalist living", "slow living", "work life balance", "journaling"],
+      "preferred_types": ["carousel", "reel"],
+      "posts_per_week": 4,
+      "base_engagement_rate": 0.45,
+      "tag_preferences": ["lifestyle", "wellness", "selfcare", "minimalism"],
+      "style": "consistent_moderate"
+    },
+    {
+      "id": "b2b_thought_leader",
+      "name": "Creator Delta (B2B Thought Leader)",
+      "niche": "business",
+      "niche_topics": ["growth hacks", "marketing strategy", "personal branding", "sales funnel"],
+      "preferred_types": ["carousel", "text_post"],
+      "posts_per_week": 3,
+      "base_engagement_rate": 0.42,
+      "tag_preferences": ["entrepreneur", "businesstips", "growth", "leadership"],
+      "style": "low_frequency_high_depth"
+    },
+    {
+      "id": "food_creator",
+      "name": "Creator Epsilon (Food Creator)",
+      "niche": "food",
+      "niche_topics": ["food recipe", "meal prep ideas", "baking tutorial", "food photography"],
+      "preferred_types": ["reel", "carousel"],
+      "posts_per_week": 5,
+      "base_engagement_rate": 0.48,
+      "tag_preferences": ["foodie", "recipe", "cooking", "healthyfood"],
+      "style": "consistent_moderate"
+    },
+    {
+      "id": "fitness_coach",
+      "name": "Creator Zeta (Fitness Coach)",
+      "niche": "fitness",
+      "niche_topics": ["fitness routine", "home workout", "gym transformation", "strength training"],
+      "preferred_types": ["reel", "story"],
+      "posts_per_week": 5,
+      "base_engagement_rate": 0.52,
+      "tag_preferences": ["fitness", "gym", "workout", "fitfam"],
+      "style": "high_frequency_volatile"
+    },
+    {
+      "id": "travel_creator",
+      "name": "Creator Eta (Travel Creator)",
+      "niche": "travel",
+      "niche_topics": ["travel guide", "hidden gems", "travel photography", "digital nomad"],
+      "preferred_types": ["reel", "carousel"],
+      "posts_per_week": 3,
+      "base_engagement_rate": 0.50,
+      "tag_preferences": ["travel", "wanderlust", "adventure", "travelgram"],
+      "style": "low_frequency_high_depth"
+    }
+  ]
+}

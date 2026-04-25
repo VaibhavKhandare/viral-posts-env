@@ -1,31 +1,11 @@
-# Copyright (c) Meta Platforms, Inc. and affiliates.
-# All rights reserved.
-#
-# This source code is licensed under the BSD-style license found in the
-# LICENSE file in the root directory of this source tree.
-
 """
-FastAPI application for the Viraltest Environment.
-
-This module creates an HTTP server that exposes the ViraltestEnvironment
-over HTTP and WebSocket endpoints, compatible with EnvClient.
+FastAPI application for the Viraltest Environment v2 (Theme #3.1).
 
 Endpoints:
-    - POST /reset: Reset the environment
-    - POST /step: Execute an action
-    - GET /state: Get current environment state
-    - GET /schema: Get action/observation schemas
-    - WS /ws: WebSocket endpoint for persistent sessions
-
-Usage:
-    # Development (with auto-reload):
-    uvicorn server.app:app --reload --host 0.0.0.0 --port 8000
-
-    # Production:
-    uvicorn server.app:app --host 0.0.0.0 --port 8000 --workers 4
-
-    # Or run directly:
-    python -m server.app
+    - POST /reset, /step, GET /state, /schema — standard OpenEnv
+    - GET /tools — tool catalog (Theme #3.1 discovery)
+    - GET /tools/{name} — single tool schema
+    - GET /dashboard — simulation UI
 """
 
 import json
@@ -40,21 +20,25 @@ from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse
 
 try:
     from openenv.core.env_server.http_server import create_app
-except Exception as e:  # pragma: no cover
+except Exception as e:
     raise ImportError(
-        "openenv is required for the web interface. Install dependencies with '\n    uv sync\n'"
+        "openenv is required. Install with 'uv sync'"
     ) from e
 
-# OpenEnv Gradio UI lives at /web; Dockerfile sets this — default on for local parity with HF Spaces.
 if "ENABLE_WEB_INTERFACE" not in os.environ:
     os.environ["ENABLE_WEB_INTERFACE"] = "true"
 
 try:
     from ..models import ScheduledAction, ViraltestAction, ViraltestObservation
-    from .viraltest_environment import ViraltestEnvironment
+    from .viraltest_environment import TOOL_CATALOG, ViraltestEnvironment
 except ImportError:
     from models import ScheduledAction, ViraltestAction, ViraltestObservation
-    from server.viraltest_environment import ViraltestEnvironment
+    from server.viraltest_environment import TOOL_CATALOG, ViraltestEnvironment
+
+try:
+    from .viraltest_environment import TAG_POOL
+except ImportError:
+    from server.viraltest_environment import TAG_POOL
 
 _DASHBOARD_HTML = (Path(__file__).parent / "dashboard.html").read_text()
 
@@ -77,6 +61,31 @@ if not _gradio_web:
     @app.get("/web/", include_in_schema=False)
     async def _web_disabled_redirect():
         return RedirectResponse("/dashboard", status_code=302)
+
+# ---------------------------------------------------------------------------
+# Tool catalog endpoints (Theme #3.1 — tool discovery)
+# ---------------------------------------------------------------------------
+
+@app.get("/tools")
+async def list_tools():
+    """Return the full tool catalog so the agent can discover available tools."""
+    return JSONResponse(content={
+        "tools": {name: schema for name, schema in TOOL_CATALOG.items()},
+        "count": len(TOOL_CATALOG),
+    })
+
+
+@app.get("/tools/{name}")
+async def get_tool(name: str):
+    """Return schema for a single tool."""
+    if name not in TOOL_CATALOG:
+        return JSONResponse(content={"error": f"unknown tool: {name}"}, status_code=404)
+    return JSONResponse(content={"name": name, **TOOL_CATALOG[name]})
+
+
+# ---------------------------------------------------------------------------
+# Dashboard
+# ---------------------------------------------------------------------------
 
 _dash_env: Optional[ViraltestEnvironment] = None
 _HISTORY_FILE = Path(__file__).parent / "simulation_history.json"
@@ -137,7 +146,7 @@ async def dashboard_history_clear():
 async def dashboard_reset(body: Dict[str, Any] = Body(default={})):
     global _dash_env
     _dash_env = ViraltestEnvironment()
-    task = body.get("task", "weekly_engage")
+    task = body.get("task", "monthly_engage")
     obs = _dash_env.reset(task=task)
     return _obs_to_dict(obs)
 
@@ -154,28 +163,32 @@ async def dashboard_step(body: Dict[str, Any] = Body(...)):
     return _obs_to_dict(obs)
 
 
-try:
-    from .viraltest_environment import TAG_POOL
-except ImportError:
-    from server.viraltest_environment import TAG_POOL
+# ---------------------------------------------------------------------------
+# Dashboard scenario helpers (v2 action shape)
+# ---------------------------------------------------------------------------
 
 _SIM_RNG = stdlib_random.Random(99)
 _CONTENT_TYPES = ["reel", "carousel", "story", "text_post"]
 _TOPICS = ["AI tools", "fitness routine", "growth hacks", "travel guide", "food recipe", "wellness tips"]
 
 
-def _make_daily_plan(actions: list) -> ViraltestAction:
-    """Helper: build a ViraltestAction from a list of ScheduledAction-like dicts."""
-    return ViraltestAction(scheduled_actions=[ScheduledAction(**a) for a in actions])
+def _make_daily_plan(actions: list, notes: Optional[str] = None) -> ViraltestAction:
+    return ViraltestAction(
+        scheduled_actions=[ScheduledAction(**a) for a in actions],
+        notes=notes,
+    )
 
 
 def _plan_always_rest(obs: dict, day: int) -> ViraltestAction:
-    return _make_daily_plan([])
+    return _make_daily_plan([], notes="Resting all day to conserve energy.")
 
 
 def _plan_spam(obs: dict, day: int) -> ViraltestAction:
-    actions = [{"hour": h, "action_type": "post", "content_type": "reel",
-                "topic": "AI tools", "tags": ["ai"]} for h in range(24)]
+    actions = [
+        {"hour": h, "action_type": "post", "content_type": "reel",
+         "topic": "AI tools", "tags": ["ai"], "intent": "watch_bait"}
+        for h in range(24)
+    ]
     return _make_daily_plan(actions)
 
 
@@ -186,111 +199,16 @@ def _plan_smart(obs: dict, day: int) -> ViraltestAction:
     pool_tag2 = TAG_POOL[(day * 2 + 1) % len(TAG_POOL)]
     ct1 = _CONTENT_TYPES[(day * 2) % 4]
     ct2 = _CONTENT_TYPES[(day * 2 + 1) % 4]
+    intent1 = "save_bait" if ct1 == "carousel" else "watch_bait"
+    intent2 = "send_bait" if ct2 == "reel" else "save_bait"
     actions = [
         {"hour": 8, "action_type": "create_content"},
-        {"hour": 12, "action_type": "post", "content_type": ct1, "topic": trending, "tags": t_tags + [pool_tag]},
-        {"hour": 19, "action_type": "post", "content_type": ct2, "topic": trending, "tags": t_tags + [pool_tag2]},
+        {"hour": 12, "action_type": "post", "content_type": ct1, "topic": trending,
+         "tags": t_tags + [pool_tag], "intent": intent1},
+        {"hour": 19, "action_type": "post", "content_type": ct2, "topic": trending,
+         "tags": t_tags + [pool_tag2], "intent": intent2},
     ]
-    return _make_daily_plan(actions)
-
-
-def _plan_no_rest(obs: dict, day: int) -> ViraltestAction:
-    actions = []
-    for h in range(24):
-        ct = _CONTENT_TYPES[h % 4]
-        topic = _SIM_RNG.choice(_TOPICS)
-        tags = _SIM_RNG.sample(TAG_POOL, 3)
-        actions.append({"hour": h, "action_type": "post", "content_type": ct, "topic": topic, "tags": tags})
-    return _make_daily_plan(actions)
-
-
-def _plan_minimal(obs: dict, day: int) -> ViraltestAction:
-    trending = (obs.get("trending_topics") or ["minimalism"])[0]
-    tags = list((obs.get("trending_tags") or [])[:3])
-    return _make_daily_plan([
-        {"hour": 12, "action_type": "post", "content_type": "carousel", "topic": trending, "tags": tags},
-    ])
-
-
-def _plan_reel_max(obs: dict, day: int) -> ViraltestAction:
-    trending = (obs.get("trending_topics") or ["viral content"])[0]
-    tags = list((obs.get("trending_tags") or [])[:3])
-    return _make_daily_plan([
-        {"hour": 12, "action_type": "post", "content_type": "reel", "topic": trending, "tags": tags},
-        {"hour": 14, "action_type": "post", "content_type": "reel", "topic": trending, "tags": tags},
-    ])
-
-
-def _plan_split_schedule(obs: dict, day: int) -> ViraltestAction:
-    trending = (obs.get("trending_topics") or ["daily content"])[0]
-    tags = list((obs.get("trending_tags") or [])[:2]) + ["tips"]
-    return _make_daily_plan([
-        {"hour": 9, "action_type": "post", "content_type": "carousel", "topic": trending, "tags": tags},
-        {"hour": 19, "action_type": "post", "content_type": "reel", "topic": trending, "tags": tags},
-    ])
-
-
-def _plan_double_peak(obs: dict, day: int) -> ViraltestAction:
-    trending = (obs.get("trending_topics") or ["peak time content"])[0]
-    tags = list((obs.get("trending_tags") or [])[:3])
-    return _make_daily_plan([
-        {"hour": 9, "action_type": "post", "content_type": "reel", "topic": trending, "tags": tags},
-        {"hour": 15, "action_type": "post", "content_type": "carousel", "topic": trending, "tags": tags},
-    ])
-
-
-def _plan_tag_explorer(obs: dict, day: int) -> ViraltestAction:
-    trending = (obs.get("trending_topics") or ["devtools"])[0]
-    start = (day * 6) % len(TAG_POOL)
-    tags1 = [TAG_POOL[(start + i) % len(TAG_POOL)] for i in range(3)]
-    tags2 = [TAG_POOL[(start + 3 + i) % len(TAG_POOL)] for i in range(3)]
-    ct1 = _CONTENT_TYPES[(day * 2) % 4]
-    ct2 = _CONTENT_TYPES[(day * 2 + 1) % 4]
-    return _make_daily_plan([
-        {"hour": 10, "action_type": "post", "content_type": ct1, "topic": trending, "tags": tags1},
-        {"hour": 18, "action_type": "post", "content_type": ct2, "topic": trending, "tags": tags2},
-    ])
-
-
-def _plan_queue_optimizer(obs: dict, day: int) -> ViraltestAction:
-    trending = (obs.get("trending_topics") or ["productivity"])[0]
-    tags = list((obs.get("trending_tags") or [])[:2]) + ["growth"]
-    queue = obs.get("content_queue_size", 0)
-    if day < 2 or queue < 2:
-        return _make_daily_plan([
-            {"hour": 8, "action_type": "create_content"},
-            {"hour": 10, "action_type": "create_content"},
-            {"hour": 14, "action_type": "create_content"},
-        ])
-    ct = _CONTENT_TYPES[day % 4]
-    return _make_daily_plan([
-        {"hour": 12, "action_type": "post", "content_type": ct, "topic": trending, "tags": tags},
-        {"hour": 19, "action_type": "post", "content_type": _CONTENT_TYPES[(day + 1) % 4], "topic": trending, "tags": tags},
-    ])
-
-
-def _plan_weekend(obs: dict, day: int) -> ViraltestAction:
-    dow = obs.get("day_of_week", 0)
-    if dow not in (5, 6):
-        return _make_daily_plan([])
-    trending = (obs.get("trending_topics") or ["travel"])[0]
-    tags = list((obs.get("trending_tags") or [])[:3])
-    return _make_daily_plan([
-        {"hour": 11, "action_type": "post", "content_type": "reel", "topic": trending, "tags": tags},
-        {"hour": 17, "action_type": "post", "content_type": "reel", "topic": trending, "tags": tags},
-    ])
-
-
-def _plan_weekday_only(obs: dict, day: int) -> ViraltestAction:
-    dow = obs.get("day_of_week", 0)
-    if dow >= 5:
-        return _make_daily_plan([])
-    trending = (obs.get("trending_topics") or ["weekday content"])[0]
-    tags = list((obs.get("trending_tags") or [])[:2]) + ["productivity"]
-    ct = _CONTENT_TYPES[day % 4]
-    return _make_daily_plan([
-        {"hour": 12, "action_type": "post", "content_type": ct, "topic": trending, "tags": tags},
-    ])
+    return _make_daily_plan(actions, notes=f"Day {day}: posting at peak hours with varied intents.")
 
 
 def _plan_random(obs: dict, day: int) -> ViraltestAction:
@@ -299,87 +217,36 @@ def _plan_random(obs: dict, day: int) -> ViraltestAction:
         r = _SIM_RNG.random()
         if r < 0.1:
             ct = _SIM_RNG.choice(_CONTENT_TYPES)
-            topic = _SIM_RNG.choice(["random topic", "AI tools", "fitness", "travel"])
-            tags = _SIM_RNG.sample(TAG_POOL, 2)
+            topic = _SIM_RNG.choice(_TOPICS)
+            tags = _SIM_RNG.sample(TAG_POOL[:20], 2)
             actions.append({"hour": h, "action_type": "post", "content_type": ct, "topic": topic, "tags": tags})
         elif r < 0.15:
             actions.append({"hour": h, "action_type": "create_content"})
     return _make_daily_plan(actions)
 
 
-def _plan_sleep_conscious(obs: dict, day: int) -> ViraltestAction:
-    trending = (obs.get("trending_topics") or ["wellness"])[0]
-    tags = list((obs.get("trending_tags") or [])[:2]) + ["productivity"]
-    ct = _CONTENT_TYPES[day % 4]
+def _plan_minimal(obs: dict, day: int) -> ViraltestAction:
+    trending = (obs.get("trending_topics") or ["minimalism"])[0]
+    tags = list((obs.get("trending_tags") or [])[:3])
     return _make_daily_plan([
-        {"hour": 10, "action_type": "post", "content_type": ct, "topic": trending, "tags": tags},
-        {"hour": 16, "action_type": "create_content"},
-    ])
-
-
-def _plan_sleep_deprived(obs: dict, day: int) -> ViraltestAction:
-    trending = (obs.get("trending_topics") or ["coding"])[0]
-    tags = list((obs.get("trending_tags") or [])[:2])
-    actions = []
-    for h in range(24):
-        if 9 <= h <= 20 and len([a for a in actions if a["action_type"] == "post"]) < 2:
-            ct = _CONTENT_TYPES[h % 4]
-            actions.append({"hour": h, "action_type": "post", "content_type": ct, "topic": trending, "tags": tags})
-        else:
-            actions.append({"hour": h, "action_type": "create_content"})
-    return _make_daily_plan(actions)
-
-
-def _plan_growth_focus(obs: dict, day: int) -> ViraltestAction:
-    trending = (obs.get("trending_topics") or ["growth hacks"])[0]
-    return _make_daily_plan([
-        {"hour": 13, "action_type": "post", "content_type": "reel", "topic": trending, "tags": ["viral", "growth", "trending"]},
-    ])
-
-
-def _plan_tech_niche(obs: dict, day: int) -> ViraltestAction:
-    ct = _CONTENT_TYPES[day % 4]
-    return _make_daily_plan([
-        {"hour": 12, "action_type": "post", "content_type": ct, "topic": "AI tools and coding tips", "tags": ["ai", "coding", "devtools"]},
-        {"hour": 18, "action_type": "post", "content_type": _CONTENT_TYPES[(day + 1) % 4], "topic": "AI tools and coding tips", "tags": ["ai", "ml", "startup"]},
-    ])
-
-
-def _plan_conservative(obs: dict, day: int) -> ViraltestAction:
-    trending = (obs.get("trending_topics") or ["quick tip"])[0]
-    tags = list((obs.get("trending_tags") or [])[:2])
-    return _make_daily_plan([
-        {"hour": 13, "action_type": "post", "content_type": "text_post", "topic": trending, "tags": tags},
+        {"hour": 12, "action_type": "post", "content_type": "carousel",
+         "topic": trending, "tags": tags, "intent": "save_bait"},
     ])
 
 
 SCENARIOS = {
-    "always_rest": ("Always Rest", "Never posts. Tests follower decay + zero engagement.", _plan_always_rest),
+    "always_rest": ("Always Rest", "Never posts. Tests follower decay.", _plan_always_rest),
     "spam": ("Spam Post", "Same reel every hour. Burns out fast.", _plan_spam),
-    "no_rest": ("No Rest", "Posts every hour, never rests. Burns out fast.", _plan_no_rest),
-    "smart": ("Smart Agent", "Optimal: peak hours, trending, varied types, rests.", _plan_smart),
-    "queue_optimizer": ("Queue Optimizer", "Creates content first, posts from queue.", _plan_queue_optimizer),
-    "weekend": ("Weekend Warrior", "Only posts on Sat/Sun.", _plan_weekend),
-    "tag_explorer": ("Tag Explorer", "New tag combo every post. Max discovery.", _plan_tag_explorer),
-    "sleep_deprived": ("Sleep Deprived", "Never rests. Tests sleep deprivation.", _plan_sleep_deprived),
-    "sleep_conscious": ("Sleep Conscious", "Proper sleep schedule.", _plan_sleep_conscious),
-    "minimal": ("Minimal Poster", "1 post per day at noon.", _plan_minimal),
-    "reel_max": ("Reel Maximizer", "Reels at peak hours for max reach.", _plan_reel_max),
-    "split_schedule": ("Split Schedule", "Morning and evening posts.", _plan_split_schedule),
-    "double_peak": ("Double Peak", "Posts at 9am and 3pm.", _plan_double_peak),
-    "growth_focus": ("Growth Focus", "Maximizes follower growth.", _plan_growth_focus),
-    "weekday_only": ("Weekday Only", "No weekend posting.", _plan_weekday_only),
-    "tech_niche": ("Tech Niche", "AI/coding content focus.", _plan_tech_niche),
-    "conservative": ("Conservative", "One text post at 1pm.", _plan_conservative),
+    "smart": ("Smart Agent", "Optimal: peak hours, trending, varied types+intents.", _plan_smart),
+    "minimal": ("Minimal Poster", "1 carousel per day at noon.", _plan_minimal),
     "random": ("Random Actor", "Random actions. Baseline test.", _plan_random),
 }
 
 
 @app.get("/dashboard/scenarios")
 async def dashboard_scenarios():
-    """List all simulation strategies for the dashboard UI."""
     items = [{"id": k, "label": v[0], "description": v[1]} for k, v in SCENARIOS.items()]
-    items.sort(key=lambda x: (x["label"].lower()))
+    items.sort(key=lambda x: x["label"].lower())
     return JSONResponse(
         content={"count": len(items), "scenarios": items},
         headers={"Cache-Control": "no-store, max-age=0, must-revalidate"},
@@ -392,7 +259,7 @@ async def dashboard_simulate(body: Dict[str, Any] = Body(...)):
     _SIM_RNG = stdlib_random.Random(99)
 
     scenario_id = body.get("scenario", "smart")
-    task = body.get("task", "weekly_competitive")
+    task = body.get("task", "monthly_competitive")
     if scenario_id not in SCENARIOS:
         return {"error": f"Unknown scenario: {scenario_id}"}
 
@@ -402,7 +269,7 @@ async def dashboard_simulate(body: Dict[str, Any] = Body(...)):
     obs_dict = obs.model_dump()
 
     steps: List[Dict[str, Any]] = []
-    for day in range(1, 8):
+    for day in range(1, 31):
         action = plan_fn(obs_dict, day)
         obs = env.step(action)
         obs_dict = obs.model_dump()
@@ -423,19 +290,13 @@ async def dashboard_simulate(body: Dict[str, Any] = Body(...)):
             "sleep_debt": round(obs.sleep_debt, 3),
             "followers": obs.follower_count,
             "engagement_rate": round(obs.engagement_rate, 4),
-            "niche_saturation": round(obs.niche_saturation, 3),
+            "burnout_risk": round(obs.burnout_risk, 3),
             "posts_today": obs.posts_today,
             "hour": obs.current_hour,
             "day": obs.day_of_week,
             "days_elapsed": obs.days_elapsed,
             "queue": obs.content_queue_size,
-            "tag_performance": obs.tag_performance,
-            "trending_topics": obs.trending_topics,
-            "trending_tags": obs.trending_tags,
-            "competitor_avg_engagement": round(obs.competitor_avg_engagement, 4),
-            "daily_total_engagement": round(obs.daily_total_engagement, 4),
-            "daily_posts_made": obs.daily_posts_made,
-            "daily_energy_min": round(obs.daily_energy_min, 3),
+            "api_budget": obs.api_budget_remaining,
         })
         if obs.done:
             break
@@ -477,30 +338,12 @@ async def dashboard_simulate(body: Dict[str, Any] = Body(...)):
 
 
 def main(host: str = "0.0.0.0", port: int = 8000):
-    """
-    Entry point for direct execution via uv run or python -m.
-
-    This function enables running the server without Docker:
-        uv run --project . server
-        uv run --project . server --port 8001
-        python -m viraltest.server.app
-
-    Args:
-        host: Host address to bind to (default: "0.0.0.0")
-        port: Port number to listen on (default: 8000)
-
-    For production deployments, consider using uvicorn directly with
-    multiple workers:
-        uvicorn viraltest.server.app:app --workers 4
-    """
     import uvicorn
-
     uvicorn.run(app, host=host, port=port)
 
 
 if __name__ == "__main__":
     import argparse
-
     parser = argparse.ArgumentParser()
     parser.add_argument("--port", type=int, default=None)
     args = parser.parse_args()
