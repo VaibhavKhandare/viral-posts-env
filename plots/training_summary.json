@@ -1,0 +1,271 @@
+{
+  "model": "qwen2.5:3b-instruct-q4_K_M",
+  "device": "M4 Mac (Ollama local)",
+  "training_rounds": 4,
+  "episodes_per_round": 6,
+  "before": {
+    "monthly_engage": 0.3548,
+    "monthly_strategic": 0.6795,
+    "monthly_competitive": 0.3738
+  },
+  "after": {
+    "monthly_engage": 0.4086,
+    "monthly_strategic": 0.6273,
+    "monthly_competitive": 0.5101
+  },
+  "smart_heuristic": {
+    "monthly_engage": 0.4312,
+    "monthly_strategic": 0.7682,
+    "monthly_competitive": 0.8094
+  },
+  "improvement": {
+    "monthly_engage": 0.053800000000000014,
+    "monthly_strategic": -0.052200000000000024,
+    "monthly_competitive": 0.13629999999999998
+  },
+  "training_log": {
+    "round": [
+      1,
+      2,
+      3,
+      4
+    ],
+    "avg_grader": [
+      0.4958,
+      0.4912,
+      0.6015,
+      0.5548
+    ],
+    "max_grader": [
+      0.7391,
+      0.7236,
+      0.7529,
+      0.7705
+    ],
+    "min_grader": [
+      0.3698,
+      0.2527,
+      0.382,
+      0.3764
+    ],
+    "avg_reward": [
+      6.07,
+      6.093,
+      6.418,
+      6.467
+    ],
+    "max_reward": [
+      6.104,
+      6.1,
+      6.481,
+      6.527
+    ],
+    "min_reward": [
+      6.037,
+      6.076,
+      6.343,
+      6.366
+    ],
+    "best_temperature": [
+      1.4,
+      1.0,
+      0.7,
+      0.7
+    ]
+  },
+  "all_episodes": [
+    {
+      "round": 1,
+      "task": "monthly_engage",
+      "seed": 42,
+      "grader_score": 0.4395,
+      "total_reward": 6.1044,
+      "temperature": 1.4
+    },
+    {
+      "round": 1,
+      "task": "monthly_strategic",
+      "seed": 43,
+      "grader_score": 0.6758,
+      "total_reward": 6.0373,
+      "temperature": 1.4
+    },
+    {
+      "round": 1,
+      "task": "monthly_competitive",
+      "seed": 44,
+      "grader_score": 0.3698,
+      "total_reward": 6.0686,
+      "temperature": 1.4
+    },
+    {
+      "round": 1,
+      "task": "monthly_engage",
+      "seed": 45,
+      "grader_score": 0.3806,
+      "total_reward": 6.0643,
+      "temperature": 1.4
+    },
+    {
+      "round": 1,
+      "task": "monthly_strategic",
+      "seed": 46,
+      "grader_score": 0.7391,
+      "total_reward": 6.096,
+      "temperature": 1.4
+    },
+    {
+      "round": 1,
+      "task": "monthly_competitive",
+      "seed": 47,
+      "grader_score": 0.3699,
+      "total_reward": 6.0489999999999995,
+      "temperature": 1.4
+    },
+    {
+      "round": 2,
+      "task": "monthly_engage",
+      "seed": 142,
+      "grader_score": 0.4335,
+      "total_reward": 6.0995,
+      "temperature": 1.0
+    },
+    {
+      "round": 2,
+      "task": "monthly_strategic",
+      "seed": 143,
+      "grader_score": 0.7236,
+      "total_reward": 6.0992,
+      "temperature": 1.0
+    },
+    {
+      "round": 2,
+      "task": "monthly_competitive",
+      "seed": 144,
+      "grader_score": 0.3789,
+      "total_reward": 6.0943,
+      "temperature": 1.0
+    },
+    {
+      "round": 2,
+      "task": "monthly_engage",
+      "seed": 145,
+      "grader_score": 0.4356,
+      "total_reward": 6.0999,
+      "temperature": 1.0
+    },
+    {
+      "round": 2,
+      "task": "monthly_strategic",
+      "seed": 146,
+      "grader_score": 0.7232,
+      "total_reward": 6.0882,
+      "temperature": 1.0
+    },
+    {
+      "round": 2,
+      "task": "monthly_competitive",
+      "seed": 147,
+      "grader_score": 0.2527,
+      "total_reward": 6.0764,
+      "temperature": 1.0
+    },
+    {
+      "round": 3,
+      "task": "monthly_engage",
+      "seed": 242,
+      "grader_score": 0.382,
+      "total_reward": 6.4364,
+      "temperature": 0.7
+    },
+    {
+      "round": 3,
+      "task": "monthly_strategic",
+      "seed": 243,
+      "grader_score": 0.6426,
+      "total_reward": 6.4364,
+      "temperature": 0.7
+    },
+    {
+      "round": 3,
+      "task": "monthly_competitive",
+      "seed": 244,
+      "grader_score": 0.7529,
+      "total_reward": 6.3849,
+      "temperature": 0.7
+    },
+    {
+      "round": 3,
+      "task": "monthly_engage",
+      "seed": 245,
+      "grader_score": 0.3935,
+      "total_reward": 6.4805,
+      "temperature": 0.7
+    },
+    {
+      "round": 3,
+      "task": "monthly_strategic",
+      "seed": 246,
+      "grader_score": 0.724,
+      "total_reward": 6.4286,
+      "temperature": 0.7
+    },
+    {
+      "round": 3,
+      "task": "monthly_competitive",
+      "seed": 247,
+      "grader_score": 0.7138,
+      "total_reward": 6.3425,
+      "temperature": 0.7
+    },
+    {
+      "round": 4,
+      "task": "monthly_engage",
+      "seed": 342,
+      "grader_score": 0.3764,
+      "total_reward": 6.4858,
+      "temperature": 0.7
+    },
+    {
+      "round": 4,
+      "task": "monthly_strategic",
+      "seed": 343,
+      "grader_score": 0.6314,
+      "total_reward": 6.4636,
+      "temperature": 0.7
+    },
+    {
+      "round": 4,
+      "task": "monthly_competitive",
+      "seed": 344,
+      "grader_score": 0.7705,
+      "total_reward": 6.4934,
+      "temperature": 0.7
+    },
+    {
+      "round": 4,
+      "task": "monthly_engage",
+      "seed": 345,
+      "grader_score": 0.3851,
+      "total_reward": 6.4661,
+      "temperature": 0.7
+    },
+    {
+      "round": 4,
+      "task": "monthly_strategic",
+      "seed": 346,
+      "grader_score": 0.6755,
+      "total_reward": 6.5269,
+      "temperature": 0.7
+    },
+    {
+      "round": 4,
+      "task": "monthly_competitive",
+      "seed": 347,
+      "grader_score": 0.4897,
+      "total_reward": 6.3657,
+      "temperature": 0.7
+    }
+  ],
+  "elapsed_seconds": 6034.9
+}

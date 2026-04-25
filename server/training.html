@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html class="dark" lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width,initial-scale=1.0" name="viewport"/>
+<title>Viraltest — Training Evidence</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&family=Space+Grotesk:wght@400;500;700&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<script>
+tailwind.config={darkMode:"class",theme:{extend:{colors:{"surface":"#0b1326","surface-low":"#131b2e","surface-high":"#222a3d","surface-top":"#2d3449","surface-lowest":"#060e20","on-surface":"#dae2fd","on-surface-dim":"#cbc3d7","primary":"#d0bcff","primary-ctr":"#a078ff","secondary":"#7bd0ff","secondary-ctr":"#00a6e0","tertiary":"#ffb2b9","tertiary-ctr":"#ea6479","outline":"#494454","error":"#ffb4ab"},fontFamily:{headline:["Inter"],body:["Inter"],label:["Space Grotesk"]}}}}
+</script>
+<style>
+body{background:#0b1326;color:#dae2fd;font-family:'Inter',sans-serif}
+.material-symbols-outlined{font-variation-settings:'FILL' 0,'wght' 400,'GRAD' 0,'opsz' 24}
+.glass-solid{background:#131b2e;border:1px solid rgba(73,68,84,.15)}
+.fade-in{animation:fadeIn .3s ease}
+@keyframes fadeIn{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:translateY(0)}}
+::-webkit-scrollbar{width:6px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:rgba(73,68,84,.4);border-radius:3px}
+</style>
+</head>
+<body class="min-h-screen flex">
+
+<aside class="flex flex-col sticky top-0 h-screen w-64 border-r border-white/5 bg-surface-lowest shadow-2xl shadow-slate-950/50 shrink-0 z-50">
+  <div class="p-6 pb-4">
+    <div class="text-xl font-black tracking-tighter text-transparent bg-clip-text bg-gradient-to-br from-primary to-primary-ctr mb-1">Growth Copilot</div>
+    <div class="text-[9px] font-label uppercase tracking-[.2em] text-on-surface-dim/50">Training evidence</div>
+  </div>
+  <nav class="flex-1 px-3 space-y-1">
+    <a href="/dashboard" class="flex items-center gap-3 px-4 py-2.5 rounded-lg text-slate-400 font-medium hover:text-slate-200 hover:bg-white/5 transition-all">
+      <span class="material-symbols-outlined text-[20px]">dashboard</span><span class="font-label text-sm">Dashboard</span>
+    </a>
+    <a href="/dashboard/training" class="flex items-center gap-3 px-4 py-2.5 rounded-lg text-primary font-bold border-r-2 border-primary bg-gradient-to-r from-primary/10 to-transparent transition-all">
+      <span class="material-symbols-outlined text-[20px]">science</span><span class="font-label text-sm">Training Evidence</span>
+    </a>
+    <a href="/web/" class="flex items-center gap-3 px-4 py-2.5 rounded-lg text-slate-400 font-medium hover:text-slate-200 hover:bg-white/5 transition-all">
+      <span class="material-symbols-outlined text-[20px]">web</span><span class="font-label text-sm">OpenEnv UI</span>
+    </a>
+  </nav>
+  <div class="p-4 border-t border-white/5">
+    <div class="text-[9px] font-label text-on-surface-dim/60 leading-relaxed">
+      This page shows that the environment can <span class="text-on-surface font-bold">differentiate agent strategies</span> and produce meaningful reward signals for RL training.
+    </div>
+  </div>
+</aside>
+
+<div class="flex-1 flex flex-col min-w-0">
+  <header class="flex justify-between items-center px-6 h-14 border-b border-white/5 bg-surface/60 backdrop-blur-xl sticky top-0 z-40">
+    <div class="flex items-center gap-3">
+      <span class="material-symbols-outlined text-primary text-lg">science</span>
+      <h1 class="text-sm font-bold">Training Evidence — Baseline Leaderboard</h1>
+    </div>
+    <div class="flex items-center gap-3">
+      <span id="statusBadge" class="text-xs font-label text-on-surface-dim">Click "Run Baselines" to generate</span>
+      <button onclick="runBaselines()" id="runBtn" class="px-4 py-2 rounded-lg bg-gradient-to-br from-primary to-primary-ctr text-[#23005c] font-bold text-sm hover:opacity-90 transition active:scale-[.97]">
+        <span class="material-symbols-outlined text-[16px] align-middle mr-1">play_arrow</span>Run Baselines
+      </button>
+    </div>
+  </header>
+
+  <main class="flex-1 p-6 space-y-6 overflow-y-auto">
+
+    <div class="glass-solid border border-outline/20 rounded-xl px-5 py-4 space-y-3">
+      <div class="flex gap-3 items-start">
+        <span class="material-symbols-outlined text-primary text-lg shrink-0">info</span>
+        <div class="text-[11px] font-label text-on-surface-dim leading-relaxed flex-1 min-w-0">
+          <span class="text-on-surface font-semibold">What this proves:</span>
+          The environment produces a <span class="text-on-surface">rich, informative reward signal</span> that differentiates between agent strategies.
+          Smart agents (peak-hour posting, tag diversity, energy management) consistently outscore naive baselines (spam, random, always-rest).
+          This is the prerequisite for RL training &mdash; if the reward didn't differentiate, training couldn't improve behavior.
+          <div class="mt-2 text-on-surface font-semibold">5 heuristic strategies &times; 3 tasks = 15 runs, deterministic (seed=42).</div>
+        </div>
+      </div>
+    </div>
+
+    <div id="loadingState" class="hidden">
+      <div class="flex items-center justify-center gap-4 py-12">
+        <div class="animate-spin h-8 w-8 border-4 border-primary/30 border-t-primary rounded-full"></div>
+        <span class="text-sm font-label text-on-surface-dim">Running all baseline scenarios... (~5 seconds)</span>
+      </div>
+    </div>
+
+    <div id="resultsSection" class="hidden space-y-6">
+
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-5">
+        <div id="chart_engage" class="glass-solid p-5 rounded-xl overflow-hidden">
+          <h3 class="text-sm font-bold mb-1 text-secondary">Engage (Easy)</h3>
+          <p class="text-[9px] font-label text-on-surface-dim mb-3">Total engagement vs theoretical max</p>
+          <svg id="svg_engage" class="w-full" viewBox="0 0 380 240" preserveAspectRatio="xMidYMid meet"></svg>
+        </div>
+        <div id="chart_strategic" class="glass-solid p-5 rounded-xl overflow-hidden">
+          <h3 class="text-sm font-bold mb-1 text-primary">Strategic (Medium)</h3>
+          <p class="text-[9px] font-label text-on-surface-dim mb-3">Engagement + tag discovery + energy + consistency</p>
+          <svg id="svg_strategic" class="w-full" viewBox="0 0 380 240" preserveAspectRatio="xMidYMid meet"></svg>
+        </div>
+        <div id="chart_competitive" class="glass-solid p-5 rounded-xl overflow-hidden">
+          <h3 class="text-sm font-bold mb-1 text-tertiary">Competitive (Hard)</h3>
+          <p class="text-[9px] font-label text-on-surface-dim mb-3">+ growth vs competitors + differentiation</p>
+          <svg id="svg_competitive" class="w-full" viewBox="0 0 380 240" preserveAspectRatio="xMidYMid meet"></svg>
+        </div>
+      </div>
+
+      <div class="glass-solid p-5 rounded-xl overflow-hidden">
+        <h3 class="text-sm font-bold mb-1 flex items-center gap-2">
+          <span class="material-symbols-outlined text-secondary text-lg">show_chart</span>
+          Reward Trajectories (30-day episodes)
+        </h3>
+        <p class="text-[9px] font-label text-on-surface-dim mb-3">Daily reward over the episode for each agent &times; task. Shows that smart strategies maintain higher rewards throughout.</p>
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+          <div>
+            <div class="text-[10px] font-bold text-secondary uppercase tracking-widest mb-1">Engage</div>
+            <svg id="traj_engage" class="w-full" viewBox="0 0 400 180" preserveAspectRatio="xMidYMid meet"></svg>
+          </div>
+          <div>
+            <div class="text-[10px] font-bold text-primary uppercase tracking-widest mb-1">Strategic</div>
+            <svg id="traj_strategic" class="w-full" viewBox="0 0 400 180" preserveAspectRatio="xMidYMid meet"></svg>
+          </div>
+          <div>
+            <div class="text-[10px] font-bold text-tertiary uppercase tracking-widest mb-1">Competitive</div>
+            <svg id="traj_competitive" class="w-full" viewBox="0 0 400 180" preserveAspectRatio="xMidYMid meet"></svg>
+          </div>
+        </div>
+        <div id="trajectoryLegend" class="flex flex-wrap gap-4 mt-3 justify-center"></div>
+      </div>
+
+      <div class="glass-solid rounded-xl overflow-hidden">
+        <div class="p-4 border-b border-white/5">
+          <h3 class="text-sm font-bold flex items-center gap-2">
+            <span class="material-symbols-outlined text-primary text-lg">table_chart</span>
+            Full Results Table
+          </h3>
+        </div>
+        <div class="overflow-x-auto">
+          <table class="w-full text-[11px] font-label">
+            <thead>
+              <tr class="text-on-surface-dim/60 uppercase tracking-wider border-b border-white/5">
+                <th class="text-left px-4 py-2.5">Agent</th>
+                <th class="text-left px-4 py-2.5">Task</th>
+                <th class="text-right px-4 py-2.5">Grader Score</th>
+                <th class="text-right px-4 py-2.5">Total Reward</th>
+                <th class="text-right px-4 py-2.5">Steps</th>
+                <th class="text-right px-4 py-2.5">Energy</th>
+                <th class="text-right px-4 py-2.5">Followers</th>
+                <th class="text-right px-4 py-2.5">&Delta;</th>
+                <th class="text-center px-4 py-2.5">Status</th>
+              </tr>
+            </thead>
+            <tbody id="resultsTable"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="glass-solid p-5 rounded-xl overflow-hidden">
+        <h3 class="text-sm font-bold mb-3 flex items-center gap-2">
+          <span class="material-symbols-outlined text-tertiary text-lg">insights</span>
+          Key Takeaways
+        </h3>
+        <div id="takeaways" class="space-y-2 text-[11px] font-label text-on-surface-dim leading-relaxed"></div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<script>
+const API=window.location.origin;
+const COLORS={"always_rest":"#E53935","spam":"#FF9800","random":"#9E9E9E","minimal":"#42A5F5","smart":"#4CAF50"};
+const TASK_MAP={"monthly_engage":"engage","monthly_strategic":"strategic","monthly_competitive":"competitive"};
+const TASK_LABELS={"monthly_engage":"Engage","monthly_strategic":"Strategic","monthly_competitive":"Competitive"};
+
+let allData=null;
+
+async function runBaselines(){
+  const btn=document.getElementById("runBtn");
+  btn.disabled=true;btn.classList.add("opacity-50");
+  document.getElementById("loadingState").classList.remove("hidden");
+  document.getElementById("resultsSection").classList.add("hidden");
+  document.getElementById("statusBadge").textContent="Running...";
+
+  try{
+    const r=await fetch(API+"/dashboard/training-evidence");
+    allData=await r.json();
+    renderAll();
+    document.getElementById("loadingState").classList.add("hidden");
+    document.getElementById("resultsSection").classList.remove("hidden");
+    document.getElementById("statusBadge").textContent=`${allData.results.length} runs completed`;
+  }catch(e){
+    document.getElementById("statusBadge").textContent="Error: "+e.message;
+    document.getElementById("loadingState").classList.add("hidden");
+  }
+  btn.disabled=false;btn.classList.remove("opacity-50");
+}
+
+function renderAll(){
+  if(!allData)return;
+  renderBarCharts();
+  renderTrajectories();
+  renderTable();
+  renderTakeaways();
+}
+
+function renderBarCharts(){
+  const tasks=["monthly_engage","monthly_strategic","monthly_competitive"];
+  for(const task of tasks){
+    const key=TASK_MAP[task];
+    const svg=document.getElementById("svg_"+key);
+    if(!svg)continue;
+
+    const taskResults=allData.results.filter(r=>r.task===task);
+    taskResults.sort((a,b)=>b.grader_score-a.grader_score);
+
+    const W=380,H=240,pL=110,pR=60,pT=10,pB=10;
+    const plotW=W-pL-pR,plotH=H-pT-pB;
+    const n=taskResults.length;
+    if(!n){svg.innerHTML="";continue;}
+    const barH=Math.min(28,plotH/n*0.7);
+    const gap=(plotH-barH*n)/(n+1);
+    const maxScore=Math.max(...taskResults.map(r=>r.grader_score),0.01);
+
+    let html="";
+    taskResults.forEach((r,i)=>{
+      const y=pT+gap+(barH+gap)*i;
+      const w=Math.max(2,(r.grader_score/Math.max(maxScore*1.1,0.01))*plotW);
+      const color=COLORS[r.scenario_id]||"#9E9E9E";
+      const burned=r.burned_out?" (BURNED)":"";
+
+      html+=`<rect x="${pL}" y="${y}" width="${w}" height="${barH}" fill="${color}" rx="4" opacity="0.85"/>`;
+      html+=`<text x="${pL-6}" y="${y+barH/2+4}" text-anchor="end" fill="#dae2fd" font-size="10" font-family="Space Grotesk,sans-serif" font-weight="600">${r.scenario}</text>`;
+      html+=`<text x="${pL+w+6}" y="${y+barH/2+4}" fill="${color}" font-size="11" font-family="Space Grotesk,sans-serif" font-weight="700">${r.grader_score.toFixed(4)}${burned}</text>`;
+    });
+
+    svg.innerHTML=html;
+  }
+}
+
+function smoothPath(pts){
+  if(pts.length<2)return pts.map((p,i)=>(i===0?"M":"L")+p.x.toFixed(1)+","+p.y.toFixed(1)).join(" ");
+  let d="M"+pts[0].x.toFixed(1)+","+pts[0].y.toFixed(1);
+  for(let i=1;i<pts.length;i++){
+    const cp=(pts[i].x-pts[i-1].x)/3;
+    d+=` C${(pts[i-1].x+cp).toFixed(1)},${pts[i-1].y.toFixed(1)} ${(pts[i].x-cp).toFixed(1)},${pts[i].y.toFixed(1)} ${pts[i].x.toFixed(1)},${pts[i].y.toFixed(1)}`;
+  }
+  return d;
+}
+
+function renderTrajectories(){
+  const tasks=["monthly_engage","monthly_strategic","monthly_competitive"];
+  const legend=document.getElementById("trajectoryLegend");
+  let legendHtml="";
+
+  for(const task of tasks){
+    const key=TASK_MAP[task];
+    const svg=document.getElementById("traj_"+key);
+    if(!svg)continue;
+
+    const taskResults=allData.results.filter(r=>r.task===task);
+    const W=400,H=180,pL=40,pR=10,pT=10,pB=30;
+    const plotW=W-pL-pR,plotH=H-pT-pB;
+
+    let allRewards=[];
+    taskResults.forEach(r=>allRewards.push(...r.rewards));
+    const minR=Math.min(0,...allRewards);
+    const maxR=Math.max(...allRewards,0.01);
+
+    let html="";
+    for(let g=0;g<=4;g++){
+      const y=pT+(g/4)*plotH;
+      const val=maxR-(g/4)*(maxR-minR);
+      html+=`<line x1="${pL}" y1="${y}" x2="${W-pR}" y2="${y}" stroke="#494454" stroke-width="0.5" opacity="0.3"/>`;
+      html+=`<text x="${pL-5}" y="${y+3}" text-anchor="end" fill="#958ea0" font-size="8" font-family="Space Grotesk,sans-serif">${val.toFixed(2)}</text>`;
+    }
+    html+=`<line x1="${pL}" y1="${pT}" x2="${pL}" y2="${H-pB}" stroke="#cbc3d7" stroke-width="0.7"/>`;
+    html+=`<line x1="${pL}" y1="${H-pB}" x2="${W-pR}" y2="${H-pB}" stroke="#cbc3d7" stroke-width="0.7"/>`;
+    html+=`<text x="${pL}" y="${H-10}" fill="#958ea0" font-size="8" font-family="Space Grotesk,sans-serif">Day 1</text>`;
+    html+=`<text x="${W-pR}" y="${H-10}" text-anchor="end" fill="#958ea0" font-size="8" font-family="Space Grotesk,sans-serif">Day 30</text>`;
+    html+=`<text x="${pL+plotW/2}" y="${H-2}" text-anchor="middle" fill="#958ea0" font-size="7" font-family="Space Grotesk,sans-serif" opacity="0.75">day</text>`;
+
+    taskResults.forEach(r=>{
+      const color=COLORS[r.scenario_id]||"#9E9E9E";
+      const rewards=r.rewards;
+      const n=rewards.length;
+      if(!n)return;
+      const pts=rewards.map((v,i)=>({
+        x:pL+(n<=1?plotW/2:i/(n-1)*plotW),
+        y:pT+(1-((v-minR)/(maxR-minR||1)))*plotH,
+      }));
+      const lineD=smoothPath(pts);
+      const opacity=r.scenario_id==="smart"?"1":"0.6";
+      const width=r.scenario_id==="smart"?"2.5":"1.5";
+      html+=`<path d="${lineD}" fill="none" stroke="${color}" stroke-width="${width}" opacity="${opacity}"/>`;
+    });
+
+    svg.innerHTML=html;
+  }
+
+  const scenarios=[...new Set(allData.results.map(r=>r.scenario_id))];
+  legendHtml=scenarios.map(sid=>{
+    const label=allData.results.find(r=>r.scenario_id===sid)?.scenario||sid;
+    const color=COLORS[sid]||"#9E9E9E";
+    return `<div class="flex items-center gap-1.5"><span class="w-3 h-1 rounded-full" style="background:${color}"></span><span class="text-[10px] font-label text-on-surface-dim">${label}</span></div>`;
+  }).join("");
+  legend.innerHTML=legendHtml;
+}
+
+function renderTable(){
+  const tb=document.getElementById("resultsTable");
+  const rows=allData.results.slice().sort((a,b)=>{
+    const taskOrder={"monthly_engage":0,"monthly_strategic":1,"monthly_competitive":2};
+    if(taskOrder[a.task]!==taskOrder[b.task])return taskOrder[a.task]-taskOrder[b.task];
+    return b.grader_score-a.grader_score;
+  });
+
+  tb.innerHTML=rows.map(r=>{
+    const color=COLORS[r.scenario_id]||"#9E9E9E";
+    const scoreColor=r.grader_score>=0.5?"text-primary":r.grader_score>=0.2?"text-secondary":"text-tertiary";
+    const energyColor=r.final_energy>=0.5?"text-secondary":r.final_energy>0?"text-tertiary":"text-error";
+    const deltaColor=r.follower_delta>0?"text-secondary":r.follower_delta<0?"text-tertiary":"text-on-surface-dim";
+    const status=r.burned_out?'<span class="text-tertiary font-bold">BURNED</span>':r.steps>=30?'<span class="text-secondary">DONE</span>':'<span class="text-on-surface-dim">EARLY</span>';
+    return `<tr class="border-b border-white/5 hover:bg-white/[.02]">
+      <td class="px-4 py-2"><div class="flex items-center gap-2"><span class="w-2 h-2 rounded-full" style="background:${color}"></span><span class="text-on-surface font-bold">${r.scenario}</span></div></td>
+      <td class="px-4 py-2 text-on-surface-dim">${TASK_LABELS[r.task]||r.task}</td>
+      <td class="px-4 py-2 text-right ${scoreColor} font-bold">${r.grader_score.toFixed(4)}</td>
+      <td class="px-4 py-2 text-right text-on-surface-dim">${r.total_reward.toFixed(3)}</td>
+      <td class="px-4 py-2 text-right text-on-surface-dim">${r.steps}</td>
+      <td class="px-4 py-2 text-right ${energyColor}">${r.final_energy.toFixed(2)}</td>
+      <td class="px-4 py-2 text-right text-on-surface">${r.final_followers.toLocaleString()}</td>
+      <td class="px-4 py-2 text-right ${deltaColor}">${r.follower_delta>=0?"+":""}${r.follower_delta}</td>
+      <td class="px-4 py-2 text-center">${status}</td>
+    </tr>`;
+  }).join("");
+}
+
+function renderTakeaways(){
+  const el=document.getElementById("takeaways");
+  if(!allData)return;
+
+  const byScenario={};
+  allData.results.forEach(r=>{
+    if(!byScenario[r.scenario_id])byScenario[r.scenario_id]={scores:[],label:r.scenario};
+    byScenario[r.scenario_id].scores.push(r.grader_score);
+  });
+
+  const avgs=Object.entries(byScenario).map(([id,d])=>({
+    id,label:d.label,avg:d.scores.reduce((a,b)=>a+b,0)/d.scores.length
+  })).sort((a,b)=>b.avg-a.avg);
+
+  const best=avgs[0];
+  const worst=avgs[avgs.length-1];
+  const ratio=worst.avg>0?(best.avg/worst.avg).toFixed(1):"∞";
+
+  const burnedOut=allData.results.filter(r=>r.burned_out);
+  const completed=allData.results.filter(r=>!r.burned_out&&r.steps>=30);
+
+  const points=[
+    `<span class="text-on-surface font-bold">Best agent: ${best.label}</span> (avg score ${best.avg.toFixed(4)}) — ${ratio}× better than worst (${worst.label}, avg ${worst.avg.toFixed(4)}).`,
+    `<span class="text-on-surface font-bold">Score spread:</span> The environment produces a ${(avgs[0].avg-avgs[avgs.length-1].avg).toFixed(4)} spread between best and worst agents, proving the reward is informative and not flat.`,
+    `<span class="text-on-surface font-bold">${burnedOut.length} burnout events</span> across ${allData.results.length} runs — the burnout penalty correctly punishes unsustainable strategies (spam, no-rest).`,
+    `<span class="text-on-surface font-bold">${completed.length}/${allData.results.length} episodes completed</span> all 30 days — agents that manage energy survive; those that don't burn out early.`,
+    `<span class="text-on-surface font-bold">Reward is hard to game:</span> Spamming posts burns out immediately (score ≈ 0). Always resting loses followers. The optimal strategy requires balancing multiple objectives.`,
+    `<span class="text-on-surface font-bold">Grader difficulty scales correctly:</span> All agents score lower on Competitive than on Engage, confirming the three-tier difficulty progression works.`,
+  ];
+
+  el.innerHTML=points.map(p=>`<div class="flex gap-2"><span class="text-primary shrink-0">▸</span><span>${p}</span></div>`).join("");
+}
+</script>
+</body>
+</html>

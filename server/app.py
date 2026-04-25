@@ -41,6 +41,8 @@ except ImportError:
     from server.viraltest_environment import TAG_POOL
 
 _DASHBOARD_HTML = (Path(__file__).parent / "dashboard.html").read_text()
+_TRAINING_HTML_PATH = Path(__file__).parent / "training.html"
+_TRAINING_HTML = _TRAINING_HTML_PATH.read_text() if _TRAINING_HTML_PATH.exists() else "<html><body>Training page not found</body></html>"
 
 app = create_app(
     ViraltestEnvironment,
@@ -335,6 +337,64 @@ async def dashboard_simulate(body: Dict[str, Any] = Body(...)):
     })
 
     return result
+
+
+_TRAINING_TASKS = ["monthly_engage", "monthly_strategic", "monthly_competitive"]
+
+@app.get("/dashboard/training-evidence")
+async def training_evidence():
+    """Run all baseline scenarios across all tasks and return structured comparison data."""
+    global _SIM_RNG
+
+    results = []
+    for scenario_id, (label, desc, plan_fn) in SCENARIOS.items():
+        for task in _TRAINING_TASKS:
+            _SIM_RNG = stdlib_random.Random(99)
+            env = ViraltestEnvironment()
+            obs = env.reset(task=task, seed=42)
+            obs_dict = obs.model_dump()
+
+            rewards: List[float] = []
+            energies: List[float] = [obs.creator_energy]
+
+            for day in range(1, 31):
+                action = plan_fn(obs_dict, day)
+                obs = env.step(action)
+                obs_dict = obs.model_dump()
+                r = obs.reward if obs.reward is not None else 0.0
+                rewards.append(r)
+                energies.append(obs.creator_energy)
+                if obs.done:
+                    break
+
+            score = (obs.metadata or {}).get("grader_score", 0.0)
+            results.append({
+                "scenario_id": scenario_id,
+                "scenario": label,
+                "description": desc,
+                "task": task,
+                "grader_score": round(score, 4),
+                "total_reward": round(sum(rewards), 4),
+                "avg_reward": round(sum(rewards) / len(rewards), 4) if rewards else 0,
+                "steps": len(rewards),
+                "final_energy": round(obs.creator_energy, 3),
+                "min_energy": round(min(energies), 3),
+                "final_followers": obs.follower_count,
+                "follower_delta": obs.follower_count - 10000,
+                "burned_out": obs.creator_energy <= 0,
+                "rewards": [round(r, 4) for r in rewards],
+                "energies": [round(e, 3) for e in energies],
+            })
+
+    return JSONResponse(
+        content={"results": results, "tasks": _TRAINING_TASKS, "scenarios": list(SCENARIOS.keys())},
+        headers={"Cache-Control": "no-store, max-age=0, must-revalidate"},
+    )
+
+
+@app.get("/dashboard/training", response_class=HTMLResponse)
+async def training_dashboard():
+    return _TRAINING_HTML
 
 
 def main(host: str = "0.0.0.0", port: int = 8000):

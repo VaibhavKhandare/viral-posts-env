@@ -14,7 +14,7 @@ from server.viraltest_environment import (
     ViraltestObservation,
 )
 
-TASKS = ["weekly_engage", "weekly_strategic", "weekly_competitive"]
+TASKS = ["monthly_engage", "monthly_strategic", "monthly_competitive"]
 SEED = 42
 
 _CONTENT_TYPES = ["reel", "carousel", "story", "text_post"]
@@ -38,7 +38,7 @@ def run_episode(
     min_energy = 1.0
     burned_out = False
 
-    for day in range(1, 8):
+    for day in range(1, 31):
         action = plan_fn(obs_dict, day)
         obs = env.step(action)
         obs_dict = obs.model_dump()
@@ -205,7 +205,7 @@ if __name__ == "__main__":
             env = ViraltestEnvironment()
             obs = env.reset(task=task, seed=SEED)
             obs_dict = obs.model_dump()
-            for day in range(1, 8):
+            for day in range(1, 31):
                 action = plan_fn(obs_dict, day)
                 obs = env.step(action)
                 obs_dict = obs.model_dump()
