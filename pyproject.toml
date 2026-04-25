@@ -26,6 +26,16 @@ dev = [
     "pytest>=8.0.0",
     "pytest-cov>=4.0.0",
 ]
+# Colab / CUDA: 4-bit QLoRA. On Mac without CUDA, notebook falls back to fp16 (MPS) / fp32 (CPU).
+training = [
+    "bitsandbytes>=0.46.1",
+    "transformers>=4.45.0",
+    "accelerate>=1.0.0",
+    "peft>=0.10.0",
+    "trl>=0.8.0",
+    "datasets>=2.0.0",
+    "torch",
+]
 
 [project.scripts]
 # Server entry point - enables running via: uv run --project . server
