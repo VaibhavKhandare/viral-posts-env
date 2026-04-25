@@ -92,7 +92,7 @@ _HEATMAP_GRID: Dict[int, List[float]] = {
 # Constants (research-backed, Tier 1-3 sources)
 # ---------------------------------------------------------------------------
 
-TASK_HORIZON = 7  # 7 daily steps (weekly cycle)
+TASK_HORIZON = 30  # 30 daily steps (monthly cycle)
 
 # Socialinsider 2026 (31M posts)
 CONTENT_ENERGY_COST = {
