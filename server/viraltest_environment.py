@@ -565,7 +565,10 @@ class ViraltestEnvironment(Environment):
             raw_actions = tool.arguments.get("scheduled_actions", [])
             predicted_total = 0.0
             for sa_dict in raw_actions[:5]:
-                sa = ScheduledAction(**sa_dict) if isinstance(sa_dict, dict) else sa_dict
+                try:
+                    sa = ScheduledAction(**sa_dict) if isinstance(sa_dict, dict) else sa_dict
+                except Exception:
+                    continue
                 if sa.action_type == "post" and sa.content_type:
                     base = BASE_ENGAGEMENT.get(sa.content_type, 0.3)
                     reach = REACH_MULT.get(sa.content_type, 1.0)
