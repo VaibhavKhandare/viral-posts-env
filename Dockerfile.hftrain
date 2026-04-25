@@ -18,6 +18,8 @@ WORKDIR /workspace
 COPY . /workspace/viral-posts-env
 WORKDIR /workspace/viral-posts-env
 
+RUN chmod +x training/hf_space_entrypoint.sh
+
 RUN pip install --no-cache-dir \
     "transformers>=4.45.0" \
     "accelerate>=1.0.0" \
@@ -31,5 +33,6 @@ RUN pip install --no-cache-dir \
     httpx \
     "openenv-core[core]>=0.2.0"
 
-# sleep keeps the Space alive so you can read logs after training finishes
-CMD ["sh", "-c", "python training/run_hf_cloud.py && exec sleep infinity"]
+# Stub HTTP on 7860 keeps HF Docker Space "healthy"; training runs after (see script).
+EXPOSE 7860
+CMD ["training/hf_space_entrypoint.sh"]

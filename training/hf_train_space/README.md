@@ -4,6 +4,7 @@ emoji: 🏋️
 colorFrom: blue
 colorTo: green
 sdk: docker
+app_port: 7860
 pinned: false
 # Pick GPU to match MODEL_NAME (set in Space Variables):
 #   t4-small  → Qwen/Qwen2.5-1.5B-Instruct (default in script)
@@ -28,6 +29,8 @@ All **model downloads happen on this machine** (HF Hub cache inside the Space), 
    - `NUM_ROUNDS`, `EPISODES_PER_ROUND`
 
 Rebuild the Space; logs will show baselines, training rounds, and final grader scores. Artifacts: `training/hf_cloud_run_summary.json`, `plots/`, `checkpoints/` in the container (ephemeral unless you push to Hub).
+
+**If the Space shows “Launch timed out / workload was not healthy after 30 min”:** Docker Spaces expect something to listen on **`app_port` (7860)** while your job runs. This repo’s `training/hf_space_entrypoint.sh` starts a tiny status page on 7860, then runs `run_hf_cloud.py`, so the platform marks the Space healthy before model download and training finish.
 
 ## Monorepo (this full project on GitHub)
 

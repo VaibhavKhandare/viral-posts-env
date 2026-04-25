@@ -22,6 +22,8 @@ RUN git clone --branch "${GIT_BRANCH}" --depth 1 "${GIT_REPO}" viral-posts-env
 
 WORKDIR /workspace/viral-posts-env
 
+RUN chmod +x training/hf_space_entrypoint.sh
+
 RUN pip install --no-cache-dir \
     "transformers>=4.45.0" \
     "accelerate>=1.0.0" \
@@ -36,4 +38,5 @@ RUN pip install --no-cache-dir \
     "openenv-core[core]>=0.2.2"
 
 # HF_TOKEN / MODEL_NAME / HF_OUTPUT_REPO come from Space secrets & variables at runtime
-CMD ["sh", "-c", "python training/run_hf_cloud.py && exec sleep infinity"]
+EXPOSE 7860
+CMD ["training/hf_space_entrypoint.sh"]
