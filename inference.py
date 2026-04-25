@@ -35,7 +35,7 @@ _REQUESTED_MAX = int(os.getenv("MAX_STEPS", str(TASK_HORIZON)))
 MAX_STEPS = _REQUESTED_MAX if _ALLOW_SHORT else max(_REQUESTED_MAX, TASK_HORIZON)
 TEMPERATURE = 0.7
 MAX_TOKENS = 768
-SUCCESS_SCORE_THRESHOLD = 0.1
+SUCCESS_SCORE_THRESHOLD = 0.50
 
 ALL_TOPICS: List[str] = [
     topic for topics in TOPIC_CATEGORIES.values() for topic in topics
@@ -111,11 +111,24 @@ def log_step(step: int, action: str, reward: float, done: bool, error: Optional[
     )
 
 
-def log_end(success: bool, steps: int, score: float, rewards: List[float]) -> None:
+def log_end(
+    success: bool, steps: int, score: float, rewards: List[float],
+    headline: Optional[Any] = None,
+) -> None:
     rewards_str = ",".join(f"{r:.2f}" for r in rewards)
+    head_str = ""
+    if headline is not None:
+        retention = headline.retention_under_shift
+        retention_str = f"{retention:.2f}" if retention is not None else "n/a"
+        head_str = (
+            f" vs_baseline_pct={headline.vs_baseline_pct:+.2%} "
+            f"score_per_tool={headline.score_per_tool_call:.3f} "
+            f"score_per_1k_chars={headline.score_per_1k_chars:.3f} "
+            f"retention_under_shift={retention_str}"
+        )
     print(
         f"[END] success={str(success).lower()} steps={steps} "
-        f"score={score:.2f} rewards={rewards_str}",
+        f"score={score:.2f} rewards={rewards_str}{head_str}",
         flush=True,
     )
 
@@ -140,6 +153,14 @@ def format_observation(obs: Any) -> str:
     if coach:
         coach_str = f"Coach: delta={coach.get('delta', 0):.3f}, suggestion={coach.get('suggestion', '')}\n"
 
+    judge = getattr(obs, "judge_report", None)
+    judge_str = ""
+    if judge:
+        judge_str = (
+            f"Judge: compliance={judge.policy_compliance:.2f} risk={judge.sustainability_risk:.2f} "
+            f"strategy={judge.strategic_quality:.2f} | {judge.explanation}\n"
+        )
+
     signals = getattr(obs, "engagement_signals", None)
     signals_str = ""
     if signals:
@@ -153,7 +174,7 @@ Day: {day_name} (day_of_week={obs.day_of_week}) | days_elapsed={obs.days_elapsed
 Energy: {obs.creator_energy:.2f} | Burnout risk: {burnout:.2f} | Followers: {obs.follower_count}
 Engagement rate: {obs.engagement_rate:.3f} | Content queue: {obs.content_queue_size}
 API budget remaining: {budget}
-{signals_str}{coach_str}Tool results from last step:
+{signals_str}{coach_str}{judge_str}Tool results from last step:
 {tool_results_str if tool_results_str else '  (none)\n'}Your notes from last step: {notes_echo}
 Plan your tool calls and actions for today:""")
 
@@ -282,6 +303,7 @@ async def run_task(client: OpenAI, task: str) -> None:
     score = 0.0
     success = False
     env: Optional[ViraltestEnv] = None
+    headline: Optional[Any] = None
 
     log_start(task=task, env=BENCHMARK, model=MODEL_NAME)
 
@@ -336,6 +358,7 @@ async def run_task(client: OpenAI, task: str) -> None:
                 if score == 0:
                     meta = getattr(result.observation, "metadata", {}) or {}
                     score = float(meta.get("grader_score", 0.0))
+                headline = getattr(result.observation, "headline_metrics", None)
                 break
 
         success = score >= SUCCESS_SCORE_THRESHOLD
@@ -346,7 +369,7 @@ async def run_task(client: OpenAI, task: str) -> None:
                 await env.close()
             except Exception as e:
                 print(f"[DEBUG] env.close() error: {e}", flush=True)
-        log_end(success=success, steps=steps_taken, score=score, rewards=rewards)
+        log_end(success=success, steps=steps_taken, score=score, rewards=rewards, headline=headline)
 
 
 async def main() -> None:

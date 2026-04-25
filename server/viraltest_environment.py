@@ -27,6 +27,8 @@ try:
     from ..models import (
         CollabProposal,
         EngagementSignals,
+        HeadlineMetrics,
+        JudgeReport,
         ReplyAction,
         ScheduledAction,
         ToolCall,
@@ -38,6 +40,8 @@ except ImportError:
     from models import (
         CollabProposal,
         EngagementSignals,
+        HeadlineMetrics,
+        JudgeReport,
         ReplyAction,
         ScheduledAction,
         ToolCall,
@@ -156,10 +160,40 @@ WEEKLY_FATIGUE_MULT = 0.75
 
 SATURATION_PENALTY_K = 0.25
 TREND_DEFAULT_HALFLIFE_HOURS = 60
-COLLAB_MAX_PER_MONTH = 2
+# Collab reward shaping (Later 2023 reach study, HypeAuditor 2024 niche affinity, Rival IQ 2025 overlap patterns,
+# Cen et al. 2024 disengagement model for diminishing returns instead of a hard cap).
+COLLAB_REACH_K = 0.60      # cross-audience exposure: capped reach uplift when overlap is 0
+COLLAB_AFFINITY_K = 0.30   # same-audience affinity: per-impression engagement uplift when overlap is 1
+COLLAB_GROWTH_K = 1.50     # cross-pollination follower spillover, scales (1 - overlap)
+COLLAB_PARTNER_REPEAT_PENALTY = 0.7  # discount on multipliers when partner reused this brand
+COLLAB_FATIGUE_K = 0.3     # per-collab diminishing-returns factor: 1/(1+K*prior_collabs_this_episode)
+
 REPLY_WINDOW_MINUTES = 90
 REPLY_REACH_BONUS = 1.4
 API_BUDGET_INITIAL = 100
+
+# Heuristic baselines for headline metric `vs_baseline_pct`.
+# Data-driven: loaded from `plots/training_summary.json["smart_heuristic"]` recorded by
+# `training/run_training_evidence.py`. Falls back to conservative calibration constants
+# if the file is missing (audit trail: see RESEARCH.md for the rule-based policy spec).
+def _load_heuristic_baselines() -> Dict[str, float]:
+    summary = Path(__file__).parent.parent / "plots" / "training_summary.json"
+    try:
+        data = json.loads(summary.read_text())
+        empirical = data.get("smart_heuristic") or {}
+        return {k: float(v) for k, v in empirical.items() if k in VALID_TASKS}
+    except Exception:
+        return {}
+
+HEURISTIC_BASELINE_SCORES: Dict[str, float] = _load_heuristic_baselines() or {
+    "monthly_engage": 0.43,
+    "monthly_strategic": 0.77,
+    "monthly_competitive": 0.81,
+}
+
+# Cross-episode store for distribution-shift retention. Keyed by episode_chain_id, stores
+# {"baseline": score, "shifted": score} so the second run can compute retention_under_shift.
+_SHIFT_HISTORY: Dict[str, Dict[str, float]] = {}
 
 # Tool costs
 TOOL_COSTS = {
@@ -231,7 +265,7 @@ TOOL_CATALOG = {
         "parameters": {},
     },
     "propose_collab": {
-        "description": "Propose a collaboration post with a competitor. Splits engagement by audience overlap. Max 2 per month.",
+        "description": "Propose a collab post with a competitor at a specific hour. The post you schedule at that hour will be co-authored with the partner.",
         "parameters": {
             "partner_id": {"type": "string"},
             "content_type": {"type": "string", "enum": ["reel", "story", "carousel", "text_post"]},
@@ -280,10 +314,15 @@ class ViraltestEnvironment(Environment):
         self._api_budget = API_BUDGET_INITIAL
         self._collabs_this_month = 0
         self._collab_history: List[str] = []
+        self._active_collab: Optional[CollabProposal] = None
         self._low_energy_days = 0
         self._total_posts_this_week = 0
         self._week_start_day = 0
         self._daily_signals = EngagementSignals()
+        self._total_tool_calls = 0
+        self._total_action_chars = 0
+        self._shift_label: Optional[str] = None
+        self._chain_id: Optional[str] = None
 
         self._trending_topics = self._pick_trending_topics()
         self._trending_tags = self._pick_trending_tags()
@@ -468,6 +507,32 @@ class ViraltestEnvironment(Environment):
 
         return daily_fatigue * weekly_mult
 
+    # ----- collab multipliers (overlap-driven) -----
+
+    def _user_partner_overlap(self, partner_id: str) -> Optional[float]:
+        ids = _OVERLAP_DATA.get("archetype_ids", [])
+        if "user_creator" not in ids or partner_id not in ids:
+            return None
+        u = ids.index("user_creator")
+        p = ids.index(partner_id)
+        return _OVERLAP_DATA["matrix"][u][p]
+
+    def _collab_multipliers(self, partner_id: str) -> Tuple[float, float]:
+        """Returns (engagement_multiplier, follower_growth_multiplier)."""
+        o = self._user_partner_overlap(partner_id)
+        if o is None:
+            return 1.0, 1.0
+        reach = 1.0 + (1.0 - o) * COLLAB_REACH_K
+        affinity = 1.0 + o * COLLAB_AFFINITY_K
+        growth = 1.0 + (1.0 - o) * COLLAB_GROWTH_K
+        eng_boost = reach * affinity
+        if partner_id in self._collab_history[:-1]:
+            eng_boost *= COLLAB_PARTNER_REPEAT_PENALTY
+            growth *= COLLAB_PARTNER_REPEAT_PENALTY
+        prior = max(0, self._collabs_this_month - 1)
+        fatigue = 1.0 / (1.0 + COLLAB_FATIGUE_K * prior)
+        return eng_boost * fatigue, growth * fatigue
+
     # ----- engagement signals (Mosseri-aligned) -----
 
     def _compute_engagement_signals(
@@ -556,19 +621,17 @@ class ViraltestEnvironment(Environment):
         elif tool.name == "query_creator_pool":
             pool = []
             for comp in self._competitors:
-                idx = _OVERLAP_DATA["archetype_ids"].index(comp.id) if comp.id in _OVERLAP_DATA["archetype_ids"] else -1
-                overlap = 0.15
-                if idx >= 0 and idx < len(_OVERLAP_DATA["matrix"]):
-                    overlap = max(_OVERLAP_DATA["matrix"][idx])
-                pool.append({"id": comp.id, "name": comp.name, "niche": comp.niche, "max_audience_overlap": round(overlap, 2)})
+                overlap = self._user_partner_overlap(comp.id)
+                pool.append({
+                    "id": comp.id, "name": comp.name, "niche": comp.niche,
+                    "audience_overlap": round(overlap, 2) if overlap is not None else None,
+                })
             return ToolResult(name=tool.name, data=pool, budget_remaining=self._api_budget)
 
         elif tool.name == "propose_collab":
-            if self._collabs_this_month >= COLLAB_MAX_PER_MONTH:
-                return ToolResult(name=tool.name, success=False, error="collab_limit_reached", budget_remaining=self._api_budget)
             partner_id = tool.arguments.get("partner_id", "")
-            if partner_id in self._collab_history[-3:]:
-                return ToolResult(name=tool.name, success=False, error="recently_collaborated", budget_remaining=self._api_budget)
+            if partner_id not in [c.id for c in self._competitors]:
+                return ToolResult(name=tool.name, success=False, error=f"unknown partner: {partner_id}", budget_remaining=self._api_budget)
             return ToolResult(name=tool.name, data={"status": "proposal_accepted", "partner_id": partner_id}, budget_remaining=self._api_budget)
 
         return ToolResult(name=tool.name, success=False, error=f"unknown tool: {tool.name}", budget_remaining=self._api_budget)
@@ -576,6 +639,9 @@ class ViraltestEnvironment(Environment):
     # ----- counterfactual coach -----
 
     def _compute_coach_feedback(self, agent_engagement: float) -> Dict[str, Any]:
+        # World-modeling discipline: emit a SCALAR delta only (no optimal_hours leak).
+        # Agents must use `query_trends` / `predict_engagement` to discover *which* hours
+        # are optimal — coach only signals "you're above/below the heatmap optimum today".
         dow = self._day % 7
         row = _HEATMAP_GRID.get(dow, [1.0] * 24)
         best_hours = sorted(range(24), key=lambda h: row[h] if h < len(row) else 0, reverse=True)[:2]
@@ -584,12 +650,97 @@ class ViraltestEnvironment(Environment):
         optimal_eng = sum(row[h] * best_base * best_reach for h in best_hours)
         delta = agent_engagement - optimal_eng
         return {
-            "optimal_hours": best_hours,
-            "optimal_engagement_estimate": round(optimal_eng, 4),
-            "your_engagement": round(agent_engagement, 4),
             "delta": round(delta, 4),
-            "suggestion": "You're outperforming the heatmap baseline!" if delta >= 0 else "Consider posting at peak hours for better reach.",
+            "suggestion": (
+                "Above heatmap optimum today."
+                if delta >= 0
+                else "Below heatmap optimum — try `query_trends` / `predict_engagement` to find peak hours."
+            ),
         }
+
+    # ----- regulator / judge mode (deterministic, explainable) -----
+
+    def _compute_judge_report(
+        self,
+        action: ViraltestAction,
+        daily_engagement: float,
+        daily_posts: int,
+        energy_min: float,
+        errors: List[str],
+    ) -> JudgeReport:
+        violations: List[str] = []
+
+        pc = 1.0
+        if daily_posts > 5:
+            violations.append(f"posts_today={daily_posts} exceeds tier-4 fatigue cliff (Buffer 2.1M)")
+            pc -= 0.30
+        elif daily_posts > 2:
+            violations.append(f"posts_today={daily_posts} enters fatigue tier (>2/day)")
+            pc -= 0.10
+        if self._total_posts_this_week > WEEKLY_FATIGUE_THRESHOLD:
+            violations.append(f"weekly posts={self._total_posts_this_week} > {WEEKLY_FATIGUE_THRESHOLD} (Buffer 2.1M cap)")
+            pc -= 0.20
+        if self._collabs_this_month >= 4:
+            violations.append(f"collab cadence={self._collabs_this_month} net-negative beyond 3 (Cen 2024)")
+            pc -= 0.20
+        if errors:
+            violations.append(f"plan_errors={len(errors)}")
+            pc -= 0.05 * len(errors)
+        if self._hours_since_sleep > 22:
+            violations.append(f"sleep_debt: {self._hours_since_sleep}h awake (Van Dongen 2003)")
+            pc -= 0.10
+
+        burnout_pressure = (1.0 - energy_min) * 0.4 + self._sleep_debt * 0.3 + (self._low_energy_days / 5.0) * 0.3
+        sustainability_risk = max(0.0, min(1.0, burnout_pressure))
+
+        intents_used = {sa.intent for sa in action.scheduled_actions if sa.intent}
+        formats_used = {sa.content_type for sa in action.scheduled_actions if sa.action_type == "post" and sa.content_type}
+        eng_per_post = daily_engagement / max(1, daily_posts)
+        sq = (
+            0.40 * min(1.0, eng_per_post / 1.2)
+            + 0.30 * min(1.0, len(intents_used) / 2.0)
+            + 0.30 * min(1.0, len(formats_used) / 2.0)
+        )
+
+        explanation = (
+            f"compliance={max(0.0, pc):.2f} risk={sustainability_risk:.2f} strategy={sq:.2f} | "
+            + (("violations: " + "; ".join(violations)) if violations else "no policy violations")
+        )
+
+        return JudgeReport(
+            policy_compliance=max(0.0, min(1.0, pc)),
+            sustainability_risk=sustainability_risk,
+            strategic_quality=max(0.0, min(1.0, sq)),
+            explanation=explanation,
+            violations=violations,
+        )
+
+    def _compute_headline_metrics(self, grader_score: float) -> HeadlineMetrics:
+        baseline = HEURISTIC_BASELINE_SCORES.get(self._task, 0.30)
+        vs_pct = (grader_score - baseline) / baseline if baseline > 0 else 0.0
+        spt = grader_score / max(1, self._total_tool_calls)
+        sp1k = grader_score / max(1.0, self._total_action_chars / 1000.0)
+
+        retention: Optional[float] = None
+        if self._chain_id:
+            entry = _SHIFT_HISTORY.setdefault(self._chain_id, {})
+            label = self._shift_label or "baseline"
+            entry[label] = grader_score
+            base = entry.get("baseline")
+            shifted = entry.get("shifted")
+            if base is not None and shifted is not None and base > 0:
+                retention = shifted / base
+
+        return HeadlineMetrics(
+            vs_baseline_pct=round(vs_pct, 4),
+            score_per_tool_call=round(spt, 4),
+            score_per_1k_chars=round(sp1k, 4),
+            retention_under_shift=round(retention, 4) if retention is not None else None,
+            heuristic_baseline_score=round(baseline, 4),
+            agent_score=round(grader_score, 4),
+            total_tool_calls=self._total_tool_calls,
+            total_action_chars=self._total_action_chars,
+        )
 
     # ----- core API -----
 
@@ -601,6 +752,9 @@ class ViraltestEnvironment(Environment):
         self._rng = random.Random(seed if seed is not None else 42)
         self._state = State(episode_id=episode_id or str(uuid4()), step_count=0)
         self._init_state()
+
+        self._shift_label = kwargs.get("shift_label")
+        self._chain_id = kwargs.get("episode_chain_id")
 
         chain_id = kwargs.get("episode_chain_id")
         if chain_id and chain_id in _BRAND_STORE:
@@ -623,16 +777,24 @@ class ViraltestEnvironment(Environment):
         if action.notes:
             self._agent_notes = action.notes
 
-        # Process tool calls first
+        try:
+            self._total_action_chars += len(action.model_dump_json())
+        except Exception:
+            pass
+
         tool_results: List[ToolResult] = []
         for tc in action.tool_calls:
             result = self._dispatch_tool(tc)
             tool_results.append(result)
+            if result.success:
+                self._total_tool_calls += 1
 
-        # Process collab proposal
-        if action.collab and self._collabs_this_month < COLLAB_MAX_PER_MONTH:
+        # Process collab proposal (no hard cap; diminishing returns enforced via _collab_multipliers)
+        self._active_collab = None
+        if action.collab:
             self._collabs_this_month += 1
             self._collab_history.append(action.collab.partner_id)
+            self._active_collab = action.collab
 
         # Validate scheduled actions
         schedule: Dict[int, ScheduledAction] = {}
@@ -718,10 +880,12 @@ class ViraltestEnvironment(Environment):
 
         done = self._state.step_count >= TASK_HORIZON or self._energy <= 0.0
         coach = self._compute_coach_feedback(daily_engagement)
+        judge = self._compute_judge_report(action, daily_engagement, daily_posts, energy_min, errors)
 
         if done:
             self._episode_done = True
             grader_score = self._run_grader()
+            headline = self._compute_headline_metrics(grader_score)
 
             chain_id = kwargs.get("episode_chain_id")
             if chain_id:
@@ -738,7 +902,7 @@ class ViraltestEnvironment(Environment):
                 grader_score=grader_score, daily_total_engagement=daily_engagement,
                 daily_posts_made=daily_posts, daily_energy_min=energy_min,
                 tool_results=tool_results, engagement_signals=daily_signals,
-                coach_feedback=coach,
+                coach_feedback=coach, judge_report=judge, headline_metrics=headline,
             )
             return self._final_observation
 
@@ -747,12 +911,14 @@ class ViraltestEnvironment(Environment):
             daily_total_engagement=daily_engagement,
             daily_posts_made=daily_posts, daily_energy_min=energy_min,
             tool_results=tool_results, engagement_signals=daily_signals,
-            coach_feedback=coach,
+            coach_feedback=coach, judge_report=judge,
         )
 
     def _process_hour_action(self, sa: ScheduledAction) -> Tuple[float, float, Optional[EngagementSignals]]:
         engagement = 0.0
         signals = None
+
+        collab_growth_mult = 1.0
 
         if sa.action_type == "post":
             cost = CONTENT_ENERGY_COST.get(sa.content_type, 0.1)
@@ -790,6 +956,12 @@ class ViraltestEnvironment(Environment):
                     * trending_bonus * comp_diff * fatigue * algo_mult
                     * niche_mult * saturation_factor
                 )
+
+                if self._active_collab is not None and self._active_collab.hour == sa.hour:
+                    eng_m, growth_m = self._collab_multipliers(self._active_collab.partner_id)
+                    engagement *= eng_m
+                    collab_growth_mult = growth_m
+
                 engagement = min(engagement, 5.0)
 
                 signals = self._compute_engagement_signals(sa.content_type, engagement, sa.intent)
@@ -819,7 +991,7 @@ class ViraltestEnvironment(Environment):
             self._time_since_last_post = 0
 
             if engagement > 0:
-                self._followers += int(engagement * 100)
+                self._followers += int(engagement * 100 * collab_growth_mult)
 
         elif sa.action_type == "create_content":
             self._energy = max(0.0, self._energy - CREATE_CONTENT_COST)
@@ -955,6 +1127,8 @@ class ViraltestEnvironment(Environment):
         tool_results: Optional[List[ToolResult]] = None,
         engagement_signals: Optional[EngagementSignals] = None,
         coach_feedback: Optional[Dict[str, Any]] = None,
+        judge_report: Optional[JudgeReport] = None,
+        headline_metrics: Optional[HeadlineMetrics] = None,
     ) -> ViraltestObservation:
         recent_eng = self._engagement_history[-10:] if self._engagement_history else []
         eng_rate = sum(recent_eng) / len(recent_eng) if recent_eng else 0.0
@@ -984,6 +1158,8 @@ class ViraltestEnvironment(Environment):
             daily_energy_min=round(daily_energy_min, 3),
             engagement_signals=engagement_signals,
             coach_feedback=coach_feedback,
+            judge_report=judge_report,
+            headline_metrics=headline_metrics,
             tool_results=tool_results or [],
             agent_notes=self._agent_notes,
             api_budget_remaining=self._api_budget,
@@ -1006,35 +1182,33 @@ class ViraltestEnvironment(Environment):
         return 0.0
 
     def _theoretical_max_engagement(self) -> float:
+        # Buffer 2.1M (RESEARCH.md): 3–5 posts/week doubles follower growth vs 1–2,
+        # diminishing returns above 5/week, 20–35% engagement drop per post above 7/week.
+        # Cap at 5 posts/week × 4 weeks = 20 posts/month (sweet-spot, no fatigue penalty).
         best_base = max(BASE_ENGAGEMENT.values())
         best_reach = max(REACH_MULT.values())
         best_niche = max(_NICHE_MULTIPLIERS.values()) if _NICHE_MULTIPLIERS else 1.0
 
-        active_days = 26
-        rest_days = TASK_HORIZON - active_days
-        posts_per_active_day = 2
+        posts_per_week = 5
+        weeks_in_horizon = TASK_HORIZON / 7.0
+        total_posts = int(round(posts_per_week * weeks_in_horizon))
 
         avg_heatmap_peak = 1.0
         if _HEATMAP_GRID:
-            day_peaks = []
-            for dow, row in _HEATMAP_GRID.items():
-                top2 = sorted(row, reverse=True)[:posts_per_active_day]
-                day_peaks.append(sum(top2) / len(top2) if top2 else 1.0)
+            day_peaks = [
+                max(row) if row else 1.0
+                for row in _HEATMAP_GRID.values()
+            ]
             avg_heatmap_peak = sum(day_peaks) / len(day_peaks) if day_peaks else 1.0
 
+        # Trending + tag uplifts: tier-1 industry data shows ~1.2-1.3x for trending topics
+        # and ~1.05-1.15x for high-performance tags. Mid-range used to avoid headroom inflation.
         trending_bonus = 1.25
         tag_boost = 1.1
 
-        total_posts = active_days * posts_per_active_day
-
-        weekly_fatigue = 1.0
-        posts_per_week = total_posts / (TASK_HORIZON / 7.0)
-        if posts_per_week >= WEEKLY_FATIGUE_THRESHOLD:
-            weekly_fatigue = WEEKLY_FATIGUE_MULT
-
         per_post = (
             best_base * best_reach * best_niche
-            * avg_heatmap_peak * trending_bonus * tag_boost * weekly_fatigue
+            * avg_heatmap_peak * trending_bonus * tag_boost
         )
         return per_post * total_posts
 

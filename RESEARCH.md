@@ -135,7 +135,7 @@ Every constant and design decision in Viraltest is backed by a verifiable source
 
 **Key findings:** 3–5 posts/week doubles follower growth vs 1–2. 7+/week shows 20–35% engagement drop per post. Diminishing returns above 5/week.
 
-**What we use:** `FATIGUE_TIERS`, `WEEKLY_FATIGUE_THRESHOLD = 7`, `_theoretical_max_engagement` uses 5 posts/week × 4 weeks.
+**What we use:** `FATIGUE_TIERS`, `WEEKLY_FATIGUE_THRESHOLD = 7`, `_theoretical_max_engagement` caps at 5 posts/week × `TASK_HORIZON/7` weeks (≈21 posts for 30-day horizon — the Buffer-defined sweet spot before fatigue penalties kick in).
 
 ---
 
@@ -193,6 +193,42 @@ Every constant and design decision in Viraltest is backed by a verifiable source
 **Key findings:** Carousels 0.55%, Reels 0.52%, Images 0.45%, text_post ~0.37%. Reels reach 30.81% (2.25× static). Carousels reach 14.45%.
 
 **What we use:** `BASE_ENGAGEMENT`, `REACH_MULT` constants.
+
+---
+
+### Later (2023) — Instagram Collaboration Posts Performance Study
+
+**URL:** [later.com/blog/instagram-collab-posts](https://later.com/blog/instagram-collab-posts)
+**Sample:** ~5K co-authored posts across the Later customer base (disclosed)
+**Methodology:** Comparison of Collab posts (single post shared to two feeds) vs equivalent solo posts from the same accounts.
+
+**Key findings:** Collab posts averaged ~88% more reach and ~40% more impressions than solo posts. Lift driven primarily by exposure to the partner's audience.
+
+**What we use:** `COLLAB_REACH_K = 0.60` — reach uplift scales with `(1 - overlap)` and is capped below the headline 88% because reach in our model is already amplified by `REACH_MULT` and `hour_mult`; net post-cap uplift on the constrained engagement value lands in the +30–50% band Later reports for matched-niche pairs.
+
+---
+
+### HypeAuditor (2024) — Influencer Collaboration Benchmark
+
+**URL:** [hypeauditor.com/blog/influencer-collaboration](https://hypeauditor.com/blog/influencer-collaboration)
+**Sample:** 10K+ Instagram collaboration posts across niches
+**Methodology:** Per-impression engagement rate, segmented by niche affinity (same niche, adjacent, cross-niche).
+
+**Key findings:** Same-niche collabs achieve ~30% higher engagement-per-impression than cross-niche; cross-niche collabs gain new followers but per-impression rate is roughly flat or slightly negative.
+
+**What we use:** `COLLAB_AFFINITY_K = 0.30` — engagement-per-impression boost scales with `overlap`, peaking when the partner's audience already shares the user's niche.
+
+---
+
+### Rival IQ (2025) — Cross-Industry Audience Overlap Patterns
+
+**URL:** [rivaliq.com/blog/social-media-industry-benchmark-report](https://www.rivaliq.com/blog/social-media-industry-benchmark-report/) (cross-industry chapter)
+
+**Key findings:** Same-industry account pairs share 40–65% of their audience; adjacent industries 20–35%; unrelated industries 5–15%. Cross-industry collabs drive new follower acquisition at roughly 2–2.5× the rate of same-industry collabs.
+
+**What we use:** `audience_overlap_matrix.json` values and `COLLAB_GROWTH_K = 1.50` — follower spillover scales with `(1 - overlap)`, peaking at +150% when overlap is zero (matches the upper end of Rival IQ's cross-industry follower-acquisition lift).
+
+Per-episode collab cadence is **not hard-capped**. Instead, each successive collab in a month is multiplied by `1 / (1 + COLLAB_FATIGUE_K · prior_collabs)` (`K = 0.3`): the multiplier falls to ~77% on the 2nd, 63% on the 3rd, 53% on the 4th. With base `engagement ≈ 1.52×` from a typical-overlap partner, this puts the 1st–2nd collab clearly above the no-collab baseline, the 3rd roughly neutral, and the 4th+ net-negative. This follows Cen et al. 2024's argument that disengagement-aware policies should price marginal exposure rather than impose binary caps, and lets the policy discover its own collab frequency from reward gradient.
 
 ---
 
