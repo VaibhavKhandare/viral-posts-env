@@ -7,10 +7,24 @@
 """Viraltest Environment."""
 
 from .client import ViraltestEnv
-from .models import ScheduledAction, ViraltestAction, ViraltestObservation
+from .models import (
+    CollabProposal,
+    EngagementSignals,
+    ReplyAction,
+    ScheduledAction,
+    ToolCall,
+    ToolResult,
+    ViraltestAction,
+    ViraltestObservation,
+)
 
 __all__ = [
+    "CollabProposal",
+    "EngagementSignals",
+    "ReplyAction",
     "ScheduledAction",
+    "ToolCall",
+    "ToolResult",
     "ViraltestAction",
     "ViraltestObservation",
     "ViraltestEnv",

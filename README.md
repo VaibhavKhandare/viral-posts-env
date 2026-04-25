@@ -11,262 +11,177 @@ tags:
   - openenv
 ---
 
-# Viraltest — RL-Based Creator Optimization Environment
+# Viraltest v2 — World-Modeling RL Environment for Instagram Strategy
 
-An [OpenEnv](https://github.com/meta-pytorch/OpenEnv) environment that simulates a social media creator’s weekly posting lifecycle. An AI agent learns **when to post**, **what format**, **which tags**, and **how to differentiate from competitors** — maximizing engagement while managing burnout and sleep.
+> **Theme #3.1 — Professional Tasks (World Modeling)**
+> An [OpenEnv](https://github.com/meta-pytorch/OpenEnv) environment where an LLM agent manages an Instagram creator account over 30 simulated days, discovering the world through tools rather than being told the rules.
 
-## Submission requirements — how this repo maps
+## What this teaches the LLM
 
-Use this table to confirm Phase 1 (automated) gates before you submit.
-
-| Requirement | Status in this repo | Where to verify |
-|---------------|---------------------|-----------------|
-| Real-world task (not a toy/game) | **Met** — creator scheduling, energy, trends, competitors | `server/viraltest_environment.py`, `DESIGN.md` |
-| Full OpenEnv spec: `openenv.yaml`, typed models, HTTP API | **Met** | `openenv.yaml`, `models.py`, `server/app.py` (`create_app`) |
-| `step()` / `reset()` / `state()` | **Met** — standard OpenEnv HTTP endpoints | Run `openenv validate` |
-| ≥3 tasks with graders (easy → hard), scores in **0.0–1.0** | **Met** — `weekly_engage`, `weekly_strategic`, `weekly_competitive` | `_run_grader()` in `server/viraltest_environment.py` |
-| Meaningful reward + partial progress | **Met** — per-step `_compute_reward()` | `_compute_reward()` |
-| Baseline inference script, reproducible | **Met** — root `inference.py` | See **Baseline inference** below |
-| `Dockerfile` builds | **Expected** — root `Dockerfile` | `docker build -t viraltest .` (run locally) |
-| HF Space deploys; `POST /reset` returns **200** | **You must configure** | See **Hugging Face Spaces** — ping **Space root**, not only `/web` |
-| `openenv validate` passes | **Met** in dev (`.venv/bin/openenv validate`) | CI / local |
-| Env vars: `API_BASE_URL`, `MODEL_NAME`, `HF_TOKEN` | **Documented** — `inference.py` reads them (see **Environment variables**) | HF Space **Settings → Secrets** |
-| `inference.py` at repo root; OpenAI client for LLM calls | **Met** | `inference.py` |
-| Structured stdout: `[START]`, `[STEP]`, `[END]` | **Met** — match field order in `log_*` helpers | `inference.py` |
-| Inference under 20 minutes; 2 vCPU / 8 GB | **Check** — 3 tasks × up to 168 steps each = many LLM calls; use a fast endpoint and sensible `MAX_TOKENS` | `inference.py` |
-
-### Minor items to double-check before judging
-
-1. **`[STEP]` `error=` field** — The spec asks for the raw `last_action_error` or `null`. This repo logs errors with spaces replaced by underscores so each line stays a single token after `error=`. If the organizer’s parser expects literal spaces inside unquoted messages, align with their sample; otherwise this is fine for one-line logs.
-2. **Default `API_BASE_URL` in `inference.py`** — Defaults are for local dev. On Hugging Face, set **`API_BASE_URL`** (e.g. `https://router.huggingface.co/v1`) and **`MODEL_NAME`** in Secrets so evaluation matches your setup.
-3. **Space URL for the validator** — The official script POSTs to `{your_space_url}/reset` with body `{}`. That must be the **root** of the Space (e.g. `https://YOURNAME-spacename.hf.space`), not the Gradio path under `base_path: /web`. Confirm with curl (see **Pre-submission validation**).
-
----
+| Capability | How the environment tests it |
+|---|---|
+| **Tool discovery & orchestration** | 8 discoverable tools (`query_trends`, `query_competitor`, `predict_engagement`...). Agent must call `GET /tools` to learn what's available. |
+| **Persistent world model** | 30-day horizon. Multi-episode brand chain carries state across months. |
+| **Belief tracking** | `notes` field persists hypotheses day-to-day. Agent must update beliefs from tool results. |
+| **Causal reasoning** | `coach_feedback` returns counterfactual delta (your plan vs. heatmap-optimal). `predict_engagement` lets agent test hypotheses before committing. |
+| **Partial observability** | Default observation is sparse: energy, followers, reward. Rich data (trends, competitors, tags) only via tools. |
+| **Multi-step workflow** | Per day: discover → query → draft → predict → commit → reply → learn from feedback. |
 
 ## Why this matters
 
-Many creators burn out while optimizing posting times and formats. This environment turns that tradeoff into a reproducible simulation so agents can be trained and compared on the same weekly horizon (**168** hourly steps).
+The $250B creator economy ([Goldman Sachs, 2025](https://www.goldmansachs.com/insights/articles/the-creator-economy-could-approach-half-a-trillion-dollars-by-2027)) has 67M creators, but 73% experience burnout ([Awin, 2024](https://www.prweb.com/releases/a-majority-of-content-creators-and-influencers-struggle-with-burnout-as-concerns-for-ai-begin-to-surface-according-to-a-new-awin-group-survey-research-302257152.html)). This environment turns the posting-vs-burnout tradeoff into a reproducible simulation calibrated against 10+ verifiable sources.
 
----
-
-## Quick Start (Python)
-
-The HTTP client is **async** (same pattern as root `inference.py`):
+## Quick Start
 
 ```python
 import asyncio
 from viraltest import ViraltestAction, ViraltestEnv
+from viraltest.models import ToolCall
 
 async def main():
     env = ViraltestEnv(base_url="http://localhost:8000")
     try:
-        result = await env.reset(task="weekly_engage")
+        result = await env.reset(task="monthly_strategic")
         action = ViraltestAction(
-            action_type="post",
-            content_type="reel",
-            topic="AI trends",
-            tags=["ai", "coding", "devtools"],
+            tool_calls=[
+                ToolCall(name="query_trends", arguments={"niche": "tech"}),
+            ],
+            scheduled_actions=[
+                {"hour": 12, "action_type": "post", "content_type": "reel",
+                 "topic": "AI tools", "tags": ["ai", "coding"], "intent": "watch_bait"},
+            ],
+            notes="Day 1: querying trends to establish baseline.",
         )
         result = await env.step(action)
-        print(result.observation.engagement_rate, result.observation.creator_energy)
+        print(result.observation.engagement_signals)
     finally:
         await env.close()
 
 asyncio.run(main())
 ```
 
----
+## Simulation mechanics
 
-## Action space
+### Engagement signals (Mosseri Jan-2025)
 
-| Field | Type | Description |
-|-------|------|-------------|
-| `action_type` | `"post" \| "rest" \| "create_content"` | What the agent does this hour |
-| `content_type` | `"reel" \| "story" \| "carousel" \| "text_post"` | Required when posting |
-| `topic` | `str` (≤200 chars) | Post topic |
-| `tags` | `list[str]` (≤5) | Tags from the environment tag pool |
+Instagram's head confirmed the top-3 ranking signals. Our reward decomposes engagement accordingly:
 
----
+| Signal | Weight | Best format | Source |
+|--------|--------|-------------|--------|
+| Watch time | 0.40 | Reels | Mosseri Jan-2025 |
+| Sends per reach | 0.30 | Stories | Mosseri Jan-2025 |
+| Saves | 0.20 | Carousels | Mosseri Jan-2025 |
+| Likes per reach | 0.10 | Text posts | Mosseri Jan-2025 |
 
-## Observation space (high level)
+### Hour heatmap
 
-| Field | Description |
-|-------|-------------|
-| `current_hour`, `day_of_week`, `days_elapsed` | Simulated calendar |
-| `creator_energy`, `hours_since_sleep`, `sleep_debt` | Burnout and sleep |
-| `follower_count`, `engagement_rate` | Growth and rolling engagement |
-| `trending_topics`, `trending_tags`, `tag_performance` | Trends and learned tag quality |
-| `competitor_recent_posts`, `competitor_avg_engagement`, `niche_saturation` | Competition |
-| `error`, `reward`, `done`, `metadata` | Errors, shaping reward, termination, **`metadata["grader_score"]` at episode end** |
+7×24 multiplier grid from [Buffer 9.6M posts](https://buffer.com/resources/when-is-the-best-time-to-post-on-instagram) cross-validated with [Sprout Social 2B engagements](https://sproutsocial.com/insights/best-times-to-post-on-social-media/).
 
-Full schema: `GET /schema` when the server is running.
+### Sleep model
 
----
+Piecewise-linear from [Van Dongen et al. 2003](https://pubmed.ncbi.nlm.nih.gov/12683469) (*Sleep*, PMID 12683469): no quality loss below 16h awake, then 6.25% per hour, floor at 30%.
 
-## Tasks and graders (168 steps each)
+### Audience fatigue
+
+Tiered from [Buffer 2.1M study](https://buffer.com/resources/how-often-to-post-on-instagram/): 2 posts/day=1.0×, 3=0.75×, 4=0.50×, 5+=0.25×. Weekly cap at 7 posts → 0.75×.
+
+## Tasks and graders (30 steps each)
 
 | Task | Difficulty | Grader focus |
-|------|------------|--------------|
-| `weekly_engage` | Easier | Total engagement vs theoretical max; burnout penalty |
-| `weekly_strategic` | Medium | Engagement + tag discovery/exploitation + energy + consistency |
-| `weekly_competitive` | Hard | Adds growth vs competitors, differentiation, diversity constraints |
+|------|-----------|--------------|
+| `monthly_engage` | Easier | Total engagement vs theoretical max; burnout penalty |
+| `monthly_strategic` | Medium | + tag discovery/exploitation + energy + consistency |
+| `monthly_competitive` | Hard | + growth vs competitors + differentiation + content diversity |
 
-Episode ends after **168** steps or if **energy ≤ 0**. Final normalized score is in **`observation.metadata["grader_score"]`** in **\[0, 1\]**.
+## Tool catalog
 
----
+| Tool | Cost | Returns |
+|------|------|---------|
+| `query_trends` | 1 | Trending topics, tags, niche saturation |
+| `query_competitor` | 2 | Recent posts, avg engagement, strategy |
+| `query_tag_history` | 1 | Your historical signals per tag |
+| `query_audience` | 2 | Segment affinities, active hours |
+| `predict_engagement` | 3 | Simulated signals without committing |
+| `draft_review` | 3 | Strengths/weaknesses of a plan |
+| `query_creator_pool` | 1 | Available collab partners + overlap |
+| `propose_collab` | 5 | Propose collaboration (max 2/month) |
 
-## Reward shaping
+API budget starts at 100 per episode.
 
-Per-step reward in **`[0, 1]`** combines engagement, energy change, posting consistency, tags, and competitor differentiation (`_compute_reward` in `server/viraltest_environment.py`). It is dense enough for learning signals before the terminal grader runs.
+## Sources & verifiability
 
----
+Every constant is backed by a Tier 1–3 source. Full bibliography with DOIs, PMIDs, and methodology extracts: **[RESEARCH.md](RESEARCH.md)**.
+
+| Tier | Count | Example |
+|------|-------|---------|
+| T1 (Peer-reviewed) | 7 papers | Van Dongen 2003, arxiv:2410.13108 |
+| T2 (Industry, large-N) | 9 studies | Buffer 9.6M, Sprout 2B, Rival IQ 1.9M |
+| T3 (Official) | 1 statement | Mosseri Jan-2025 |
+| T4 (Survey) | 2 surveys | Awin 2024 (n=300+) |
+| T5 (Rejected) | 13 sites | No methodology disclosed |
+
+## Storytelling assets
+
+- [HuggingFace blog](blog/hf_mini_blog.md)
+- [YouTube script (<2 min)](blog/youtube_script.md)
+- [Slide deck outline](blog/slide_outline.md)
 
 ## Local development
 
 ```bash
-git clone <your-repo-url>
-cd viral-posts-env   # or your fork name
-
-# Install (uv recommended; pip works too)
+git clone <repo-url> && cd viraltest
 uv sync
-# source .venv/bin/activate   # optional
 
 # Terminal 1 — API server
 uvicorn viraltest.server.app:app --host 0.0.0.0 --port 8000
 
-# Terminal 2 — optional UI
-# Open http://localhost:8000/dashboard  (see server routes in server/app.py)
+# Terminal 2 — inference
+export HF_TOKEN=hf_...
+export API_BASE_URL=https://router.huggingface.co/v1
+export MODEL_NAME=Qwen/Qwen2.5-7B-Instruct
+.venv/bin/python inference.py
 ```
-
-Validate the OpenEnv layout:
-
-```bash
-.venv/bin/openenv validate
-# Expect: [OK] ... Ready for multi-mode deployment
-```
-
----
 
 ## Docker
-
-From the repository root (same directory as `Dockerfile`):
 
 ```bash
 docker build -t viraltest-env:latest .
 docker run --rm -p 8000:8000 viraltest-env:latest
+curl -s -X POST -H "Content-Type: application/json" -d '{}' http://localhost:8000/reset
 ```
-
-Smoke test:
-
-```bash
-curl -s -o /dev/null -w "%{http_code}" -X POST -H "Content-Type: application/json" -d '{}' http://localhost:8000/reset
-# Expect: 200
-```
-
----
-
-## Hugging Face Spaces — deploy
-
-1. **Create a Space** with **Docker** SDK (this repo’s README frontmatter uses `sdk: docker`).
-2. **Push this repository** (or connect GitHub) so the Space builds from the root `Dockerfile`.
-3. **Settings → Variables and secrets** — add at least:
-   - **`HF_TOKEN`** — Hugging Face API token for inference (and Space pull if private).
-   - **`API_BASE_URL`** — OpenAI-compatible base URL (e.g. `https://router.huggingface.co/v1`).
-   - **`MODEL_NAME`** — Model id for that router (e.g. `Qwen/Qwen2.5-72B-Instruct`).
-4. **App port** — `8000` (see frontmatter `app_port: 8000`).
-5. **`base_path: /web`** — Used for the bundled web UI; the **REST** endpoints (`/reset`, `/step`, `/state`) remain on the **Space root host** as required by the submission validator. **Always test** `https://<your-space>.hf.space/reset` (not only `/web/...`).
-
-Optional CLI (if you use OpenEnv’s tooling):
-
-```bash
-pip install openenv-core
-openenv push   # follow OpenEnv docs for auth and target Space
-```
-
----
-
-## Baseline inference (`inference.py`)
-
-**Location:** repository root — **`inference.py`** (required by the hackathon).
-
-**LLM client:** OpenAI-compatible client (`from openai import OpenAI`) using:
-
-| Variable | Role |
-|----------|------|
-| `API_BASE_URL` | OpenAI-compatible API base |
-| `MODEL_NAME` | Model name for `chat.completions` |
-| `HF_TOKEN` | Preferred API key (fallbacks: `OPENAI_API_KEY`, `API_KEY`) |
-| `IMAGE_NAME` / `LOCAL_IMAGE_NAME` | If using `ViraltestEnv.from_docker_image(...)` instead of HTTP |
-| `ENV_BASE_URL` | HTTP server URL (default `http://localhost:8000`) |
-
-**Stdout format (must not change field names or order):**
-
-```text
-[START] task=<name> env=<benchmark> model=<model>
-[STEP]  step=<n> action=<str> reward=<0.00> done=<true|false> error=<msg|null>
-[END]   success=<true|false> steps=<n> score=<0.00> rewards=<r1,r2,...>
-```
-
-Run locally (server on port 8000):
-
-```bash
-export HF_TOKEN=hf_...
-export API_BASE_URL=https://router.huggingface.co/v1
-export MODEL_NAME=Qwen/Qwen2.5-72B-Instruct
-uv sync && .venv/bin/python inference.py
-```
-
-**Short episodes for debugging** — `ALLOW_SHORT_EPISODE=1` and `MAX_STEPS` can shorten runs; full weekly tasks still use **168** steps unless you override (see comments in `inference.py`).
-
----
-
-## Pre-submission validation
-
-Use the provided script (same checks as the official template: ping Space, Docker build, `openenv validate`):
-
-```bash
-chmod +x validate-submission.sh
-./validate-submission.sh https://YOUR-SPACE.hf.space /path/to/viral-posts-env
-```
-
-Or download the organizer’s script from their repo and pass your Space URL.
-
-**Manual ping (required to pass automated gate):**
-
-```bash
-curl -s -o /dev/null -w "%{http_code}\n" -X POST \
-  -H "Content-Type: application/json" -d '{}' \
-  https://YOUR-SPACE.hf.space/reset
-# Must print: 200
-```
-
----
-
-## Baseline scores (reference)
-
-Deterministic dashboard agents (not the LLM) — see `README` tables in-repo history / `DESIGN.md` for methodology. Your **`inference.py`** scores will vary by model and endpoint; keep runs under the **20-minute** inference budget.
-
----
 
 ## Project structure
 
 ```
 .
-├── inference.py              # Hackathon-required baseline (LLM + [START]/[STEP]/[END])
-├── openenv.yaml              # OpenEnv manifest
-├── models.py                 # ViraltestAction, ViraltestObservation
-├── client.py                 # ViraltestEnv client
+├── inference.py                # Tool-discovery agent (no hint keys)
+├── openenv.yaml                # OpenEnv manifest
+├── models.py                   # Action/Observation + ToolCall, EngagementSignals
+├── client.py                   # ViraltestEnv client (async)
 ├── Dockerfile
-├── validate-submission.sh    # Local preflight
-├── test_scenarios.py         # Offline env tests
-├── DESIGN.md                 # Deep design / research notes
-└── server/
-    ├── app.py                # FastAPI + create_app
-    ├── viraltest_environment.py
-    └── dashboard.html
+├── RESEARCH.md                 # Full sourced bibliography (6+ pages)
+├── DESIGN.md                   # Deep design notes
+├── blog/
+│   ├── hf_mini_blog.md
+│   ├── youtube_script.md
+│   └── slide_outline.md
+├── server/
+│   ├── app.py                  # FastAPI + /tools endpoints
+│   ├── viraltest_environment.py
+│   ├── dashboard.html
+│   └── data/
+│       ├── tags.json           # ~120 tags, 4 tiers
+│       ├── topics.json         # Niche multipliers + seasonal calendar
+│       ├── competitors.json    # 7 archetypes
+│       ├── hour_heatmap.json   # 7×24 from Buffer+Sprout
+│       ├── audience_segments.json
+│       └── audience_overlap_matrix.json
+├── training/
+│   └── train_grpo.ipynb        # TRL GRPO on Qwen2.5-1.5B-Instruct
+└── plots/
+    ├── reward_curve.png
+    └── before_after.png
 ```
-
----
 
 ## License
 
