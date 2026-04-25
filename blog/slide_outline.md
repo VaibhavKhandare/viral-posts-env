@@ -28,18 +28,23 @@
 - Notes field for hypothesis tracking across days
 - Counterfactual coach: "here's what would have happened with optimal timing"
 
-## Slide 5: Training Pipeline
-- TRL GRPO on Qwen2.5-1.5B-Instruct (free Colab T4)
-- Reward: per-step env reward + 2× terminal grader score
-- 200 episodes, batch 4, 50 GRPO steps
-- 3 tasks: monthly_engage → monthly_strategic → monthly_competitive
-- Multi-episode chain: brand state persists across months
+## Slide 5: Composable rubrics + anti-gaming
+- Grader split into 4 named sub-rubrics surfaced on `obs.rubric_scores`:
+  - `engagement` — Mosseri-weighted total vs theoretical max
+  - `burnout` — avg + min energy + sleep debt (Van Dongen 2003)
+  - `discovery` — positive-EV tags + tag exploitation + tool diversity
+  - `differentiation` — content variety + topic uniqueness + growth + outperformance
+- Per-task weights: `monthly_engage` → engagement 0.70; `monthly_competitive` → differentiation 0.45
+- Anti-gaming gates: monoculture content × 0.3, sparse tags × 0.6, full burnout × 0.3
+- `scripts/anti_gaming_demo.py` demonstrates a spam strategy collapsing to <0.20
 
-## Slide 6: Results
-- [Embed reward_curve.png — ascending curve over training]
-- [Embed before_after.png — smart baseline vs trained agent per task]
-- Trained agent: uses tools on day 1, adapts strategy by day 5, manages energy throughout
-- Score improvement on monthly_competitive: [X% → Y%]
+## Slide 6: Training Pipeline + Results
+- `scripts/run_baseline_vs_agent.py` ships real episodes through `inference.py::collect_episode`
+- Local llama.cpp Gemma E4B for free dev rollouts; HF Inference Router for showcase run
+- `training/train_grpo.ipynb` wires GRPO weight updates behind `RUN_REAL_GRPO=1` (Colab T4)
+- [Embed `plots/before_after.png` — baseline vs agent grouped bars per task]
+- [Embed `plots/reward_curve.png` — per-step reward, both arms on same axes]
+- [Embed `plots/signals_breakdown.png` — Mosseri signals, baseline vs agent]
 
 ## Slide 7: Sources & Verifiability
 - 4-tier source quality bar (peer-reviewed → industry → official → survey)

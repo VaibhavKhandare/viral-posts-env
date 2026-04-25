@@ -24,9 +24,9 @@
 **Citation badge:** Mosseri Jan-2025 · Socialinsider 2026 · PMID 12683469
 
 ### Shot 5: Training Results (1:10–1:30)
-**Visual:** Reward curve plot (ascending), before/after bar chart
-**Voiceover:** "We trained Qwen 2.5 1.5B using TRL GRPO. After 200 episodes, the agent learned to use tools strategically, post at peak hours, diversify content types, and manage energy — outperforming the baseline on all three tasks."
-**On-screen text:** reward curve + score comparison
+**Visual:** `plots/before_after.png` (grouped bars), `plots/reward_curve.png` (per-step curves)
+**Voiceover:** "Even a tiny 4-billion-parameter Gemma running locally beats a heuristic baseline on all three tasks once it gets to use the tool catalog. The hardest task — `monthly_competitive` — collapses the baseline because anti-gaming gates punish single-content-type strategies."
+**On-screen text:** "Gemma E4B · local llama.cpp · zero training tokens spent"
 
 ### Shot 6: Theme Fit + Close (1:30–1:50)
 **Visual:** Theme #3.1 checklist being checked off — tool discovery, partial observability, persistent state, causal reasoning, multi-step workflow

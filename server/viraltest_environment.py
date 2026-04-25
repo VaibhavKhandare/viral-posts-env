@@ -280,10 +280,13 @@ class ViraltestEnvironment(Environment):
         self._api_budget = API_BUDGET_INITIAL
         self._collabs_this_month = 0
         self._collab_history: List[str] = []
+        self._active_collab: Optional[Tuple[int, float]] = None
         self._low_energy_days = 0
         self._total_posts_this_week = 0
         self._week_start_day = 0
         self._daily_signals = EngagementSignals()
+        self._tool_calls_total = 0
+        self._unique_tools_used: set = set()
 
         self._trending_topics = self._pick_trending_topics()
         self._trending_tags = self._pick_trending_tags()
@@ -491,6 +494,8 @@ class ViraltestEnvironment(Environment):
             return ToolResult(name=tool.name, success=False, error="rate_limit_exceeded", budget_remaining=self._api_budget)
 
         self._api_budget -= cost
+        self._tool_calls_total += 1
+        self._unique_tools_used.add(tool.name)
 
         if tool.name == "query_audience":
             seg_id = tool.arguments.get("segment_id", "")
@@ -554,13 +559,15 @@ class ViraltestEnvironment(Environment):
             return ToolResult(name=tool.name, data={"feedback": feedback, "post_count": n_posts}, budget_remaining=self._api_budget)
 
         elif tool.name == "query_creator_pool":
-            pool = []
-            for comp in self._competitors:
-                idx = _OVERLAP_DATA["archetype_ids"].index(comp.id) if comp.id in _OVERLAP_DATA["archetype_ids"] else -1
-                overlap = 0.15
-                if idx >= 0 and idx < len(_OVERLAP_DATA["matrix"]):
-                    overlap = max(_OVERLAP_DATA["matrix"][idx])
-                pool.append({"id": comp.id, "name": comp.name, "niche": comp.niche, "max_audience_overlap": round(overlap, 2)})
+            pool = [
+                {
+                    "id": comp.id,
+                    "name": comp.name,
+                    "niche": comp.niche,
+                    "max_audience_overlap": round(_partner_max_overlap(comp.id), 2),
+                }
+                for comp in self._competitors
+            ]
             return ToolResult(name=tool.name, data=pool, budget_remaining=self._api_budget)
 
         elif tool.name == "propose_collab":
@@ -629,10 +636,12 @@ class ViraltestEnvironment(Environment):
             result = self._dispatch_tool(tc)
             tool_results.append(result)
 
-        # Process collab proposal
+        # Process collab proposal — arms an hour-targeted engagement boost for today
+        self._active_collab = None
         if action.collab and self._collabs_this_month < COLLAB_MAX_PER_MONTH:
             self._collabs_this_month += 1
             self._collab_history.append(action.collab.partner_id)
+            self._active_collab = (action.collab.hour, _partner_max_overlap(action.collab.partner_id))
 
         # Validate scheduled actions
         schedule: Dict[int, ScheduledAction] = {}
@@ -721,7 +730,7 @@ class ViraltestEnvironment(Environment):
 
         if done:
             self._episode_done = True
-            grader_score = self._run_grader()
+            grader_score, rubric_scores, rubric_evidence = self._run_grader()
 
             chain_id = kwargs.get("episode_chain_id")
             if chain_id:
@@ -739,6 +748,7 @@ class ViraltestEnvironment(Environment):
                 daily_posts_made=daily_posts, daily_energy_min=energy_min,
                 tool_results=tool_results, engagement_signals=daily_signals,
                 coach_feedback=coach,
+                rubric_scores=rubric_scores, rubric_evidence=rubric_evidence,
             )
             return self._final_observation
 
@@ -785,10 +795,15 @@ class ViraltestEnvironment(Environment):
                     algo_mult = ALGORITHM_PENALTY_MULT
                     self._algorithm_penalty_remaining -= 1
 
+                collab_mult = 1.0
+                if self._active_collab and self._active_collab[0] == self._hour:
+                    collab_mult = 1.0 + self._active_collab[1]
+                    self._active_collab = None
+
                 engagement = (
                     base * reach * hour_mult * quality * tag_boost
                     * trending_bonus * comp_diff * fatigue * algo_mult
-                    * niche_mult * saturation_factor
+                    * niche_mult * saturation_factor * collab_mult
                 )
                 engagement = min(engagement, 5.0)
 
@@ -955,6 +970,8 @@ class ViraltestEnvironment(Environment):
         tool_results: Optional[List[ToolResult]] = None,
         engagement_signals: Optional[EngagementSignals] = None,
         coach_feedback: Optional[Dict[str, Any]] = None,
+        rubric_scores: Optional[Dict[str, float]] = None,
+        rubric_evidence: Optional[Dict[str, Dict[str, Any]]] = None,
     ) -> ViraltestObservation:
         recent_eng = self._engagement_history[-10:] if self._engagement_history else []
         eng_rate = sum(recent_eng) / len(recent_eng) if recent_eng else 0.0
@@ -962,6 +979,8 @@ class ViraltestEnvironment(Environment):
         meta: Dict[str, Any] = {"step": self._state.step_count, "task": self._task}
         if grader_score is not None:
             meta["grader_score"] = round(grader_score, 4)
+        if rubric_scores:
+            meta["rubric_scores"] = rubric_scores
 
         burnout_risk = min(1.0, self._low_energy_days / 5.0)
 
@@ -988,22 +1007,38 @@ class ViraltestEnvironment(Environment):
             agent_notes=self._agent_notes,
             api_budget_remaining=self._api_budget,
             grader_score=round(grader_score, 4) if grader_score is not None else None,
+            rubric_scores=rubric_scores or {},
+            rubric_evidence=rubric_evidence or {},
             error=error,
             done=done,
             reward=round(reward, 4),
             metadata=meta,
         )
 
-    # ----- graders (monthly) -----
+    # ----- graders (composable rubrics, PDF page 2) -----
 
-    def _run_grader(self) -> float:
-        if self._task == "monthly_engage":
-            return self._grade_monthly_engage()
-        elif self._task == "monthly_strategic":
-            return self._grade_monthly_strategic()
-        elif self._task == "monthly_competitive":
-            return self._grade_monthly_competitive()
-        return 0.0
+    # Per-task rubric weights. Sum to 1.0 within each row.
+    RUBRIC_WEIGHTS: Dict[str, Dict[str, float]] = {
+        "monthly_engage":      {"engagement": 0.70, "burnout": 0.20, "discovery": 0.05, "differentiation": 0.05},
+        "monthly_strategic":   {"engagement": 0.35, "burnout": 0.25, "discovery": 0.30, "differentiation": 0.10},
+        "monthly_competitive": {"engagement": 0.25, "burnout": 0.10, "discovery": 0.20, "differentiation": 0.45},
+    }
+
+    def _run_grader(self) -> Tuple[float, Dict[str, float], Dict[str, Dict[str, Any]]]:
+        rubrics = {
+            "engagement": self._rubric_engagement(),
+            "burnout": self._rubric_burnout(),
+            "discovery": self._rubric_discovery(),
+            "differentiation": self._rubric_differentiation(),
+        }
+        weights = self.RUBRIC_WEIGHTS.get(self._task, self.RUBRIC_WEIGHTS["monthly_engage"])
+        scores = {k: round(v[0], 4) for k, v in rubrics.items()}
+        evidence = {k: v[1] for k, v in rubrics.items()}
+        weighted = sum(weights.get(k, 0.0) * scores[k] for k in scores)
+        # Anti-gaming: full burnout collapses the score.
+        if self._energy <= 0.0:
+            weighted *= 0.3
+        return max(0.0, min(1.0, weighted)), scores, evidence
 
     def _theoretical_max_engagement(self) -> float:
         best_base = max(BASE_ENGAGEMENT.values())
@@ -1014,83 +1049,93 @@ class ViraltestEnvironment(Environment):
         avg_peak_mult = 1.35
         return best_base * best_reach * best_niche * avg_peak_mult * posts_per_week * weeks
 
-    def _grade_monthly_engage(self) -> float:
+    def _rubric_engagement(self) -> Tuple[float, Dict[str, Any]]:
+        """Total Mosseri-weighted engagement vs theoretical max for the month."""
         theoretical_max = self._theoretical_max_engagement()
-        if theoretical_max <= 0:
-            return 0.0
-        raw = min(1.0, self._total_engagement / theoretical_max)
-        if self._energy <= 0.0:
-            raw *= 0.3
-        return raw
+        score = min(1.0, self._total_engagement / theoretical_max) if theoretical_max > 0 else 0.0
+        return score, {
+            "total_engagement": round(self._total_engagement, 3),
+            "theoretical_max": round(theoretical_max, 3),
+            "posting_steps": self._posting_steps,
+        }
 
-    def _grade_monthly_strategic(self) -> float:
-        if self._energy <= 0.0:
-            return max(0.0, min(0.15, self._total_engagement * 0.01))
-
-        theoretical_max = self._theoretical_max_engagement()
-        norm_eng = min(1.0, self._total_engagement / theoretical_max) if theoretical_max > 0 else 0.0
-
-        positive_tags = sum(1 for t in self._unique_tags_used if self._tag_performance_avg(t) > 0)
-        tag_discovery = min(1.0, positive_tags / 30.0)
-        top_perfs = sorted([self._tag_performance_avg(t) for t in self._unique_tags_used], reverse=True)[:3]
-        tag_exploitation = (sum(top_perfs) / len(top_perfs)) if top_perfs else 0.0
-        tag_exploitation = min(1.0, tag_exploitation / 2.0)
-        tag_score = 0.4 * tag_discovery + 0.6 * tag_exploitation
-
-        avg_energy = sum(self._energy_history) / len(self._energy_history) if self._energy_history else 0.0
-        consistency = len(self._days_with_good_posts) / 30.0
-
-        raw = 0.35 * norm_eng + 0.25 * tag_score + 0.25 * avg_energy + 0.15 * consistency
-
-        min_energy = min(self._energy_history) if self._energy_history else 0.0
+    def _rubric_burnout(self) -> Tuple[float, Dict[str, Any]]:
+        """Avg energy, min energy, and sleep-debt penalties (Van Dongen 2003)."""
+        energies = self._energy_history or [self._energy]
+        avg_energy = sum(energies) / len(energies)
+        min_energy = min(energies)
+        sleep_factor = max(0.0, 1.0 - self._sleep_debt)
+        score = 0.5 * avg_energy + 0.3 * min_energy + 0.2 * sleep_factor
         if min_energy < 0.2:
-            raw *= 0.4
+            score *= 0.4
         elif min_energy < 0.3:
-            raw = min(raw, 0.45)
-        if len(self._unique_tags_used) < 5:
-            raw *= 0.7
+            score = min(score, 0.6)
+        return max(0.0, min(1.0, score)), {
+            "avg_energy": round(avg_energy, 3),
+            "min_energy": round(min_energy, 3),
+            "sleep_debt": round(self._sleep_debt, 3),
+            "low_energy_days": self._low_energy_days,
+        }
 
-        return max(0.0, min(1.0, raw))
-
-    def _grade_monthly_competitive(self) -> float:
-        if self._energy <= 0.0:
-            return 0.0
-
-        theoretical_max = self._theoretical_max_engagement()
-        norm_eng = min(1.0, self._total_engagement / theoretical_max) if theoretical_max > 0 else 0.0
-
+    def _rubric_discovery(self) -> Tuple[float, Dict[str, Any]]:
+        """Tag exploration (positive-EV tags) + tool-call diversity."""
         positive_tags = sum(1 for t in self._unique_tags_used if self._tag_performance_avg(t) > 0)
         tag_discovery = min(1.0, positive_tags / 30.0)
         top_perfs = sorted([self._tag_performance_avg(t) for t in self._unique_tags_used], reverse=True)[:3]
-        tag_exploitation = (sum(top_perfs) / len(top_perfs)) if top_perfs else 0.0
-        tag_exploitation = min(1.0, tag_exploitation / 2.0)
-        tag_score = 0.4 * tag_discovery + 0.6 * tag_exploitation
+        tag_exploitation = min(1.0, (sum(top_perfs) / len(top_perfs) / 2.0) if top_perfs else 0.0)
+        tool_diversity = min(1.0, len(self._unique_tools_used) / 5.0)
+        score = 0.40 * tag_discovery + 0.40 * tag_exploitation + 0.20 * tool_diversity
+        return score, {
+            "unique_tags_used": len(self._unique_tags_used),
+            "positive_ev_tags": positive_tags,
+            "top_3_tag_perf": [round(p, 3) for p in top_perfs],
+            "unique_tools_used": sorted(self._unique_tools_used),
+            "tool_calls_total": self._tool_calls_total,
+            "api_budget_remaining": self._api_budget,
+        }
 
+    def _rubric_differentiation(self) -> Tuple[float, Dict[str, Any]]:
+        """Content variety, topic uniqueness, follower growth, vs-competitor outperformance.
+
+        Anti-gaming: monoculture (1 content type) or low tag exploration cap differentiation hard.
+        """
+        content_variety = min(1.0, len(self._unique_content_types) / 4.0)
+        topic_uniqueness = (self._unique_topic_steps / self._posting_steps) if self._posting_steps > 0 else 0.0
         growth = (self._followers - self._initial_followers) / self._initial_followers if self._initial_followers > 0 else 0.0
-        target_growth = 0.04
-        norm_growth = min(1.0, max(0.0, growth / target_growth))
-
+        norm_growth = min(1.0, max(0.0, growth / 0.04))
         comp_avg = self._get_competitor_avg_engagement()
         my_avg = self._total_engagement / self._posting_steps if self._posting_steps > 0 else 0.0
-        outperformance = my_avg / comp_avg if comp_avg > 0 else 1.0
-        norm_outperformance = min(1.0, outperformance / 1.5)
-
-        differentiation = self._unique_topic_steps / self._posting_steps if self._posting_steps > 0 else 0.0
-
-        min_energy = min(self._energy_history) if self._energy_history else 0.0
-        energy_floor = min(1.0, max(0.0, min_energy))
-
-        raw = (
-            0.25 * norm_eng + 0.20 * tag_score + 0.20 * norm_growth
-            + 0.15 * norm_outperformance + 0.10 * differentiation + 0.10 * energy_floor
+        norm_outperformance = min(1.0, (my_avg / comp_avg) / 1.5) if comp_avg > 0 else 0.0
+        score = (
+            0.25 * content_variety + 0.20 * topic_uniqueness
+            + 0.30 * norm_growth + 0.25 * norm_outperformance
         )
+        # Anti-gaming gates: single content type or sparse tag set caps the score.
+        if len(self._unique_content_types) < 2:
+            score *= 0.3
+        elif len(self._unique_content_types) < 3:
+            score = min(score, 0.5)
+        if len(self._unique_tags_used) < 5:
+            score *= 0.6
+        return max(0.0, min(1.0, score)), {
+            "unique_content_types": sorted(self._unique_content_types),
+            "topic_uniqueness": round(topic_uniqueness, 3),
+            "follower_growth": round(growth, 4),
+            "competitor_avg_engagement": round(comp_avg, 3),
+            "my_avg_engagement": round(my_avg, 3),
+            "tags_used": len(self._unique_tags_used),
+        }
 
-        if len(self._unique_content_types) < 3:
-            raw *= 0.5
-        if len(self._unique_tags_used) < 8:
-            raw *= 0.7
 
-        return max(0.0, min(1.0, raw))
+def _partner_max_overlap(partner_id: str) -> float:
+    """Max audience overlap with any other archetype (excludes self-pair)."""
+    ids = _OVERLAP_DATA["archetype_ids"]
+    if partner_id not in ids:
+        return 0.15
+    idx = ids.index(partner_id)
+    row = _OVERLAP_DATA["matrix"][idx]
+    others = [v for j, v in enumerate(row) if j != idx]
+    return float(max(others)) if others else 0.15
 
 
 def _topic_overlap(topic_a: str, topic_b: str) -> bool:

@@ -103,6 +103,8 @@ class ViraltestEnv(EnvClient[ViraltestAction, ViraltestObservation, State]):
             agent_notes=obs_data.get("agent_notes"),
             api_budget_remaining=obs_data.get("api_budget_remaining", 100),
             grader_score=grader_score,
+            rubric_scores=obs_data.get("rubric_scores", {}),
+            rubric_evidence=obs_data.get("rubric_evidence", {}),
             error=obs_data.get("error"),
             done=payload.get("done", False),
             reward=payload.get("reward"),

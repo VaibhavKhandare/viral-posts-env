@@ -5,8 +5,14 @@ The agent receives SPARSE observations and must use discoverable tools to learn
 the world (trending topics, competitor activity, tag performance, audience segments).
 No peak-hour hints, no fatigue rules, no content-type tips are provided in the prompt.
 
-MANDATORY env vars: API_BASE_URL, MODEL_NAME, HF_TOKEN/OPENAI_API_KEY/API_KEY
-Optional: IMAGE_NAME, ALLOW_SHORT_EPISODE, MAX_STEPS
+LLM ENDPOINTS (auto-detected):
+  - Local (free): API_BASE_URL=http://0.0.0.0:1337/v1 — HF_TOKEN optional, model auto-discovered
+  - HF Router:    API_BASE_URL=https://router.huggingface.co/v1 — HF_TOKEN required
+  - OpenAI:       API_BASE_URL=https://api.openai.com/v1 — OPENAI_API_KEY required
+
+ENV VARS:
+  Required (only for hosted): HF_TOKEN | OPENAI_API_KEY | API_KEY
+  Optional: API_BASE_URL, MODEL_NAME, IMAGE_NAME, ALLOW_SHORT_EPISODE, MAX_STEPS
 
 STDOUT FORMAT: [START] [STEP] [END] — match hackathon spec exactly.
 """
@@ -15,7 +21,9 @@ import asyncio
 import json
 import os
 import textwrap
+import urllib.request
 from typing import Any, Dict, List, Optional
+from urllib.parse import urlparse
 
 from openai import OpenAI
 
@@ -24,9 +32,7 @@ from viraltest.models import ToolCall
 from viraltest.server.viraltest_environment import TASK_HORIZON, TOPIC_CATEGORIES
 
 DOCKER_IMAGE = os.getenv("IMAGE_NAME") or os.getenv("LOCAL_IMAGE_NAME")
-API_KEY = os.getenv("HF_TOKEN") or os.getenv("OPENAI_API_KEY") or os.getenv("API_KEY")
-API_BASE_URL = os.getenv("API_BASE_URL") or "https://router.huggingface.co/v1"
-MODEL_NAME = os.getenv("MODEL_NAME") or "Qwen/Qwen2.5-7B-Instruct"
+API_BASE_URL = os.getenv("API_BASE_URL") or "http://0.0.0.0:1337/v1"
 BENCHMARK = os.getenv("VIRALTEST_BENCHMARK", "viraltest")
 
 TASKS = ["monthly_engage", "monthly_strategic", "monthly_competitive"]
@@ -36,6 +42,7 @@ MAX_STEPS = _REQUESTED_MAX if _ALLOW_SHORT else max(_REQUESTED_MAX, TASK_HORIZON
 TEMPERATURE = 0.7
 MAX_TOKENS = 768
 SUCCESS_SCORE_THRESHOLD = 0.1
+LOCAL_HOSTS = {"localhost", "0.0.0.0", "127.0.0.1"}
 
 ALL_TOPICS: List[str] = [
     topic for topics in TOPIC_CATEGORIES.values() for topic in topics
@@ -90,6 +97,48 @@ RULES:
 - Reply within 90 minutes of a post for reach bonus
 
 Think strategically: use tools to discover what works, then exploit what you learn.""")
+
+
+def is_local_endpoint(base_url: str) -> bool:
+    host = (urlparse(base_url).hostname or "").lower()
+    return host in LOCAL_HOSTS
+
+
+def discover_model_name(base_url: str) -> Optional[str]:
+    try:
+        with urllib.request.urlopen(f"{base_url.rstrip('/')}/models", timeout=2) as resp:
+            data = json.loads(resp.read())
+        models = data.get("data") or []
+        return models[0].get("id") if models else None
+    except Exception:
+        return None
+
+
+def resolve_model_name(base_url: str) -> str:
+    explicit = os.getenv("MODEL_NAME")
+    if explicit:
+        return explicit
+    if is_local_endpoint(base_url):
+        discovered = discover_model_name(base_url)
+        if discovered:
+            return discovered
+    return "Qwen/Qwen2.5-7B-Instruct"
+
+
+def make_client(base_url: Optional[str] = None) -> OpenAI:
+    url = base_url or API_BASE_URL
+    if is_local_endpoint(url):
+        api_key = os.getenv("HF_TOKEN") or os.getenv("OPENAI_API_KEY") or os.getenv("API_KEY") or "local"
+    else:
+        api_key = os.getenv("HF_TOKEN") or os.getenv("OPENAI_API_KEY") or os.getenv("API_KEY")
+        if not api_key:
+            raise RuntimeError(
+                f"Hosted endpoint {url} requires HF_TOKEN / OPENAI_API_KEY / API_KEY"
+            )
+    return OpenAI(base_url=url, api_key=api_key)
+
+
+MODEL_NAME = resolve_model_name(API_BASE_URL)
 
 
 def should_force_rest_day(obs: Any) -> bool:
@@ -238,24 +287,35 @@ def format_action_str(action: ViraltestAction) -> str:
     return "daily_plan(" + ";".join(parts) + ")"
 
 
-_model_exhausted = False
+_BASELINE_TAGS = ["lifestyle", "creator", "instagram"]
 
 
-def get_model_daily_plan(
-    client: OpenAI, obs: Any, history: List[Dict[str, str]]
+def baseline_daily_plan(obs: Any) -> ViraltestAction:
+    """No-tool, no-notes baseline: post one carousel at noon. Untrained comparator per PDF page 3."""
+    topic = ALL_TOPICS[(getattr(obs, "days_elapsed", 0)) % len(ALL_TOPICS)]
+    return ViraltestAction(
+        scheduled_actions=[ScheduledAction(
+            hour=12, action_type="post", content_type="carousel",
+            topic=topic, tags=_BASELINE_TAGS, intent="save_bait",
+        )],
+    )
+
+
+async def get_model_daily_plan(
+    client: OpenAI, obs: Any, history: List[Dict[str, str]], model: str
 ) -> ViraltestAction:
-    global _model_exhausted
-    if _model_exhausted:
-        return ViraltestAction(scheduled_actions=[])
-
+    """Run the (sync) OpenAI client in a worker thread so the event loop stays
+    responsive — otherwise the env-server websocket keepalive times out during
+    slow local LLM calls (Gemma on llama.cpp can take 30s+ per turn)."""
     user_prompt = format_observation(obs)
     messages = [{"role": "system", "content": SYSTEM_PROMPT}]
     messages.extend(history[-7:])
     messages.append({"role": "user", "content": user_prompt})
 
     try:
-        completion = client.chat.completions.create(
-            model=MODEL_NAME,
+        completion = await asyncio.to_thread(
+            client.chat.completions.create,
+            model=model,
             messages=messages,
             temperature=TEMPERATURE,
             max_tokens=MAX_TOKENS,
@@ -268,22 +328,55 @@ def get_model_daily_plan(
         err_str = str(exc)
         print(f"[DEBUG] Model request failed: {exc}", flush=True)
         if "402" in err_str or "429" in err_str or "credit" in err_str.lower() or "quota" in err_str.lower():
-            _model_exhausted = True
-            print("[DEBUG] Token/credit limit reached — resting remaining steps", flush=True)
+            raise RuntimeError("token/credit limit reached") from exc
         return ViraltestAction(scheduled_actions=[])
 
 
-async def run_task(client: OpenAI, task: str) -> None:
-    global _model_exhausted
-    _model_exhausted = False
+def _signals_dict(obs: Any) -> Dict[str, float]:
+    s = getattr(obs, "engagement_signals", None)
+    if not s:
+        return {"watch_time": 0.0, "sends_per_reach": 0.0, "saves": 0.0, "likes_per_reach": 0.0}
+    return {
+        "watch_time": float(s.watch_time),
+        "sends_per_reach": float(s.sends_per_reach),
+        "saves": float(s.saves),
+        "likes_per_reach": float(s.likes_per_reach),
+    }
+
+
+async def collect_episode(
+    task: str,
+    *,
+    use_tools: bool = True,
+    client: Optional[OpenAI] = None,
+    model: Optional[str] = None,
+    max_steps: int = MAX_STEPS,
+    quiet: bool = False,
+) -> Dict[str, Any]:
+    """Run one episode and return a structured trace.
+
+    Args:
+        task: monthly_engage | monthly_strategic | monthly_competitive
+        use_tools: True = tool-using LLM agent, False = heuristic baseline (no LLM call)
+        client: OpenAI client (created via make_client() if None and use_tools=True)
+        model: model name (resolved via resolve_model_name() if None)
+
+    Returns: {task, model, use_tools, steps[{step,action,reward,done,signals,energy,
+              followers,grader_score?}], rewards[], grader_score, success}
+    """
+    arm_label = "agent" if use_tools else "baseline"
+    if use_tools and client is None:
+        client = make_client()
+    resolved_model = model or (MODEL_NAME if use_tools else "baseline_heuristic")
 
     rewards: List[float] = []
-    steps_taken = 0
+    steps: List[Dict[str, Any]] = []
     score = 0.0
     success = False
     env: Optional[ViraltestEnv] = None
 
-    log_start(task=task, env=BENCHMARK, model=MODEL_NAME)
+    if not quiet:
+        log_start(task=task, env=BENCHMARK, model=f"{resolved_model}({arm_label})")
 
     try:
         if DOCKER_IMAGE:
@@ -294,42 +387,57 @@ async def run_task(client: OpenAI, task: str) -> None:
         result = await env.reset(task=task)
         history: List[Dict[str, str]] = []
 
-        for step in range(1, MAX_STEPS + 1):
+        for step in range(1, max_steps + 1):
             if result.done:
                 break
 
             obs = result.observation
             if should_force_rest_day(obs):
                 action = ViraltestAction(scheduled_actions=[], notes="Low energy — forced rest day.")
+            elif use_tools:
+                action = await get_model_daily_plan(client, obs, history, resolved_model)
             else:
-                action = get_model_daily_plan(client, obs, history)
+                action = baseline_daily_plan(obs)
 
             result = await env.step(action)
 
             reward = result.reward or 0.0
             done = result.done
             error = getattr(result.observation, "error", None)
-
             rewards.append(reward)
-            steps_taken = step
 
-            log_step(step=step, action=format_action_str(action), reward=reward, done=done, error=error)
+            if not quiet:
+                log_step(step=step, action=format_action_str(action), reward=reward, done=done, error=error)
 
-            history.append({
-                "role": "assistant",
-                "content": json.dumps({
-                    "tool_calls": [{"name": tc.name, "arguments": tc.arguments} for tc in action.tool_calls],
-                    "scheduled_actions": [
-                        {
-                            "hour": sa.hour, "action_type": sa.action_type,
-                            "content_type": sa.content_type, "topic": sa.topic,
-                            "tags": sa.tags, "intent": sa.intent,
-                        }
-                        for sa in action.scheduled_actions
-                    ],
-                    "notes": action.notes,
-                }),
+            steps.append({
+                "step": step,
+                "action": format_action_str(action),
+                "reward": reward,
+                "done": done,
+                "error": error,
+                "signals": _signals_dict(result.observation),
+                "energy": float(getattr(result.observation, "creator_energy", 0.0)),
+                "followers": int(getattr(result.observation, "follower_count", 0)),
+                "burnout_risk": float(getattr(result.observation, "burnout_risk", 0.0)),
+                "rubric_scores": dict(getattr(result.observation, "rubric_scores", {}) or {}),
             })
+
+            if use_tools:
+                history.append({
+                    "role": "assistant",
+                    "content": json.dumps({
+                        "tool_calls": [{"name": tc.name, "arguments": tc.arguments} for tc in action.tool_calls],
+                        "scheduled_actions": [
+                            {
+                                "hour": sa.hour, "action_type": sa.action_type,
+                                "content_type": sa.content_type, "topic": sa.topic,
+                                "tags": sa.tags, "intent": sa.intent,
+                            }
+                            for sa in action.scheduled_actions
+                        ],
+                        "notes": action.notes,
+                    }),
+                })
 
             if done:
                 score = float(getattr(result.observation, "grader_score", 0) or 0)
@@ -346,13 +454,31 @@ async def run_task(client: OpenAI, task: str) -> None:
                 await env.close()
             except Exception as e:
                 print(f"[DEBUG] env.close() error: {e}", flush=True)
-        log_end(success=success, steps=steps_taken, score=score, rewards=rewards)
+        if not quiet:
+            log_end(success=success, steps=len(steps), score=score, rewards=rewards)
+
+    final_obs = getattr(result, "observation", None) if result else None
+    rubric_scores = dict(getattr(final_obs, "rubric_scores", {}) or {}) if final_obs else {}
+    rubric_evidence = dict(getattr(final_obs, "rubric_evidence", {}) or {}) if final_obs else {}
+
+    return {
+        "task": task,
+        "arm": arm_label,
+        "model": resolved_model,
+        "use_tools": use_tools,
+        "steps": steps,
+        "rewards": rewards,
+        "grader_score": score,
+        "rubric_scores": rubric_scores,
+        "rubric_evidence": rubric_evidence,
+        "success": success,
+    }
 
 
 async def main() -> None:
-    client = OpenAI(base_url=API_BASE_URL, api_key=API_KEY or "not-needed")
+    client = make_client()
     for task in TASKS:
-        await run_task(client, task)
+        await collect_episode(task, use_tools=True, client=client, model=MODEL_NAME)
 
 
 if __name__ == "__main__":

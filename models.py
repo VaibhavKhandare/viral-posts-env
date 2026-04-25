@@ -167,4 +167,12 @@ class ViraltestObservation(Observation):
     api_budget_remaining: int = Field(default=100, ge=0)
 
     grader_score: Optional[float] = Field(default=None)
+    rubric_scores: Dict[str, float] = Field(
+        default_factory=dict,
+        description="Composable rubric breakdown (engagement/burnout/discovery/differentiation), 0-1 each. Populated when episode is done.",
+    )
+    rubric_evidence: Dict[str, Dict[str, Any]] = Field(
+        default_factory=dict,
+        description="Per-rubric raw measurements so judges can audit what each rubric scored.",
+    )
     error: Optional[str] = Field(default=None)

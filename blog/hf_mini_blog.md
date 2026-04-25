@@ -28,12 +28,16 @@ The agent starts each day with almost no information — just energy, followers,
 
 This isn't prompt engineering. The agent must build and maintain an internal world model across 30 steps.
 
+## Composable rubrics (PDF page 2 explicit ask)
+
+The grader is split into four named sub-rubrics — `engagement`, `burnout`, `discovery`, `differentiation` — each surfaced on the observation as `obs.rubric_scores` and `obs.rubric_evidence`. Task-specific weights mean `monthly_competitive` puts 0.45 of the score on differentiation; `monthly_engage` puts 0.70 on raw engagement. Anti-gaming gates collapse single-content-type or sparse-tag strategies so a spam agent can't farm the score.
+
 ## Training
 
-We trained Qwen2.5-1.5B-Instruct using TRL's GRPO trainer. Reward = per-step environment reward + 2× terminal grader score. After 200 episodes, the trained agent outperforms the untrained baseline on all three tasks (monthly_engage, monthly_strategic, monthly_competitive).
+`scripts/run_baseline_vs_agent.py` collects real episodes via `inference.py::collect_episode` against the env. Local llama.cpp Gemma serves rollouts at zero token cost; HF Inference Router takes over for the showcase run on `Qwen/Qwen2.5-1.5B-Instruct`. `training/train_grpo.ipynb` wires GRPO weight updates behind a `RUN_REAL_GRPO=1` flag for Colab T4. Plots ship from `scripts/make_plots.py` so README and notebook stay in sync.
 
 ## Every Number Is Verifiable
 
-We classify our sources into 4 tiers (peer-reviewed → industry → official → survey) and explicitly reject SEO/affiliate blogs. Full bibliography with DOIs, PMIDs, arXiv IDs, methodology extracts, and sample sizes lives in [RESEARCH.md](../RESEARCH.md).
+Sources classified into 4 tiers (peer-reviewed → industry → official → survey); SEO/affiliate blogs explicitly rejected. Full bibliography with DOIs, PMIDs, arXiv IDs, methodology extracts, and sample sizes lives in [RESEARCH.md](../RESEARCH.md).
 
-[Environment on HF Spaces](#) | [GitHub repo](#) | [Training notebook](#)
+[Environment on HF Spaces](https://huggingface.co/spaces/<your-handle>/viraltest) · [Training notebook](../training/train_grpo.ipynb) · [Bibliography](../RESEARCH.md) · _replace links once `./scripts/deploy_hf_space.sh` runs._

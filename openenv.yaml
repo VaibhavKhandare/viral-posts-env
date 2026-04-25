@@ -4,4 +4,14 @@ type: space
 runtime: fastapi
 app: server.app:app
 port: 8000
-
+description: >
+  World-modeling RL environment (Theme #3.1) where an LLM agent manages a 30-day
+  Instagram creator account through a discoverable tool catalog. Mosseri-aligned
+  engagement signals, Van Dongen sleep model, Buffer 9.6M-post hour heatmap, and
+  composable rubrics (engagement/burnout/discovery/differentiation).
+tags:
+  - openenv
+  - theme-3-world-modeling
+  - tool-discovery
+  - composable-rubrics
+  - creator-economy
