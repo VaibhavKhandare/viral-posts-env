@@ -108,6 +108,35 @@ class ViraltestAction(Action):
         return deduped
 
 
+class JudgeReport(BaseModel):
+    """Auditable per-day evaluation by the in-env Regulator/Judge.
+
+    Scores are 0..1. `sustainability_risk` is RISK (higher = worse).
+    """
+
+    policy_compliance: float = Field(default=1.0, ge=0.0, le=1.0)
+    sustainability_risk: float = Field(default=0.0, ge=0.0, le=1.0)
+    strategic_quality: float = Field(default=0.0, ge=0.0, le=1.0)
+    explanation: str = Field(default="")
+    violations: List[str] = Field(default_factory=list)
+
+
+class HeadlineMetrics(BaseModel):
+    """Three headline numbers reported once per episode (final observation)."""
+
+    vs_baseline_pct: float = Field(default=0.0, description="(agent - heuristic_baseline) / heuristic_baseline")
+    score_per_tool_call: float = Field(default=0.0, description="grader_score / total_tool_calls (efficiency)")
+    score_per_1k_chars: float = Field(default=0.0, description="grader_score per 1k action chars (token-proxy efficiency)")
+    retention_under_shift: Optional[float] = Field(
+        default=None,
+        description="shifted_score / baseline_score, populated when both runs share an episode_chain_id",
+    )
+    heuristic_baseline_score: float = Field(default=0.0)
+    agent_score: float = Field(default=0.0)
+    total_tool_calls: int = Field(default=0, ge=0)
+    total_action_chars: int = Field(default=0, ge=0)
+
+
 class EngagementSignals(BaseModel):
     """Mosseri-aligned engagement decomposition (Jan 2025 official ranking signals)."""
 
@@ -160,6 +189,14 @@ class ViraltestObservation(Observation):
     coach_feedback: Optional[Dict[str, Any]] = Field(
         default=None,
         description="Counterfactual feedback: delta between agent plan and heatmap-optimal plan",
+    )
+    judge_report: Optional[JudgeReport] = Field(
+        default=None,
+        description="Regulator/Judge audit: policy compliance, sustainability risk, strategic quality + explanation",
+    )
+    headline_metrics: Optional[HeadlineMetrics] = Field(
+        default=None,
+        description="Final-observation hard numbers: improvement vs baseline, efficiency, shift retention",
     )
 
     tool_results: List[ToolResult] = Field(default_factory=list, description="Results from tool_calls this step")

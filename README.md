@@ -93,6 +93,33 @@ Tiered from [Buffer 2.1M study](https://buffer.com/resources/how-often-to-post-o
 | `monthly_strategic` | Medium | + tag discovery/exploitation + energy + consistency |
 | `monthly_competitive` | Hard | + growth vs competitors + differentiation + content diversity |
 
+## Regulator/Judge Mode (per-day audit)
+
+Every day the env emits a deterministic, explainable `JudgeReport` on the observation:
+
+```python
+JudgeReport(
+    policy_compliance=1.00,    # 1.0 - sum(weighted_violations); see _compute_judge_report
+    sustainability_risk=0.10,  # 0.4*(1-energy_min) + 0.3*sleep_debt + 0.3*low_energy_ratio
+    strategic_quality=0.96,    # 0.4*engagement_per_post + 0.3*intent_diversity + 0.3*format_diversity
+    explanation="compliance=1.00 risk=0.10 strategy=0.96 | no policy violations",
+    violations=[],             # human-readable rule breaks (Buffer 2.1M, Van Dongen, Cen 2024)
+)
+```
+
+Auditable rules (all sourced): >5 posts/day → fatigue cliff (Buffer 2.1M); >7 posts/week → weekly cap; ≥4 collabs/month → diminishing returns (Cen 2024); >22h awake → sleep debt (Van Dongen 2003).
+
+## Headline metrics (final-step audit)
+
+The final observation carries `HeadlineMetrics` with the three numbers judges remember:
+
+| Metric | What it measures | Source of truth |
+|---|---|---|
+| `vs_baseline_pct` | (agent_score − heuristic_baseline) / heuristic_baseline | Empirical baseline loaded from `plots/training_summary.json["smart_heuristic"]` (0.43 / 0.77 / 0.81) |
+| `score_per_tool_call` | grader_score / total_tool_calls | Efficiency: did the agent learn to call tools sparingly? |
+| `score_per_1k_chars` | grader_score per 1k action JSON chars | Token-proxy efficiency |
+| `retention_under_shift` | shifted_score / baseline_score | Pass `episode_chain_id` + `shift_label="baseline"` then `="shifted"` to a second `reset` to populate. None until both runs complete. |
+
 ## Tool catalog
 
 | Tool | Cost | Returns |
