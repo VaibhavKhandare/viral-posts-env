@@ -100,7 +100,6 @@ def plan_smart(obs_dict: dict, day: int) -> ViraltestAction:
             ScheduledAction(hour=19, action_type="post", content_type=ct2,
                             topic=topic2, tags=tags2, intent=intent2),
         ],
-        replies=[{"post_hour": 12, "reply_hour": 13}],
         notes=f"Day {day}: varied content at peak hours.",
     )
 
@@ -156,7 +155,6 @@ class PostingPolicy:
     tag_offset: int = 0
     topic_offset: int = 0
     create_hour: Optional[int] = None
-    use_reply: bool = False
     use_tools_early: bool = False
     rest_if_low_energy: float = 0.3
 
@@ -186,16 +184,9 @@ class PostingPolicy:
                 tool_calls.append(ToolCall(name="query_trends",
                                           arguments={"niche": NICHES[day % len(NICHES)]}))
 
-            replies = []
-            if policy.use_reply and policy.post_hours:
-                first_post = policy.post_hours[0]
-                if first_post < 23:
-                    replies = [{"post_hour": first_post, "reply_hour": first_post + 1}]
-
             return ViraltestAction(
                 tool_calls=tool_calls,
                 scheduled_actions=actions,
-                replies=replies,
                 notes=f"Day {day}: policy-driven plan.",
             )
         return plan_fn
@@ -208,13 +199,12 @@ class PostingPolicy:
             tag_offset=self.tag_offset,
             topic_offset=self.topic_offset,
             create_hour=self.create_hour,
-            use_reply=self.use_reply,
             use_tools_early=self.use_tools_early,
             rest_if_low_energy=self.rest_if_low_energy,
         )
 
         mutation = rng.choice(["hours", "types", "intents", "tags", "topics",
-                               "create", "reply", "tools", "energy", "n_posts"])
+                               "create", "tools", "energy", "n_posts"])
 
         if mutation == "hours":
             child.post_hours = sorted(rng.sample(range(6, 23), min(rng.randint(1, 3), 3)))
@@ -230,8 +220,6 @@ class PostingPolicy:
             child.topic_offset = rng.randint(0, len(ALL_TOPICS) - 1)
         elif mutation == "create":
             child.create_hour = rng.choice([None, 7, 8, 9, 10])
-        elif mutation == "reply":
-            child.use_reply = not child.use_reply
         elif mutation == "tools":
             child.use_tools_early = not child.use_tools_early
         elif mutation == "energy":
@@ -262,7 +250,6 @@ def evolutionary_search(
         tag_offset=rng.randint(0, len(TAG_POOL) - 1),
         topic_offset=rng.randint(0, len(ALL_TOPICS) - 1),
         create_hour=rng.choice([None, 7, 8, 9]),
-        use_reply=rng.random() > 0.5,
         use_tools_early=rng.random() > 0.5,
         rest_if_low_energy=rng.choice([0.2, 0.25, 0.3, 0.35]),
     ) for _ in range(population_size)]

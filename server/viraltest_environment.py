@@ -29,7 +29,6 @@ try:
         EngagementSignals,
         HeadlineMetrics,
         JudgeReport,
-        ReplyAction,
         ScheduledAction,
         ToolCall,
         ToolResult,
@@ -42,7 +41,6 @@ except ImportError:
         EngagementSignals,
         HeadlineMetrics,
         JudgeReport,
-        ReplyAction,
         ScheduledAction,
         ToolCall,
         ToolResult,
@@ -168,8 +166,6 @@ COLLAB_GROWTH_K = 1.50     # cross-pollination follower spillover, scales (1 - o
 COLLAB_PARTNER_REPEAT_PENALTY = 0.7  # discount on multipliers when partner reused this brand
 COLLAB_FATIGUE_K = 0.3     # per-collab diminishing-returns factor: 1/(1+K*prior_collabs_this_episode)
 
-REPLY_WINDOW_MINUTES = 90
-REPLY_REACH_BONUS = 1.4
 API_BUDGET_INITIAL = 100
 
 # Heuristic baselines for headline metric `vs_baseline_pct`.
@@ -846,19 +842,6 @@ class ViraltestEnvironment(Environment):
 
             if self._energy <= 0.0:
                 burned_out = True
-
-        # Process replies
-        for reply in action.replies:
-            if 0 <= reply.reply_hour < 24 and 0 <= reply.post_hour < 24:
-                diff_minutes = abs(reply.reply_hour - reply.post_hour) * 60
-                if diff_minutes <= REPLY_WINDOW_MINUTES:
-                    daily_engagement *= REPLY_REACH_BONUS
-                    daily_signals = EngagementSignals(
-                        watch_time=daily_signals.watch_time * REPLY_REACH_BONUS,
-                        sends_per_reach=daily_signals.sends_per_reach * REPLY_REACH_BONUS,
-                        saves=daily_signals.saves * REPLY_REACH_BONUS,
-                        likes_per_reach=daily_signals.likes_per_reach * REPLY_REACH_BONUS,
-                    )
 
         # Weekly tracking
         self._total_posts_this_week += daily_posts

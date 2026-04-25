@@ -22,13 +22,12 @@ REMOTE_SCRIPT=$(cat <<'EOS'
 set -euo pipefail
 export DEBIAN_FRONTEND=noninteractive
 apt-get update -qq && apt-get install -y --no-install-recommends git curl ca-certificates
-pip install -q --root-user-action=ignore --upgrade "typing_extensions>=4.15.0" jupyter nbconvert nbclient ipykernel huggingface_hub
+pip install -q --root-user-action=ignore --upgrade "typing_extensions>=4.15.0" jupyter nbconvert nbclient ipykernel huggingface_hub papermill
 rm -rf /work
 git clone --depth 1 "https://user:${HF_TOKEN}@huggingface.co/spaces/${SPACE_REPO}" /work
 cd /work
-jupyter nbconvert --to notebook --execute training/train_grpo.ipynb \
-  --output train_grpo.executed.ipynb \
-  --ExecutePreprocessor.timeout="${NB_EXEC_TIMEOUT}"
+papermill --log-output --progress-bar --execution-timeout "${NB_EXEC_TIMEOUT}" \
+  training/train_grpo.ipynb training/train_grpo.executed.ipynb
 python -c "import os; from huggingface_hub import HfApi; HfApi().upload_folder(folder_path='.', path_in_repo='run-output', repo_id=os.environ['SPACE_REPO'], repo_type='space', allow_patterns=['training/train_grpo.executed.ipynb','plots/**','**/lora-*/**'])"
 EOS
 )

@@ -74,7 +74,6 @@ RESPONSE FORMAT (JSON only, no markdown, no prose):
     {"hour": 12, "action_type": "post", "content_type": "reel", "topic": "AI tools", "tags": ["ai", "coding"], "intent": "watch_bait"},
     {"hour": 18, "action_type": "post", "content_type": "carousel", "topic": "startup life", "tags": ["startup", "growth"], "intent": "save_bait"}
   ],
-  "replies": [{"post_hour": 12, "reply_hour": 13}],
   "notes": "Day 3: tech niche trending up. Competitor Alpha posted at 10am. Avoiding overlap."
 }
 
@@ -87,7 +86,6 @@ RULES:
 - Use notes to track hypotheses and observations across days
 - Tool calls cost API budget (starts at 100). Use wisely.
 - Max 2 collaborations per month
-- Reply within 90 minutes of a post for reach bonus
 
 Think strategically: use tools to discover what works, then exploit what you learn.""")
 
@@ -201,13 +199,11 @@ def parse_daily_plan(response_text: str) -> ViraltestAction:
                 if isinstance(a, dict):
                     scheduled.append(a)
 
-        replies_raw = data.get("replies", [])
         notes = data.get("notes")
 
         return ViraltestAction(
             tool_calls=tool_calls,
             scheduled_actions=scheduled,
-            replies=replies_raw if isinstance(replies_raw, list) else [],
             notes=notes,
         )
     except (json.JSONDecodeError, Exception):
@@ -236,7 +232,6 @@ def sanitize_predefined_topics(action: ViraltestAction, obs: Any) -> ViraltestAc
     return ViraltestAction(
         tool_calls=action.tool_calls,
         scheduled_actions=out,
-        replies=action.replies,
         collab=action.collab,
         notes=action.notes,
     )

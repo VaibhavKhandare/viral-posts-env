@@ -10,7 +10,6 @@ from .client import ViraltestEnv
 from .models import (
     CollabProposal,
     EngagementSignals,
-    ReplyAction,
     ScheduledAction,
     ToolCall,
     ToolResult,
@@ -21,7 +20,6 @@ from .models import (
 __all__ = [
     "CollabProposal",
     "EngagementSignals",
-    "ReplyAction",
     "ScheduledAction",
     "ToolCall",
     "ToolResult",

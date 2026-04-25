@@ -106,7 +106,6 @@ def plan_smart(obs_dict, day):
             ScheduledAction(hour=19, action_type="post", content_type=ct2,
                             topic=topic2, tags=tags2, intent=intent2),
         ],
-        replies=[{"post_hour": 12, "reply_hour": 13}],
     )
 
 BASELINE_AGENTS = {
@@ -157,17 +156,13 @@ RESPONSE FORMAT — return ONLY valid JSON, no markdown, no explanation:
   "scheduled_actions": [
     {"hour": 12, "action_type": "post", "content_type": "reel", "topic": "AI tools", "tags": ["ai", "coding"], "intent": "watch_bait"}
   ],
-  "replies": [{"post_hour": 12, "reply_hour": 13}],
   "notes": "strategy notes"
 }
 
 RULES:
 - hour: 0-23. content_type: reel|story|carousel|text_post
 - intent: send_bait|save_bait|watch_bait|like_bait
-- 1-2 posts per day is optimal. More = audience fatigue + energy drain.
-- Empty scheduled_actions = rest (recovers energy).
-- Vary content types and topics across days for diversity bonus.
-- Reply within 90 min of a post for reach bonus.""")
+- Empty scheduled_actions = rest (recovers energy).""")
 
 LEARNED_ADDENDUM = """
 
@@ -253,7 +248,7 @@ def parse_model_output(text):
                     pass
         return ViraltestAction(
             tool_calls=tool_calls, scheduled_actions=scheduled,
-            replies=data.get("replies", []), notes=data.get("notes"),
+            notes=data.get("notes"),
         )
     except (json.JSONDecodeError, Exception):
         return ViraltestAction(scheduled_actions=[])

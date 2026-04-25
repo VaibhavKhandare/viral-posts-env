@@ -43,12 +43,6 @@ class ViraltestEnv(EnvClient[ViraltestAction, ViraltestObservation, State]):
             actions_list.append(item)
         payload["scheduled_actions"] = actions_list
 
-        if action.replies:
-            payload["replies"] = [
-                {"post_hour": r.post_hour, "reply_hour": r.reply_hour}
-                for r in action.replies
-            ]
-
         if action.collab:
             payload["collab"] = {
                 "partner_id": action.collab.partner_id,

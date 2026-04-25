@@ -56,13 +56,6 @@ class ScheduledAction(BaseModel):
         return v
 
 
-class ReplyAction(BaseModel):
-    """Reply to comments on a post made earlier today (within reply window)."""
-
-    post_hour: int = Field(..., ge=0, le=23, description="Hour of the post to reply on")
-    reply_hour: int = Field(..., ge=0, le=23, description="Hour to send replies")
-
-
 class CollabProposal(BaseModel):
     """Propose a collaboration with a competitor archetype."""
 
@@ -81,10 +74,6 @@ class ViraltestAction(Action):
     scheduled_actions: List[ScheduledAction] = Field(
         default_factory=list,
         description="Actions scheduled at specific hours; unlisted hours are rest",
-    )
-    replies: List[ReplyAction] = Field(
-        default_factory=list,
-        description="Reply actions on posts made today (within 90-min window for reach bonus)",
     )
     collab: Optional[CollabProposal] = Field(
         default=None,
