@@ -1,0 +1,17 @@
+{
+  "_meta": {
+    "description": "8x8 symmetric audience overlap matrix between competitor archetypes and the user creator. Values 0.0-1.0 represent fraction of shared audience. Used by propose_collab to compute collab reward multipliers and by query_creator_pool to expose overlap to the agent. Same-niche pairs ~0.4-0.65, cross-niche ~0.05-0.20.",
+    "source": "Competitor pairs estimated from Rival IQ 2025 cross-industry overlap patterns + niche proximity heuristic. user_creator row tuned to a generic micro-creator (no locked niche): broad mass-market partners (lifestyle_blogger, viral_chaser) score highest; specialist partners (b2b_thought_leader, niche_expert) score lowest."
+  },
+  "archetype_ids": ["niche_expert", "viral_chaser", "lifestyle_blogger", "b2b_thought_leader", "food_creator", "fitness_coach", "travel_creator", "user_creator"],
+  "matrix": [
+    [1.00, 0.12, 0.10, 0.40, 0.08, 0.10, 0.15, 0.10],
+    [0.12, 1.00, 0.55, 0.10, 0.20, 0.25, 0.30, 0.35],
+    [0.10, 0.55, 1.00, 0.15, 0.30, 0.35, 0.40, 0.40],
+    [0.40, 0.10, 0.15, 1.00, 0.08, 0.10, 0.12, 0.08],
+    [0.08, 0.20, 0.30, 0.08, 1.00, 0.45, 0.35, 0.25],
+    [0.10, 0.25, 0.35, 0.10, 0.45, 1.00, 0.30, 0.28],
+    [0.15, 0.30, 0.40, 0.12, 0.35, 0.30, 1.00, 0.30],
+    [0.10, 0.35, 0.40, 0.08, 0.25, 0.28, 0.30, 1.00]
+  ]
+}
