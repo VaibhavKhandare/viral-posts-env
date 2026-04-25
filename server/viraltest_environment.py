@@ -92,7 +92,7 @@ _HEATMAP_GRID: Dict[int, List[float]] = {
 # Constants (research-backed, Tier 1-3 sources)
 # ---------------------------------------------------------------------------
 
-TASK_HORIZON = 30  # 30 daily steps (monthly cycle)
+TASK_HORIZON = 7  # 7 daily steps (weekly cycle)
 
 # Socialinsider 2026 (31M posts)
 CONTENT_ENERGY_COST = {
@@ -166,7 +166,7 @@ COLLAB_GROWTH_K = 1.50     # cross-pollination follower spillover, scales (1 - o
 COLLAB_PARTNER_REPEAT_PENALTY = 0.7  # discount on multipliers when partner reused this brand
 COLLAB_FATIGUE_K = 0.3     # per-collab diminishing-returns factor: 1/(1+K*prior_collabs_this_episode)
 
-API_BUDGET_INITIAL = 100
+API_BUDGET_INITIAL = 10**9  # effectively unlimited; rate-limit removed
 
 # Heuristic baselines for headline metric `vs_baseline_pct`.
 # Data-driven: loaded from `plots/training_summary.json["smart_heuristic"]` recorded by
@@ -190,18 +190,6 @@ HEURISTIC_BASELINE_SCORES: Dict[str, float] = _load_heuristic_baselines() or {
 # Cross-episode store for distribution-shift retention. Keyed by episode_chain_id, stores
 # {"baseline": score, "shifted": score} so the second run can compute retention_under_shift.
 _SHIFT_HISTORY: Dict[str, Dict[str, float]] = {}
-
-# Tool costs
-TOOL_COSTS = {
-    "query_audience": 2,
-    "query_competitor": 2,
-    "query_tag_history": 1,
-    "query_trends": 1,
-    "predict_engagement": 3,
-    "draft_review": 3,
-    "query_creator_pool": 1,
-    "propose_collab": 5,
-}
 
 # ---------------------------------------------------------------------------
 # Brand state for multi-episode persistence
@@ -413,9 +401,6 @@ class ViraltestEnvironment(Environment):
         totals = [h.get("total", 0.0) for h in window]
         return sum(totals) / len(totals) if totals else 0.0
 
-    def _get_tag_performance_dict(self) -> Dict[str, float]:
-        return {tag: self._tag_performance_avg(tag) for tag in self._unique_tags_used}
-
     # ----- competitors -----
 
     def _advance_competitors(self) -> None:
@@ -435,14 +420,6 @@ class ViraltestEnvironment(Environment):
                     "content_type": ct, "topic": topic, "tags": tags,
                     "engagement": round(eng, 3), "hours_ago": 0,
                 })
-
-    def _get_competitor_recent_posts(self, limit: int = 5) -> List[Dict[str, Any]]:
-        all_posts: List[Dict[str, Any]] = []
-        for comp in self._competitors:
-            for p in comp.recent_posts:
-                all_posts.append(p)
-        all_posts.sort(key=lambda x: x["hours_ago"])
-        return all_posts[:limit]
 
     def _get_competitor_avg_engagement(self) -> float:
         engagements = [p["engagement"] for comp in self._competitors for p in comp.recent_posts]
@@ -547,12 +524,6 @@ class ViraltestEnvironment(Environment):
     # ----- tool dispatcher -----
 
     def _dispatch_tool(self, tool: ToolCall) -> ToolResult:
-        cost = TOOL_COSTS.get(tool.name, 1)
-        if self._api_budget < cost:
-            return ToolResult(name=tool.name, success=False, error="rate_limit_exceeded", budget_remaining=self._api_budget)
-
-        self._api_budget -= cost
-
         if tool.name == "query_audience":
             seg_id = tool.arguments.get("segment_id", "")
             for seg in _AUDIENCE_DATA.get("segments", []):
@@ -752,9 +723,8 @@ class ViraltestEnvironment(Environment):
         self._shift_label = kwargs.get("shift_label")
         self._chain_id = kwargs.get("episode_chain_id")
 
-        chain_id = kwargs.get("episode_chain_id")
-        if chain_id and chain_id in _BRAND_STORE:
-            brand = _BRAND_STORE[chain_id]
+        if self._chain_id and self._chain_id in _BRAND_STORE:
+            brand = _BRAND_STORE[self._chain_id]
             self._unique_tags_used = set(brand.get("top_tags", []))
             self._unique_content_types = set(brand.get("dominant_types", []))
             self._collab_history = brand.get("collab_history", [])
@@ -870,10 +840,9 @@ class ViraltestEnvironment(Environment):
             grader_score = self._run_grader()
             headline = self._compute_headline_metrics(grader_score)
 
-            chain_id = kwargs.get("episode_chain_id")
-            if chain_id:
+            if self._chain_id:
                 top_tags = sorted(self._unique_tags_used, key=lambda t: self._tag_performance_avg(t), reverse=True)[:3]
-                _BRAND_STORE[chain_id] = {
+                _BRAND_STORE[self._chain_id] = {
                     "top_tags": list(top_tags),
                     "dominant_types": list(self._unique_content_types),
                     "collab_history": self._collab_history[-3:],
