@@ -1009,10 +1009,34 @@ class ViraltestEnvironment(Environment):
         best_base = max(BASE_ENGAGEMENT.values())
         best_reach = max(REACH_MULT.values())
         best_niche = max(_NICHE_MULTIPLIERS.values()) if _NICHE_MULTIPLIERS else 1.0
-        posts_per_week = 5
-        weeks = 4
-        avg_peak_mult = 1.35
-        return best_base * best_reach * best_niche * avg_peak_mult * posts_per_week * weeks
+
+        active_days = 26
+        rest_days = TASK_HORIZON - active_days
+        posts_per_active_day = 2
+
+        avg_heatmap_peak = 1.0
+        if _HEATMAP_GRID:
+            day_peaks = []
+            for dow, row in _HEATMAP_GRID.items():
+                top2 = sorted(row, reverse=True)[:posts_per_active_day]
+                day_peaks.append(sum(top2) / len(top2) if top2 else 1.0)
+            avg_heatmap_peak = sum(day_peaks) / len(day_peaks) if day_peaks else 1.0
+
+        trending_bonus = 1.25
+        tag_boost = 1.1
+
+        total_posts = active_days * posts_per_active_day
+
+        weekly_fatigue = 1.0
+        posts_per_week = total_posts / (TASK_HORIZON / 7.0)
+        if posts_per_week >= WEEKLY_FATIGUE_THRESHOLD:
+            weekly_fatigue = WEEKLY_FATIGUE_MULT
+
+        per_post = (
+            best_base * best_reach * best_niche
+            * avg_heatmap_peak * trending_bonus * tag_boost * weekly_fatigue
+        )
+        return per_post * total_posts
 
     def _grade_monthly_engage(self) -> float:
         theoretical_max = self._theoretical_max_engagement()
