@@ -11,7 +11,7 @@ IMAGE="${HF_JOB_IMAGE:-pytorch/pytorch:2.5.1-cuda12.4-cudnn9-runtime}"
 FLAVOR="${HF_JOB_FLAVOR:-l4x1}"
 TIMEOUT="${HF_JOB_TIMEOUT:-8h}"
 REPO_URL="${HF_REPO_URL:-https://github.com/VaibhavKhandare/viral-posts-env.git}"
-REPO_BRANCH="${HF_REPO_BRANCH:-hack1}"
+REPO_BRANCH="${HF_REPO_BRANCH:-main}"
 
 exec hf jobs run \
   --flavor "$FLAVOR" \
