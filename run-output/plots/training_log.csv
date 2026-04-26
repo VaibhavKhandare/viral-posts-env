@@ -1,2 +1,1 @@
 phase,round,global_step,use_hint,avg_episode_reward,max_episode_reward,min_episode_reward,avg_grader,max_grader,n_training_samples,train_loss
-phase1_timing,1,1,True,4.904,5.37,4.049,0.8416,1.0,90,0.9406

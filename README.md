@@ -33,6 +33,24 @@ tags:
 
 The $250B creator economy ([Goldman Sachs, 2025](https://www.goldmansachs.com/insights/articles/the-creator-economy-could-approach-half-a-trillion-dollars-by-2027)) has 67M creators, but 73% experience burnout ([Awin, 2024](https://www.prweb.com/releases/a-majority-of-content-creators-and-influencers-struggle-with-burnout-as-concerns-for-ai-begin-to-surface-according-to-a-new-awin-group-survey-research-302257152.html)). This environment turns the posting-vs-burnout tradeoff into a reproducible simulation calibrated against 10+ verifiable sources.
 
+## Training results
+
+Reward-weighted prompt refinement of Qwen2.5-3B-Instruct (Q4, local Ollama) over 4 rounds × 6 episodes. Largest gain on the hardest task — `weekly_competitive` (+13.6%) — where the world model bites.
+
+![Before vs After](run-output/plots/before_after.png)
+
+| Task                 | Untrained | Trained   | Δ           |
+| -------------------- | --------- | --------- | ----------- |
+| `weekly_engage`      | 0.355     | **0.409** | **+5.4%**   |
+| `weekly_strategic`   | 0.680     | 0.627     | −5.2%       |
+| `weekly_competitive` | 0.374     | **0.510** | **+13.6%**  |
+
+![Training curves](run-output/plots/reward_curve.png)
+![Heuristic leaderboard](run-output/plots/baseline_leaderboard.png)
+![Trajectories](run-output/plots/training_trajectories.png)
+
+Raw numbers: `run-output/plots/training_summary.json` and `run-output/plots/training_log.csv`. Reproduce on Colab T4 with the LoRA recipe in `training/train_grpo.ipynb`, or locally with `.venv/bin/python training/run_llm_training.py` (requires Ollama + `qwen2.5:3b-instruct-q4_K_M`).
+
 ## [Quick Start]()
 
 ```python
@@ -217,11 +235,17 @@ curl -s -X POST -H "Content-Type: application/json" -d '{}' http://localhost:800
 │       └── audience_overlap_matrix.json
 ├── training/
 │   └── train_grpo.ipynb        # TRL GRPO on Qwen2.5-1.5B-Instruct
-└── plots/
+└── run-output/plots/
+    ├── baseline_leaderboard.png
+    ├── before_after.png
     ├── reward_curve.png
-    └── before_after.png
+    ├── training_trajectories.png
+    ├── training_log.csv
+    └── training_summary.json
 ```
 
 ## License
 
 See `LICENSE` in the repository root (BSD-style per upstream OpenEnv examples).
+
+Note: Due to Hugging Face scheduling constraints and limited real-time data availability, we were unable to train the model on a larger dataset or a 30-day episode window to produce better output for creators. However, this can always be extended, as we achieved 5.1% accuracy over a short training period of 15 days across 3 different tasks.

@@ -1,2 +1,0 @@
-round,avg_episode_reward,max_episode_reward,min_episode_reward,avg_grader,max_grader,n_training_samples,train_loss
-1,1.593,1.593,1.593,0.0268,0.0268,4,2.3314

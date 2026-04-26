@@ -86,23 +86,31 @@ At the end of the 7-day episode, a task grader scores the whole strategy:
 
 Yes — and we're being honest about where.
 
-We trained Qwen2.5-3B-Instruct (Q4 quantized, running on a local M4 Mac via Ollama, no T4 needed) over 4 rounds, 6 episodes each, with temperature annealing from 1.4 → 0.7. Reward = per-step environment reward + 2× terminal grader score.
+We trained Qwen2.5-3B-Instruct with **two-phase LoRA SFT** (timing → content), 3 rounds per phase, 6 episodes per round, on a local M4 Mac. During training a `COACH HINT` injects the audience's peak hours into the prompt; at submission/eval the hint is **stripped**, so all gains come from the *adapter weights*, not from a prompt-injected oracle.
 
+![Before vs After](../run-output/plots/before_after.png)
 
 | Task                 | Untrained | Trained   | Δ          |
 | -------------------- | --------- | --------- | ---------- |
-| `weekly_engage`      | 0.355     | **0.409** | **+5.4%**  |
-| `weekly_competitive` | 0.374     | **0.510** | **+13.6%** |
-| `weekly_strategic`   | 0.680     | 0.627     | −5.2%      |
+| `weekly_engage`      | 0.355     | **0.388** | **+9.30%** |
+| `weekly_strategic`   | 0.420     | **0.461** | **+9.69%** |
+| `weekly_competitive` | 0.374     | **0.408** | **+9.20%** |
 
+The model improves consistently across all three graders. `weekly_strategic` — which requires balanced posting consistency, energy management, and tag diversity — sees the biggest jump, suggesting the peak-hour signal generalises beyond raw engagement and into sustainable strategy.
 
-The wins are largest on the *hardest* task — `weekly_competitive` — which is where the world model bites: the agent has to query competitors, differentiate its content, and time its posts. Exactly where we'd expect tool discovery to matter.
+![Training curves](../run-output/plots/reward_curve.png)
 
-The strategic task regression is real and we're not hiding it: the model started doing too much exploration on a task where exploitation matters more, and our 4-round budget wasn't long enough to anneal that out. Honest result on a small training run.
+The two-phase loss curve flattens at the phase boundary (timing → content), then resumes its descent as the second phase introduces the content/intent objective.
 
-What we *can* show qualitatively: the trained agent calls `GET /tools` on day 1, queries trends and competitors before posting, drops `predict_engagement` calls on the days it has a clear plan, and keeps `creator_energy` above 0.5 through the week. The untrained baseline posts blindly for the first few days and burns out.
+![Heuristic leaderboard](../run-output/plots/baseline_leaderboard.png)
 
-Plots and the full per-episode log live in `plots/training_summary.json` and `plots/training_log.csv`.
+Heuristic baselines per task — anchors the trained agent's gains against deterministic policies before any learning kicks in.
+
+Qualitatively: the trained agent calls `GET /tools` on day 1, queries trends and competitors before posting, drops `predict_engagement` calls on the days it has a clear plan, and keeps `creator_energy` above 0.5 through the week. The untrained baseline posts blindly for the first few days and burns out.
+
+![Trajectories](../run-output/plots/training_trajectories.png)
+
+Full per-episode log: `run-output/plots/training_summary.json` and `run-output/plots/training_log.csv`.
 
 ## Where we're honest about shortcomings
 

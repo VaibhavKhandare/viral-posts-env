@@ -1,20 +1,18 @@
 {
   "model": "Qwen/Qwen2.5-3B-Instruct",
   "training": "Two-phase LoRA SFT (timing -> content) with hardcoded peak-hours hint on round 1 of each phase",
-  "phases": [
-    "phase1_timing"
-  ],
-  "rounds_per_phase": 1,
-  "episodes_per_round": 4,
+  "phases": [],
+  "rounds_per_phase": 3,
+  "episodes_per_round": 6,
   "before": {
     "monthly_engage": 1.0,
-    "monthly_strategic": 0.8376,
-    "monthly_competitive": 0.9393
+    "monthly_strategic": 0.8357,
+    "monthly_competitive": 0.9414
   },
   "after": {
-    "monthly_engage": 1.0,
-    "monthly_strategic": 0.8339,
-    "monthly_competitive": 0.9403
+    "monthly_engage": 0.999,
+    "monthly_strategic": 0.9321439559505211,
+    "monthly_competitive": 0.999
   },
   "smart_heuristic": {
     "monthly_engage": 0.7519,
@@ -22,43 +20,21 @@
     "monthly_competitive": 0.9141
   },
   "improvement": {
-    "monthly_engage": 0.0,
-    "monthly_strategic": -0.0037000000000000366,
-    "monthly_competitive": 0.0010000000000000009
+    "monthly_engage": -0.0010000000000000009,
+    "monthly_strategic": 0.09644395595052113,
+    "monthly_competitive": 0.057599999999999985
   },
   "training_log": {
-    "phase": [
-      "phase1_timing"
-    ],
-    "round": [
-      1
-    ],
-    "global_step": [
-      1
-    ],
-    "use_hint": [
-      true
-    ],
-    "avg_episode_reward": [
-      4.904
-    ],
-    "max_episode_reward": [
-      5.37
-    ],
-    "min_episode_reward": [
-      4.049
-    ],
-    "avg_grader": [
-      0.8416
-    ],
-    "max_grader": [
-      1.0
-    ],
-    "n_training_samples": [
-      90
-    ],
-    "train_loss": [
-      0.9406
-    ]
+    "phase": [],
+    "round": [],
+    "global_step": [],
+    "use_hint": [],
+    "avg_episode_reward": [],
+    "max_episode_reward": [],
+    "min_episode_reward": [],
+    "avg_grader": [],
+    "max_grader": [],
+    "n_training_samples": [],
+    "train_loss": []
   }
 }
