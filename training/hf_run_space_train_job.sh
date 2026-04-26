@@ -33,6 +33,8 @@ cd /work
 chmod +x training/hf_remote_run.sh
 exec bash training/hf_remote_run.sh'
 
+# Use `--` to terminate hf CLI option parsing — otherwise `bash -lc <script>`
+# is parsed as `--label c <script>` (typer consumes the `-l` short flag).
 exec hf jobs run \
   --flavor "$FLAVOR" \
   --detach \
@@ -41,5 +43,4 @@ exec hf jobs run \
   --env "SPACE_REPO=$SPACE_REPO" \
   --env "NB_EXEC_TIMEOUT=$NB_EXEC_TIMEOUT" \
   --env "SMOKE_MODE=$SMOKE_MODE" \
-  "$IMAGE" \
-  bash -lc "$BOOTSTRAP"
+  -- "$IMAGE" bash -c "$BOOTSTRAP"
