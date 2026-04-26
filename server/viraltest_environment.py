@@ -26,6 +26,7 @@ from openenv.core.env_server.types import State
 try:
     from ..models import (
         CollabProposal,
+        DailyInteractions,
         EngagementSignals,
         HeadlineMetrics,
         JudgeReport,
@@ -38,6 +39,7 @@ try:
 except ImportError:
     from models import (
         CollabProposal,
+        DailyInteractions,
         EngagementSignals,
         HeadlineMetrics,
         JudgeReport,
@@ -86,6 +88,13 @@ for niche_name, niche_data in _TOPICS_DATA.get("niches", {}).items():
 
 _HEATMAP_GRID: Dict[int, List[float]] = {
     int(k): v for k, v in _HEATMAP_DATA.get("grid", {}).items()
+}
+
+# Mocked niche + follower-count lookups for the collab system. Live in the overlap matrix file
+# so the same source-of-truth carries (a) Jaccard overlap, (b) niche label, (c) follower size.
+_NICHE_BY_ARCHETYPE: Dict[str, str] = dict(_OVERLAP_DATA.get("niche_by_archetype", {}))
+_FOLLOWERS_BY_ARCHETYPE: Dict[str, int] = {
+    k: int(v) for k, v in _OVERLAP_DATA.get("mock_followers_by_archetype", {}).items()
 }
 
 # ---------------------------------------------------------------------------
@@ -166,11 +175,55 @@ TREND_DEFAULT_HALFLIFE_HOURS = 60
 TREND_MATCH_STOPWORDS = {"tips", "guide", "review", "routine", "ideas", "hacks", "tutorial", "the", "a", "an", "and", "of", "for", "to"}
 # Collab reward shaping (Later 2023 reach study, HypeAuditor 2024 niche affinity, Rival IQ 2025 overlap patterns,
 # Cen et al. 2024 disengagement model for diminishing returns instead of a hard cap).
-COLLAB_REACH_K = 0.60      # cross-audience exposure: capped reach uplift when overlap is 0
-COLLAB_AFFINITY_K = 0.30   # same-audience affinity: per-impression engagement uplift when overlap is 1
-COLLAB_GROWTH_K = 1.50     # cross-pollination follower spillover, scales (1 - overlap)
 COLLAB_PARTNER_REPEAT_PENALTY = 0.7  # discount on multipliers when partner reused this brand
 COLLAB_FATIGUE_K = 0.3     # per-collab diminishing-returns factor: 1/(1+K*prior_collabs_this_episode)
+
+# Niche-aware tiered shaping (overlap = Jaccard intersection fraction).
+# Hard rule: any diff-niche multiplier must be < the minimum same-niche-low multiplier
+# so the env never recommends a diff-niche collab over an equal-overlap same-niche one.
+COLLAB_LOW_OVERLAP_THRESHOLD = 0.20      # < this counts as "low intersection"
+COLLAB_HIGH_OVERLAP_THRESHOLD = 0.40     # >= this counts as "high intersection"
+COLLAB_GUARDRAIL_OVERLAP_MIN = 0.10      # below this -> recommended=False (intersection-too-low guardrail)
+COLLAB_GUARDRAIL_FOLLOWER_GAP_MAX = 0.25 # |partner - user| / max > this -> follower-size mismatch
+COLLAB_FORCED_PENALTY_ENG = 0.7          # eng_mult applied if agent ignores guardrail
+COLLAB_FORCED_PENALTY_GROWTH = 0.6       # growth_mult applied if agent ignores guardrail
+
+# Same niche, LOW overlap -> HIGH reward (best case). Smoothly interpolated by overlap (low->high uplift as overlap->0).
+COLLAB_SAME_LOW_ENG = (1.50, 1.80)
+COLLAB_SAME_LOW_GROWTH = (1.60, 2.00)
+# Same niche, HIGH overlap -> LOW reward (no point, audience already shared).
+COLLAB_SAME_HIGH_ENG = 0.85
+COLLAB_SAME_HIGH_GROWTH = 0.90
+# Diff niche, LOW overlap -> MED reward (cross-pollination, capped < SAME_LOW min).
+COLLAB_DIFF_LOW_ENG = (1.20, 1.40)
+COLLAB_DIFF_LOW_GROWTH = (1.30, 1.55)
+# Diff niche, HIGH overlap -> LOW reward (mismatch).
+COLLAB_DIFF_HIGH_ENG = 0.75
+COLLAB_DIFF_HIGH_GROWTH = 0.80
+
+# Interaction (likes/comments/replies) tunables
+INTERACT_ENERGY_LIKE = 0.005
+INTERACT_ENERGY_COMMENT = 0.012
+INTERACT_ENERGY_REPLY = 0.018
+INTERACT_HEALTHY_LIKES = (5, 20)
+INTERACT_HEALTHY_COMMENTS = (3, 10)
+INTERACT_LIKE_REACH_BUFF = 0.04
+INTERACT_COMMENT_REACH_BUFF = 0.08
+INTERACT_REPLY_REWARD_PER = 0.01
+INTERACT_REPLY_REWARD_CAP = 0.15
+INTERACT_DAILY_REWARD_CAP = 0.15
+INTERACT_SPAM_LIKES = 30
+INTERACT_SPAM_COMMENTS = 20
+INTERACT_SPAM_REACH_PENALTY = 0.85
+INTERACT_SPAM_SHADOWBAN_BUMP = 0.20
+INTERACT_IGNORE_THRESHOLD_K = 0.05
+INTERACT_IGNORE_LOYALTY_DECAY = 0.97
+INTERACT_OFFNICHE_THRESHOLD = 0.60
+INTERACT_OFFNICHE_REACH_PENALTY = 0.90
+INTERACT_LOWQ_THRESHOLD = 0.30
+INTERACT_LOWQ_WEIGHT = 0.4
+INTERACT_VERY_LOWQ_THRESHOLD = 0.10
+INTERACT_VERY_LOWQ_PENALTY = -0.03
 
 API_BUDGET_INITIAL = 10**9  # effectively unlimited; rate-limit removed
 
@@ -251,16 +304,20 @@ TOOL_CATALOG = {
         "parameters": {"scheduled_actions": {"type": "array"}},
     },
     "query_creator_pool": {
-        "description": "List available competitor archetypes for potential collaboration, with audience overlap %.",
+        "description": "List available competitor archetypes for potential collaboration with audience overlap %, niche match, mocked follower counts, intersection size, and a recommendation flag (recommended=False when guardrails block: zero followers, intersection<10%, or follower-size gap>25%).",
         "parameters": {},
     },
     "propose_collab": {
-        "description": "Propose a collab post with a competitor at a specific hour. The post you schedule at that hour will be co-authored with the partner.",
+        "description": "Propose a collab post with a competitor at a specific hour. The post you schedule at that hour will be co-authored. Reward shaping: same-niche + low overlap = HIGH; same-niche + high overlap = LOW; diff-niche always capped below same-niche-low. Guardrail violations apply a 0.7x engagement / 0.6x growth penalty AND surface in the JudgeReport.",
         "parameters": {
             "partner_id": {"type": "string"},
             "content_type": {"type": "string", "enum": ["reel", "story", "carousel", "text_post"]},
             "hour": {"type": "integer", "minimum": 0, "maximum": 23},
         },
+    },
+    "query_interaction_norms": {
+        "description": "Discover healthy daily ranges for likes/comments/replies and the current shadowban_risk. Use before submitting ViraltestAction.interactions.",
+        "parameters": {},
     },
 }
 
@@ -305,6 +362,15 @@ class ViraltestEnvironment(Environment):
         self._collabs_this_month = 0
         self._collab_history: List[str] = []
         self._active_collab: Optional[CollabProposal] = None
+        self._collab_violations: List[str] = []  # collab guardrail breaches this step
+        self._user_niche: str = _NICHE_BY_ARCHETYPE.get("user_creator", "generic")
+
+        # Interaction state
+        self._pending_reach_mult: float = 1.0   # applied to next day's posts (one-shot)
+        self._shadowban_risk: float = 0.0
+        self._engagement_rate_loyalty_mult: float = 1.0  # compounding loyalty drop from ignoring audience
+        self._interaction_violations: List[str] = []
+        self._last_interaction_summary: Optional[Dict[str, Any]] = None
         self._low_energy_days = 0
         self._total_posts_this_week = 0
         self._week_start_day = 0
@@ -486,7 +552,7 @@ class ViraltestEnvironment(Environment):
 
         return daily_fatigue * weekly_mult
 
-    # ----- collab multipliers (overlap-driven) -----
+    # ----- collab evaluation (niche-aware, overlap-tiered) -----
 
     def _user_partner_overlap(self, partner_id: str) -> Optional[float]:
         ids = _OVERLAP_DATA.get("archetype_ids", [])
@@ -496,21 +562,297 @@ class ViraltestEnvironment(Environment):
         p = ids.index(partner_id)
         return _OVERLAP_DATA["matrix"][u][p]
 
-    def _collab_multipliers(self, partner_id: str) -> Tuple[float, float]:
-        """Returns (engagement_multiplier, follower_growth_multiplier)."""
-        o = self._user_partner_overlap(partner_id)
-        if o is None:
-            return 1.0, 1.0
-        reach = 1.0 + (1.0 - o) * COLLAB_REACH_K
-        affinity = 1.0 + o * COLLAB_AFFINITY_K
-        growth = 1.0 + (1.0 - o) * COLLAB_GROWTH_K
-        eng_boost = reach * affinity
+    def _partner_niche(self, partner_id: str) -> str:
+        return _NICHE_BY_ARCHETYPE.get(partner_id, "generic")
+
+    def _partner_followers(self, partner_id: str) -> int:
+        return _FOLLOWERS_BY_ARCHETYPE.get(partner_id, 0)
+
+    @staticmethod
+    def _interp(span: Tuple[float, float], t: float) -> float:
+        """Linear interp from span[0] (t=0) to span[1] (t=1)."""
+        t = max(0.0, min(1.0, t))
+        return span[0] + (span[1] - span[0]) * t
+
+    def _collab_tier_multipliers(self, same_niche: bool, overlap: float) -> Tuple[float, float]:
+        """Pure 2x2 tier shaping (no fatigue/repeat/guardrail effects yet)."""
+        # Smooth interp factor: how "low" is this overlap on the [0, LOW_THRESHOLD] scale.
+        low_t = 1.0 - min(1.0, overlap / COLLAB_LOW_OVERLAP_THRESHOLD)  # 1 at overlap=0, 0 at threshold
+        if same_niche:
+            if overlap < COLLAB_LOW_OVERLAP_THRESHOLD:
+                eng = self._interp(COLLAB_SAME_LOW_ENG, low_t)
+                growth = self._interp(COLLAB_SAME_LOW_GROWTH, low_t)
+            elif overlap >= COLLAB_HIGH_OVERLAP_THRESHOLD:
+                eng = COLLAB_SAME_HIGH_ENG
+                growth = COLLAB_SAME_HIGH_GROWTH
+            else:
+                # Mid-band linear interpolation between LOW endpoint (overlap=LOW_TH) and HIGH endpoint (overlap=HIGH_TH).
+                mid_t = (overlap - COLLAB_LOW_OVERLAP_THRESHOLD) / (COLLAB_HIGH_OVERLAP_THRESHOLD - COLLAB_LOW_OVERLAP_THRESHOLD)
+                eng = self._interp((COLLAB_SAME_LOW_ENG[0], COLLAB_SAME_HIGH_ENG), mid_t)
+                growth = self._interp((COLLAB_SAME_LOW_GROWTH[0], COLLAB_SAME_HIGH_GROWTH), mid_t)
+        else:
+            if overlap < COLLAB_LOW_OVERLAP_THRESHOLD:
+                eng = self._interp(COLLAB_DIFF_LOW_ENG, low_t)
+                growth = self._interp(COLLAB_DIFF_LOW_GROWTH, low_t)
+            elif overlap >= COLLAB_HIGH_OVERLAP_THRESHOLD:
+                eng = COLLAB_DIFF_HIGH_ENG
+                growth = COLLAB_DIFF_HIGH_GROWTH
+            else:
+                mid_t = (overlap - COLLAB_LOW_OVERLAP_THRESHOLD) / (COLLAB_HIGH_OVERLAP_THRESHOLD - COLLAB_LOW_OVERLAP_THRESHOLD)
+                eng = self._interp((COLLAB_DIFF_LOW_ENG[0], COLLAB_DIFF_HIGH_ENG), mid_t)
+                growth = self._interp((COLLAB_DIFF_LOW_GROWTH[0], COLLAB_DIFF_HIGH_GROWTH), mid_t)
+            # Hard rule: diff-niche must always be < same-niche-low minimum (cap just below).
+            eng = min(eng, COLLAB_SAME_LOW_ENG[0] - 0.01)
+            growth = min(growth, COLLAB_SAME_LOW_GROWTH[0] - 0.01)
+        return eng, growth
+
+    def _collab_evaluation(self, partner_id: str) -> Dict[str, Any]:
+        """Single source of truth: tier reward + guardrails + final multipliers (after fatigue/repeat).
+
+        Returns a dict consumable by both query_creator_pool (for recommendation surface)
+        and _process_hour_action (for applied multipliers).
+        """
+        overlap = self._user_partner_overlap(partner_id)
+        if overlap is None:
+            return {
+                "partner_id": partner_id,
+                "overlap": None,
+                "same_niche": False,
+                "partner_followers": 0,
+                "user_followers": self._followers,
+                "follower_gap_pct": 1.0,
+                "intersection_size": 0,
+                "recommended": False,
+                "reason": "unknown_partner",
+                "tier_eng_mult": 1.0,
+                "tier_growth_mult": 1.0,
+                "eng_mult": 1.0,
+                "growth_mult": 1.0,
+            }
+
+        partner_niche = self._partner_niche(partner_id)
+        same_niche = partner_niche == self._user_niche
+        partner_followers = self._partner_followers(partner_id)
+        user_followers = max(0, int(self._followers))
+        denom = max(1, max(partner_followers, user_followers))
+        gap_pct = abs(partner_followers - user_followers) / denom if denom else 1.0
+
+        # Mock intersection size via Jaccard inversion: union ≈ (|A|+|B|)/(1+overlap), intersection = overlap*union.
+        union_approx = (partner_followers + user_followers) / (1.0 + overlap) if overlap >= 0 else 0.0
+        intersection_size = int(round(overlap * union_approx))
+
+        # Guardrails (in priority order)
+        recommended = True
+        reason: Optional[str] = None
+        if partner_followers <= 0:
+            recommended = False
+            reason = "partner_zero_followers"
+        elif overlap < COLLAB_GUARDRAIL_OVERLAP_MIN:
+            recommended = False
+            reason = "intersection_below_10pct"
+        elif gap_pct > COLLAB_GUARDRAIL_FOLLOWER_GAP_MAX:
+            recommended = False
+            reason = "follower_size_mismatch"
+
+        tier_eng, tier_growth = self._collab_tier_multipliers(same_niche, overlap)
+
+        eng_mult = tier_eng
+        growth_mult = tier_growth
+
+        # Repeat-partner discount (existing behavior preserved).
         if partner_id in self._collab_history[:-1]:
-            eng_boost *= COLLAB_PARTNER_REPEAT_PENALTY
-            growth *= COLLAB_PARTNER_REPEAT_PENALTY
+            eng_mult *= COLLAB_PARTNER_REPEAT_PENALTY
+            growth_mult *= COLLAB_PARTNER_REPEAT_PENALTY
+
+        # Diminishing returns across the episode (Cen 2024).
         prior = max(0, self._collabs_this_month - 1)
         fatigue = 1.0 / (1.0 + COLLAB_FATIGUE_K * prior)
-        return eng_boost * fatigue, growth * fatigue
+        eng_mult *= fatigue
+        growth_mult *= fatigue
+
+        return {
+            "partner_id": partner_id,
+            "overlap": round(overlap, 3),
+            "same_niche": same_niche,
+            "partner_niche": partner_niche,
+            "user_niche": self._user_niche,
+            "partner_followers": partner_followers,
+            "user_followers": user_followers,
+            "follower_gap_pct": round(gap_pct, 3),
+            "intersection_size": intersection_size,
+            "recommended": recommended,
+            "reason": reason,
+            "tier_eng_mult": round(tier_eng, 3),
+            "tier_growth_mult": round(tier_growth, 3),
+            "eng_mult": round(eng_mult, 3),
+            "growth_mult": round(growth_mult, 3),
+        }
+
+    def _collab_multipliers(self, partner_id: str) -> Tuple[float, float]:
+        """Returns (engagement_multiplier, follower_growth_multiplier).
+
+        Applies guardrail penalties when the agent forces a non-recommended collab.
+        Side effect: appends to self._collab_violations for the JudgeReport.
+        """
+        ev = self._collab_evaluation(partner_id)
+        eng = ev["eng_mult"]
+        growth = ev["growth_mult"]
+        if not ev["recommended"]:
+            eng *= COLLAB_FORCED_PENALTY_ENG
+            growth *= COLLAB_FORCED_PENALTY_GROWTH
+            self._collab_violations.append(
+                f"collab_guardrail:{ev.get('reason', 'blocked')}@{partner_id}"
+            )
+        return eng, growth
+
+    # ----- interactions (likes/comments/replies) -----
+
+    def _process_interactions(
+        self, interactions: Optional[DailyInteractions]
+    ) -> Tuple[float, Dict[str, Any]]:
+        """Apply daily interaction effects: energy cost, reach buffs (next post), and 5 penalty paths.
+
+        Returns (reward_delta, summary_dict). The reward_delta is added to today's averaged reward;
+        reach effects propagate via self._pending_reach_mult (consumed at next _process_hour_action).
+        Loyalty effects propagate via self._engagement_rate_loyalty_mult (compounding).
+        """
+        # Reset reach mult for the day (default neutral); we accumulate per-day, then it's consumed
+        # by today's posts and any leftover carries over by simply staying at 1.0 next step.
+        self._pending_reach_mult = 1.0
+        self._interaction_violations = []
+
+        summary: Dict[str, Any] = {
+            "likes_on_others": 0,
+            "comments_on_others": 0,
+            "replies_to_audience": 0,
+            "energy_cost": 0.0,
+            "reach_modifier": 1.0,
+            "shadowban_risk": round(self._shadowban_risk, 3),
+            "loyalty_mult": round(self._engagement_rate_loyalty_mult, 3),
+            "reward_delta": 0.0,
+            "violations": [],
+            "summary": "no_interactions",
+        }
+
+        if interactions is None:
+            return 0.0, summary
+
+        likes = int(interactions.likes_on_others)
+        comments = int(interactions.comments_on_others)
+        replies = int(interactions.replies_to_audience)
+        targets = list(interactions.target_partner_ids or [])
+        quality = float(interactions.avg_reply_quality)
+
+        # 1) Energy cost (paid up front; can push creator below 0.2 -> burnout track).
+        energy_cost = (
+            INTERACT_ENERGY_LIKE * likes
+            + INTERACT_ENERGY_COMMENT * comments
+            + INTERACT_ENERGY_REPLY * replies
+        )
+        self._energy = max(0.0, self._energy - energy_cost)
+
+        # Determine off-niche share among interaction targets.
+        off_niche_share = 0.0
+        if targets:
+            off = 0
+            for tid in targets:
+                if self._partner_niche(tid) != self._user_niche:
+                    off += 1
+            off_niche_share = off / len(targets)
+
+        # 2) Reach buffs (next post engagement multiplier) — only when on-niche and within healthy band.
+        on_niche_share = 1.0 - off_niche_share
+        reach_mult = 1.0
+        if on_niche_share > 0:
+            if INTERACT_HEALTHY_LIKES[0] <= likes <= INTERACT_HEALTHY_LIKES[1]:
+                reach_mult *= 1.0 + INTERACT_LIKE_REACH_BUFF * on_niche_share
+            if INTERACT_HEALTHY_COMMENTS[0] <= comments <= INTERACT_HEALTHY_COMMENTS[1]:
+                reach_mult *= 1.0 + INTERACT_COMMENT_REACH_BUFF * on_niche_share
+
+        reward_delta = 0.0
+
+        # 3) Reply reward (audience loyalty), scaled by quality.
+        reply_weight = INTERACT_LOWQ_WEIGHT if quality < INTERACT_LOWQ_THRESHOLD else 1.0
+        reply_reward = min(
+            INTERACT_REPLY_REWARD_CAP,
+            INTERACT_REPLY_REWARD_PER * replies * quality * reply_weight,
+        )
+        reward_delta += reply_reward
+
+        # 4) Penalties — each surfaces a violation string.
+        # 4a) Spam volume.
+        if likes > INTERACT_SPAM_LIKES or comments > INTERACT_SPAM_COMMENTS:
+            reach_mult *= INTERACT_SPAM_REACH_PENALTY
+            self._shadowban_risk = min(1.0, self._shadowban_risk + INTERACT_SPAM_SHADOWBAN_BUMP)
+            self._interaction_violations.append(
+                f"interaction_spam:likes={likes},comments={comments}"
+            )
+
+        # 4b) Off-niche heavy interaction.
+        if off_niche_share >= INTERACT_OFFNICHE_THRESHOLD and len(targets) >= 3:
+            reach_mult *= INTERACT_OFFNICHE_REACH_PENALTY
+            self._interaction_violations.append(
+                f"interaction_off_niche:share={off_niche_share:.2f}"
+            )
+
+        # 4c) Ignoring own audience: expected_replies = K * recent_engagement_proxy (use last day's posts)
+        prev_day = max(0, self._day - 1)
+        expected_signal = self._posts_per_day.get(prev_day, 0)  # # posts yesterday as a proxy
+        # Multiply by a small constant so 1 post = 1 expected reply unit floor.
+        expected_replies = expected_signal * 1.0
+        if expected_replies > 0 and replies < INTERACT_IGNORE_THRESHOLD_K * expected_replies * 20:
+            # Compounding loyalty drop on engagement_rate, capped at 0.5x floor.
+            self._engagement_rate_loyalty_mult = max(
+                0.5, self._engagement_rate_loyalty_mult * INTERACT_IGNORE_LOYALTY_DECAY
+            )
+            self._interaction_violations.append(
+                f"interaction_ignoring_own:replies={replies}"
+            )
+
+        # 4d) Low quality replies — already weighted; if extremely low quality, additional penalty.
+        if replies > 0 and quality < INTERACT_VERY_LOWQ_THRESHOLD:
+            reward_delta += INTERACT_VERY_LOWQ_PENALTY
+            self._interaction_violations.append(
+                f"interaction_low_quality:q={quality:.2f}"
+            )
+
+        # 4e) Energy: covered upstream; just record if it pushed creator into low-energy zone.
+        if energy_cost > 0 and self._energy < 0.2:
+            self._interaction_violations.append(
+                f"interaction_energy_drain:residual_energy={self._energy:.2f}"
+            )
+
+        # Cap daily reward_delta to avoid blowing past the per-step [0,1] reward envelope.
+        reward_delta = max(-INTERACT_DAILY_REWARD_CAP, min(INTERACT_DAILY_REWARD_CAP, reward_delta))
+
+        # Persist computed reach_mult so today's hourly posts pick it up.
+        self._pending_reach_mult = max(0.5, reach_mult)
+
+        # Decay shadowban_risk slightly on quiet days (0 likes & 0 comments).
+        if likes == 0 and comments == 0:
+            self._shadowban_risk = max(0.0, self._shadowban_risk - 0.05)
+
+        summary.update({
+            "likes_on_others": likes,
+            "comments_on_others": comments,
+            "replies_to_audience": replies,
+            "energy_cost": round(energy_cost, 4),
+            "reach_modifier": round(self._pending_reach_mult, 3),
+            "shadowban_risk": round(self._shadowban_risk, 3),
+            "loyalty_mult": round(self._engagement_rate_loyalty_mult, 3),
+            "off_niche_share": round(off_niche_share, 2),
+            "reward_delta": round(reward_delta, 4),
+            "violations": list(self._interaction_violations),
+            "summary": (
+                "spam" if likes > INTERACT_SPAM_LIKES or comments > INTERACT_SPAM_COMMENTS
+                else "off_niche" if off_niche_share >= INTERACT_OFFNICHE_THRESHOLD and len(targets) >= 3
+                else "low_quality" if replies > 0 and quality < INTERACT_VERY_LOWQ_THRESHOLD
+                else "ignoring_own" if expected_replies > 0 and replies < INTERACT_IGNORE_THRESHOLD_K * expected_replies * 20
+                else "healthy" if reward_delta > 0 or reach_mult > 1.0
+                else "neutral"
+            ),
+        })
+        return reward_delta, summary
 
     # ----- engagement signals (Mosseri-aligned) -----
 
@@ -597,18 +939,68 @@ class ViraltestEnvironment(Environment):
         elif tool.name == "query_creator_pool":
             pool = []
             for comp in self._competitors:
-                overlap = self._user_partner_overlap(comp.id)
+                ev = self._collab_evaluation(comp.id)
                 pool.append({
-                    "id": comp.id, "name": comp.name, "niche": comp.niche,
-                    "audience_overlap": round(overlap, 2) if overlap is not None else None,
+                    "id": comp.id,
+                    "name": comp.name,
+                    "niche": comp.niche,
+                    "audience_overlap": ev.get("overlap"),
+                    "mock_followers": ev.get("partner_followers"),
+                    "intersection_size": ev.get("intersection_size"),
+                    "same_niche": ev.get("same_niche"),
+                    "follower_gap_pct": ev.get("follower_gap_pct"),
+                    "recommended": ev.get("recommended"),
+                    "reason": ev.get("reason"),
+                    "expected_eng_mult": ev.get("eng_mult"),
+                    "expected_growth_mult": ev.get("growth_mult"),
                 })
-            return ToolResult(name=tool.name, data=pool, budget_remaining=self._api_budget)
+            return ToolResult(
+                name=tool.name,
+                data={
+                    "user_niche": self._user_niche,
+                    "user_followers": int(self._followers),
+                    "pool": pool,
+                },
+                budget_remaining=self._api_budget,
+            )
 
         elif tool.name == "propose_collab":
             partner_id = tool.arguments.get("partner_id", "")
             if partner_id not in [c.id for c in self._competitors]:
                 return ToolResult(name=tool.name, success=False, error=f"unknown partner: {partner_id}", budget_remaining=self._api_budget)
-            return ToolResult(name=tool.name, data={"status": "proposal_accepted", "partner_id": partner_id}, budget_remaining=self._api_budget)
+            ev = self._collab_evaluation(partner_id)
+            return ToolResult(
+                name=tool.name,
+                data={
+                    "status": "proposal_accepted" if ev["recommended"] else "proposal_accepted_with_warning",
+                    "partner_id": partner_id,
+                    "recommended": ev["recommended"],
+                    "reason": ev["reason"],
+                    "same_niche": ev["same_niche"],
+                    "audience_overlap": ev["overlap"],
+                    "intersection_size": ev["intersection_size"],
+                    "expected_eng_mult": ev["eng_mult"],
+                    "expected_growth_mult": ev["growth_mult"],
+                },
+                budget_remaining=self._api_budget,
+            )
+
+        elif tool.name == "query_interaction_norms":
+            return ToolResult(
+                name=tool.name,
+                data={
+                    "healthy_likes_per_day": list(INTERACT_HEALTHY_LIKES),
+                    "healthy_comments_per_day": list(INTERACT_HEALTHY_COMMENTS),
+                    "spam_threshold_likes": INTERACT_SPAM_LIKES,
+                    "spam_threshold_comments": INTERACT_SPAM_COMMENTS,
+                    "off_niche_share_max": INTERACT_OFFNICHE_THRESHOLD,
+                    "min_reply_quality": INTERACT_LOWQ_THRESHOLD,
+                    "current_shadowban_risk": round(self._shadowban_risk, 3),
+                    "user_niche": self._user_niche,
+                    "expected_replies_per_unit_engagement": INTERACT_IGNORE_THRESHOLD_K,
+                },
+                budget_remaining=self._api_budget,
+            )
 
         return ToolResult(name=tool.name, success=False, error=f"unknown tool: {tool.name}", budget_remaining=self._api_budget)
 
@@ -664,6 +1056,14 @@ class ViraltestEnvironment(Environment):
             pc -= 0.05 * len(errors)
         if self._hours_since_sleep > 22:
             violations.append(f"sleep_debt: {self._hours_since_sleep}h awake (Van Dongen 2003)")
+            pc -= 0.10
+        # Collab guardrail breaches surfaced by _collab_multipliers (forced past block).
+        for v in self._collab_violations:
+            violations.append(v)
+            pc -= 0.10
+        # Interaction system violations (spam/off-niche/ignoring/low-quality/energy-drain).
+        for v in self._interaction_violations:
+            violations.append(v)
             pc -= 0.10
 
         burnout_pressure = (1.0 - energy_min) * 0.4 + self._sleep_debt * 0.3 + (self._low_energy_days / 5.0) * 0.3
@@ -729,6 +1129,11 @@ class ViraltestEnvironment(Environment):
         self._state = State(episode_id=episode_id or str(uuid4()), step_count=0)
         self._init_state()
 
+        # Optional user-niche override (for collab same/diff niche scenarios).
+        user_niche_override = kwargs.get("user_niche")
+        if user_niche_override:
+            self._user_niche = str(user_niche_override)
+
         self._shift_label = kwargs.get("shift_label")
         self._chain_id = kwargs.get("episode_chain_id")
 
@@ -766,10 +1171,15 @@ class ViraltestEnvironment(Environment):
 
         # Process collab proposal (no hard cap; diminishing returns enforced via _collab_multipliers)
         self._active_collab = None
+        self._collab_violations = []
         if action.collab:
             self._collabs_this_month += 1
             self._collab_history.append(action.collab.partner_id)
             self._active_collab = action.collab
+
+        # Process interactions BEFORE the day's hourly loop so energy cost and reach buffs/penalties
+        # influence the same day's posts.
+        interaction_reward, interaction_summary = self._process_interactions(action.interactions)
 
         # Validate scheduled actions
         schedule: Dict[int, ScheduledAction] = {}
@@ -837,8 +1247,13 @@ class ViraltestEnvironment(Environment):
         if 1 <= self._posts_per_day.get(prev_day, 0) <= 2:
             self._days_with_good_posts.add(prev_day)
 
-        avg_reward = daily_reward / 24.0
+        # Apply ignored-audience compounding loyalty multiplier into the per-day reward.
+        avg_reward = (daily_reward / 24.0) + interaction_reward
+        avg_reward = max(0.0, min(1.0, avg_reward))
         error_str = "; ".join(errors) if errors else None
+
+        # Finalize this step's interaction summary on the obs.
+        self._last_interaction_summary = interaction_summary
 
         done = self._state.step_count >= TASK_HORIZON or self._energy <= 0.0
         coach = self._compute_coach_feedback(daily_engagement)
@@ -864,6 +1279,7 @@ class ViraltestEnvironment(Environment):
                 daily_posts_made=daily_posts, daily_energy_min=energy_min,
                 tool_results=tool_results, engagement_signals=daily_signals,
                 coach_feedback=coach, judge_report=judge, headline_metrics=headline,
+                interaction_metrics=interaction_summary,
             )
             return self._final_observation
 
@@ -873,6 +1289,7 @@ class ViraltestEnvironment(Environment):
             daily_posts_made=daily_posts, daily_energy_min=energy_min,
             tool_results=tool_results, engagement_signals=daily_signals,
             coach_feedback=coach, judge_report=judge,
+            interaction_metrics=interaction_summary,
         )
 
     def _process_hour_action(self, sa: ScheduledAction) -> Tuple[float, float, Optional[EngagementSignals]]:
@@ -917,6 +1334,10 @@ class ViraltestEnvironment(Environment):
                     * trending_bonus * comp_diff * fatigue * algo_mult
                     * niche_mult * saturation_factor
                 )
+
+                # Interaction-driven reach modifier (set by _process_interactions earlier this step).
+                # Multiplicative on engagement; capped at 0.5 floor inside _process_interactions.
+                engagement *= getattr(self, "_pending_reach_mult", 1.0)
 
                 if self._active_collab is not None and self._active_collab.hour == sa.hour:
                     eng_m, growth_m = self._collab_multipliers(self._active_collab.partner_id)
@@ -1101,9 +1522,11 @@ class ViraltestEnvironment(Environment):
         coach_feedback: Optional[Dict[str, Any]] = None,
         judge_report: Optional[JudgeReport] = None,
         headline_metrics: Optional[HeadlineMetrics] = None,
+        interaction_metrics: Optional[Dict[str, Any]] = None,
     ) -> ViraltestObservation:
         recent_eng = self._engagement_history[-10:] if self._engagement_history else []
         eng_rate = sum(recent_eng) / len(recent_eng) if recent_eng else 0.0
+        eng_rate *= getattr(self, "_engagement_rate_loyalty_mult", 1.0)
 
         meta: Dict[str, Any] = {"step": self._state.step_count, "task": self._task}
         if grader_score is not None:
@@ -1153,6 +1576,7 @@ class ViraltestEnvironment(Environment):
             done=done,
             reward=round(reward, 4),
             metadata=meta,
+            interaction_metrics=interaction_metrics,
         )
 
     # ----- graders (monthly) -----

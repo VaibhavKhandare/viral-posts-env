@@ -29,10 +29,22 @@ if "ENABLE_WEB_INTERFACE" not in os.environ:
     os.environ["ENABLE_WEB_INTERFACE"] = "true"
 
 try:
-    from ..models import ScheduledAction, ViraltestAction, ViraltestObservation
+    from ..models import (
+        CollabProposal,
+        DailyInteractions,
+        ScheduledAction,
+        ViraltestAction,
+        ViraltestObservation,
+    )
     from .viraltest_environment import TOOL_CATALOG, ViraltestEnvironment
 except ImportError:
-    from models import ScheduledAction, ViraltestAction, ViraltestObservation
+    from models import (
+        CollabProposal,
+        DailyInteractions,
+        ScheduledAction,
+        ViraltestAction,
+        ViraltestObservation,
+    )
     from server.viraltest_environment import TOOL_CATALOG, ViraltestEnvironment
 
 try:
@@ -174,10 +186,17 @@ _CONTENT_TYPES = ["reel", "carousel", "story", "text_post"]
 _TOPICS = ["AI tools", "fitness routine", "growth hacks", "travel guide", "food recipe", "wellness tips"]
 
 
-def _make_daily_plan(actions: list, notes: Optional[str] = None) -> ViraltestAction:
+def _make_daily_plan(
+    actions: list,
+    notes: Optional[str] = None,
+    collab: Optional[CollabProposal] = None,
+    interactions: Optional[DailyInteractions] = None,
+) -> ViraltestAction:
     return ViraltestAction(
         scheduled_actions=[ScheduledAction(**a) for a in actions],
         notes=notes,
+        collab=collab,
+        interactions=interactions,
     )
 
 
@@ -236,12 +255,96 @@ def _plan_minimal(obs: dict, day: int) -> ViraltestAction:
     ])
 
 
-SCENARIOS = {
-    "always_rest": ("Always Rest", "Never posts. Tests follower decay.", _plan_always_rest),
-    "spam": ("Spam Post", "Same reel every hour. Burns out fast.", _plan_spam),
-    "smart": ("Smart Agent", "Optimal: peak hours, trending, varied types+intents.", _plan_smart),
-    "minimal": ("Minimal Poster", "1 carousel per day at noon.", _plan_minimal),
-    "random": ("Random Actor", "Random actions. Baseline test.", _plan_random),
+def _plan_collab_same_low(obs: dict, day: int) -> ViraltestAction:
+    """Same-niche, low-overlap collab on day 5+15 — best-case reward path."""
+    trending = (obs.get("trending_topics") or ["AI tools"])[0]
+    tags = list((obs.get("trending_tags") or [])[:2]) + ["ai"]
+    actions = [
+        {"hour": 12, "action_type": "post", "content_type": "reel",
+         "topic": trending, "tags": tags, "intent": "watch_bait"},
+    ]
+    collab = None
+    if day in (5, 15):
+        collab = CollabProposal(partner_id="niche_expert", content_type="reel", hour=12)
+    return _make_daily_plan(actions, notes="Same-niche low-overlap collab demo.", collab=collab)
+
+
+def _plan_collab_diff_high(obs: dict, day: int) -> ViraltestAction:
+    """Diff-niche, high-overlap collab — penalty path (mismatch)."""
+    trending = (obs.get("trending_topics") or ["AI tools"])[0]
+    tags = list((obs.get("trending_tags") or [])[:2]) + ["ai"]
+    actions = [
+        {"hour": 12, "action_type": "post", "content_type": "reel",
+         "topic": trending, "tags": tags, "intent": "watch_bait"},
+    ]
+    collab = None
+    if day in (5, 15):
+        collab = CollabProposal(partner_id="lifestyle_blogger", content_type="reel", hour=12)
+    return _make_daily_plan(actions, notes="Diff-niche high-overlap collab demo.", collab=collab)
+
+
+def _plan_interact_balanced(obs: dict, day: int) -> ViraltestAction:
+    """Healthy daily interaction — likes/comments on-niche, replies to audience."""
+    trending = (obs.get("trending_topics") or ["AI tools"])[0]
+    interactions = DailyInteractions(
+        likes_on_others=12, comments_on_others=5, replies_to_audience=3,
+        target_partner_ids=["niche_expert"], avg_reply_quality=0.8,
+    )
+    return _make_daily_plan(
+        [{"hour": 12, "action_type": "post", "content_type": "reel",
+          "topic": trending, "tags": ["ai"], "intent": "watch_bait"}],
+        notes="Healthy interaction demo.",
+        interactions=interactions,
+    )
+
+
+def _plan_interact_spam(obs: dict, day: int) -> ViraltestAction:
+    """Spam interaction — triggers shadowban_risk + reach penalty."""
+    trending = (obs.get("trending_topics") or ["AI tools"])[0]
+    interactions = DailyInteractions(
+        likes_on_others=80, comments_on_others=40, replies_to_audience=0,
+        target_partner_ids=["niche_expert"], avg_reply_quality=0.4,
+    )
+    return _make_daily_plan(
+        [{"hour": 12, "action_type": "post", "content_type": "reel",
+          "topic": trending, "tags": ["ai"], "intent": "watch_bait"}],
+        notes="Interaction spam demo.",
+        interactions=interactions,
+    )
+
+
+# Scenario tuple: (label, description, plan_fn, optional user_niche).
+# user_niche is honored by dashboard_simulate / training_evidence; defaults to "generic" when None.
+SCENARIOS: Dict[str, tuple] = {
+    "always_rest": ("Always Rest", "Never posts. Tests follower decay.", _plan_always_rest, None),
+    "spam": ("Spam Post", "Same reel every hour. Burns out fast.", _plan_spam, None),
+    "smart": ("Smart Agent", "Optimal: peak hours, trending, varied types+intents.", _plan_smart, None),
+    "minimal": ("Minimal Poster", "1 carousel per day at noon.", _plan_minimal, None),
+    "random": ("Random Actor", "Random actions. Baseline test.", _plan_random, None),
+    "collab_same_low": (
+        "Collab Same-Niche Low Overlap",
+        "Same-niche partner with <20% overlap. Best-case collab reward path.",
+        _plan_collab_same_low,
+        "tech",
+    ),
+    "collab_diff_high": (
+        "Collab Diff-Niche High Overlap",
+        "Diff-niche partner with >40% overlap. Penalty path (audience mismatch).",
+        _plan_collab_diff_high,
+        "tech",
+    ),
+    "interact_balanced": (
+        "Interact Balanced",
+        "Healthy on-niche likes/comments and audience replies.",
+        _plan_interact_balanced,
+        "tech",
+    ),
+    "interact_spam": (
+        "Interact Spam",
+        "80 likes + 40 comments — spam path triggers shadowban_risk.",
+        _plan_interact_spam,
+        "tech",
+    ),
 }
 
 
@@ -265,9 +368,14 @@ async def dashboard_simulate(body: Dict[str, Any] = Body(...)):
     if scenario_id not in SCENARIOS:
         return {"error": f"Unknown scenario: {scenario_id}"}
 
-    label, desc, plan_fn = SCENARIOS[scenario_id]
+    entry = SCENARIOS[scenario_id]
+    label, desc, plan_fn = entry[0], entry[1], entry[2]
+    user_niche = entry[3] if len(entry) > 3 else None
     env = ViraltestEnvironment()
-    obs = env.reset(task=task, seed=42)
+    reset_kwargs: Dict[str, Any] = {"task": task, "seed": 42}
+    if user_niche:
+        reset_kwargs["user_niche"] = user_niche
+    obs = env.reset(**reset_kwargs)
     obs_dict = obs.model_dump()
 
     steps: List[Dict[str, Any]] = []
@@ -347,11 +455,16 @@ async def training_evidence():
     global _SIM_RNG
 
     results = []
-    for scenario_id, (label, desc, plan_fn) in SCENARIOS.items():
+    for scenario_id, entry in SCENARIOS.items():
+        label, desc, plan_fn = entry[0], entry[1], entry[2]
+        user_niche = entry[3] if len(entry) > 3 else None
         for task in _TRAINING_TASKS:
             _SIM_RNG = stdlib_random.Random(99)
             env = ViraltestEnvironment()
-            obs = env.reset(task=task, seed=42)
+            reset_kwargs: Dict[str, Any] = {"task": task, "seed": 42}
+            if user_niche:
+                reset_kwargs["user_niche"] = user_niche
+            obs = env.reset(**reset_kwargs)
             obs_dict = obs.model_dump()
 
             rewards: List[float] = []

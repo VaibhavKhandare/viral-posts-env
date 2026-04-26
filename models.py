@@ -64,6 +64,28 @@ class CollabProposal(BaseModel):
     hour: int = Field(default=12, ge=0, le=23)
 
 
+class DailyInteractions(BaseModel):
+    """Daily aggregate of creator interactions: likes, comments on others' content, and replies to own audience.
+
+    Models the comment/like/reply economy. Healthy interaction in moderation rewards reach;
+    spam, audience-ignoring, off-niche, and low-quality patterns are penalized.
+    """
+
+    likes_on_others: int = Field(default=0, ge=0, le=200, description="Likes given on other creators' posts today")
+    comments_on_others: int = Field(default=0, ge=0, le=100, description="Comments left on other creators' posts today")
+    replies_to_audience: int = Field(default=0, ge=0, le=100, description="Replies to incoming comments on your own posts")
+    target_partner_ids: List[str] = Field(
+        default_factory=list,
+        description="Competitor archetype ids you interacted with today (used for off-niche detection)",
+    )
+    avg_reply_quality: float = Field(
+        default=0.6,
+        ge=0.0,
+        le=1.0,
+        description="Self-rated effort/depth of replies (0=one-word, 1=substantive)",
+    )
+
+
 class ViraltestAction(Action):
     """Daily plan: tool calls for discovery, then scheduled actions to commit."""
 
@@ -78,6 +100,10 @@ class ViraltestAction(Action):
     collab: Optional[CollabProposal] = Field(
         default=None,
         description="Optional collaboration proposal (max 2 per month)",
+    )
+    interactions: Optional[DailyInteractions] = Field(
+        default=None,
+        description="Daily likes/comments/replies activity (community engagement layer)",
     )
     notes: Optional[str] = Field(
         default=None,
@@ -191,6 +217,10 @@ class ViraltestObservation(Observation):
     tool_results: List[ToolResult] = Field(default_factory=list, description="Results from tool_calls this step")
     agent_notes: Optional[str] = Field(default=None, description="Echo of agent's notes from previous step")
     api_budget_remaining: int = Field(default=100, ge=0)
+    interaction_metrics: Optional[Dict[str, Any]] = Field(
+        default=None,
+        description="Daily interaction summary: reach modifier, shadowban_risk, and a one-line reason",
+    )
 
     grader_score: Optional[float] = Field(default=None)
     error: Optional[str] = Field(default=None)

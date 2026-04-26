@@ -1,7 +1,8 @@
 {
   "_meta": {
-    "description": "8x8 symmetric audience overlap matrix between competitor archetypes and the user creator. Values 0.0-1.0 represent fraction of shared audience. Used by propose_collab to compute collab reward multipliers and by query_creator_pool to expose overlap to the agent. Same-niche pairs ~0.4-0.65, cross-niche ~0.05-0.20.",
-    "source": "Competitor pairs estimated from Rival IQ 2025 cross-industry overlap patterns + niche proximity heuristic. user_creator row tuned to a generic micro-creator (no locked niche): broad mass-market partners (lifestyle_blogger, viral_chaser) score highest; specialist partners (b2b_thought_leader, niche_expert) score lowest."
+    "description": "8x8 symmetric audience overlap matrix between competitor archetypes and the user creator. Values 0.0-1.0 represent fraction of shared audience (Jaccard intersection fraction). Used by propose_collab to compute collab reward multipliers and by query_creator_pool to expose overlap to the agent. Same-niche pairs ~0.4-0.65, cross-niche ~0.05-0.20.",
+    "source": "Competitor pairs estimated from Rival IQ 2025 cross-industry overlap patterns + niche proximity heuristic. user_creator row tuned to a generic micro-creator (no locked niche): broad mass-market partners (lifestyle_blogger, viral_chaser) score highest; specialist partners (b2b_thought_leader, niche_expert) score lowest.",
+    "mock_followers_note": "Mocked follower counts span tiers from micro (10k user) to mid (250k viral_chaser). Used to derive intersection size via Jaccard inversion: |A intersect B| = overlap * (|A| + |B|) / (1 + overlap)."
   },
   "archetype_ids": ["niche_expert", "viral_chaser", "lifestyle_blogger", "b2b_thought_leader", "food_creator", "fitness_coach", "travel_creator", "user_creator"],
   "matrix": [
@@ -13,5 +14,25 @@
     [0.10, 0.25, 0.35, 0.10, 0.45, 1.00, 0.30, 0.28],
     [0.15, 0.30, 0.40, 0.12, 0.35, 0.30, 1.00, 0.30],
     [0.10, 0.35, 0.40, 0.08, 0.25, 0.28, 0.30, 1.00]
-  ]
+  ],
+  "niche_by_archetype": {
+    "niche_expert": "tech",
+    "viral_chaser": "lifestyle",
+    "lifestyle_blogger": "lifestyle",
+    "b2b_thought_leader": "business",
+    "food_creator": "food",
+    "fitness_coach": "fitness",
+    "travel_creator": "travel",
+    "user_creator": "generic"
+  },
+  "mock_followers_by_archetype": {
+    "niche_expert": 12000,
+    "viral_chaser": 250000,
+    "lifestyle_blogger": 11000,
+    "b2b_thought_leader": 9000,
+    "food_creator": 12000,
+    "fitness_coach": 8000,
+    "travel_creator": 11000,
+    "user_creator": 10000
+  }
 }
