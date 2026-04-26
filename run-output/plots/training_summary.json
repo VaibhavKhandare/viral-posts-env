@@ -1,17 +1,17 @@
 {
   "model": "Qwen/Qwen2.5-3B-Instruct",
   "training": "LoRA SFT (real weight updates)",
-  "rounds": 4,
+  "rounds": 1,
   "episodes_per_round": 6,
   "before": {
-    "monthly_engage": 0.0,
-    "monthly_strategic": 0.174,
-    "monthly_competitive": 0.028
+    "monthly_engage": 0.0709,
+    "monthly_strategic": 0.334,
+    "monthly_competitive": 0.5095
   },
   "after": {
-    "monthly_engage": 0.0,
-    "monthly_strategic": 0.1744,
-    "monthly_competitive": 0.028
+    "monthly_engage": 0.1193,
+    "monthly_strategic": 0.1942,
+    "monthly_competitive": 0.3471
   },
   "smart_heuristic": {
     "monthly_engage": 0.7352,
@@ -19,58 +19,34 @@
     "monthly_competitive": 0.9066
   },
   "improvement": {
-    "monthly_engage": 0.0,
-    "monthly_strategic": 0.00040000000000001146,
-    "monthly_competitive": 0.0
+    "monthly_engage": 0.0484,
+    "monthly_strategic": -0.1398,
+    "monthly_competitive": -0.16239999999999993
   },
   "training_log": {
     "round": [
-      1,
-      2,
-      3,
-      4
+      1
     ],
     "avg_episode_reward": [
-      3.463,
-      3.072,
-      3.469,
-      3.316
+      3.138
     ],
     "max_episode_reward": [
-      4.232,
-      3.802,
-      3.956,
-      3.517
+      3.62
     ],
     "min_episode_reward": [
-      2.793,
-      2.25,
-      2.979,
-      3.073
+      2.504
     ],
     "avg_grader": [
-      0.3947,
-      0.2737,
-      0.3738,
-      0.3453
+      0.3196
     ],
     "max_grader": [
-      0.6341,
-      0.5068,
-      0.574,
-      0.4575
+      0.4857
     ],
     "n_training_samples": [
-      44,
-      48,
-      41,
-      47
+      46
     ],
     "train_loss": [
-      2.4064,
-      2.434,
-      2.4042,
-      2.4202
+      2.4383
     ]
   }
 }
