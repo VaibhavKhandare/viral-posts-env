@@ -1,7 +1,7 @@
 """
 Viraltest Environment v2 — Theme #3.1 World-Modeling Simulation.
 
-Multi-day creator optimization with:
+30-day creator optimization with:
 - Mosseri-aligned engagement signals (watch_time, sends, saves, likes)
 - Discoverable tool catalog (partial observability)
 - Piecewise-linear sleep model (Van Dongen 2003)
@@ -92,12 +92,7 @@ _HEATMAP_GRID: Dict[int, List[float]] = {
 # Constants (research-backed, Tier 1-3 sources)
 # ---------------------------------------------------------------------------
 
-# Episode length in daily env steps. Graders and UI should stay consistent with this value.
-TASK_HORIZON = 15
-
-# Distinct positive tags for full tag_discovery score in strategic/competitive graders.
-# Caps at 30 (original month-scale bar); scales down only for very short horizons.
-TAG_DISCOVERY_POSITIVE_TARGET = float(max(6, min(30, TASK_HORIZON * 2)))
+TASK_HORIZON = 30  # 30 daily steps (monthly cycle)
 
 # Socialinsider 2026 (31M posts)
 CONTENT_ENERGY_COST = {
@@ -1189,14 +1184,14 @@ class ViraltestEnvironment(Environment):
         norm_eng = min(1.0, self._total_engagement / theoretical_max) if theoretical_max > 0 else 0.0
 
         positive_tags = sum(1 for t in self._unique_tags_used if self._tag_performance_avg(t) > 0)
-        tag_discovery = min(1.0, positive_tags / TAG_DISCOVERY_POSITIVE_TARGET)
+        tag_discovery = min(1.0, positive_tags / 30.0)
         top_perfs = sorted([self._tag_performance_avg(t) for t in self._unique_tags_used], reverse=True)[:3]
         tag_exploitation = (sum(top_perfs) / len(top_perfs)) if top_perfs else 0.0
         tag_exploitation = min(1.0, tag_exploitation / 2.0)
         tag_score = 0.4 * tag_discovery + 0.6 * tag_exploitation
 
         avg_energy = sum(self._energy_history) / len(self._energy_history) if self._energy_history else 0.0
-        consistency = len(self._days_with_good_posts) / float(max(1, TASK_HORIZON))
+        consistency = len(self._days_with_good_posts) / 30.0
 
         raw = 0.35 * norm_eng + 0.25 * tag_score + 0.25 * avg_energy + 0.15 * consistency
 
@@ -1218,7 +1213,7 @@ class ViraltestEnvironment(Environment):
         norm_eng = min(1.0, self._total_engagement / theoretical_max) if theoretical_max > 0 else 0.0
 
         positive_tags = sum(1 for t in self._unique_tags_used if self._tag_performance_avg(t) > 0)
-        tag_discovery = min(1.0, positive_tags / TAG_DISCOVERY_POSITIVE_TARGET)
+        tag_discovery = min(1.0, positive_tags / 30.0)
         top_perfs = sorted([self._tag_performance_avg(t) for t in self._unique_tags_used], reverse=True)[:3]
         tag_exploitation = (sum(top_perfs) / len(top_perfs)) if top_perfs else 0.0
         tag_exploitation = min(1.0, tag_exploitation / 2.0)

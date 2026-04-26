@@ -35,7 +35,7 @@ body{background:#0b1326;color:#dae2fd;font-family:'Inter',sans-serif}
 <aside class="flex flex-col sticky top-0 h-screen w-64 border-r border-white/5 bg-surface-lowest shadow-2xl shadow-slate-950/50 shrink-0 z-50">
   <div class="p-6 pb-4">
     <div class="text-xl font-black tracking-tighter text-transparent bg-clip-text bg-gradient-to-br from-primary to-primary-ctr mb-1">Growth Copilot</div>
-    <div class="text-[9px] font-label uppercase tracking-[.2em] text-on-surface-dim/50">15-day creator simulation</div>
+    <div class="text-[9px] font-label uppercase tracking-[.2em] text-on-surface-dim/50">30-day creator simulation</div>
   </div>
   <nav class="flex-1 px-3 space-y-1">
     <a href="/dashboard" class="flex items-center gap-3 px-4 py-2.5 rounded-lg text-primary font-bold border-r-2 border-primary bg-gradient-to-r from-primary/10 to-transparent transition-all">
@@ -361,7 +361,7 @@ body{background:#0b1326;color:#dae2fd;font-family:'Inter',sans-serif}
             <div class="flex flex-col items-end gap-0.5">
               <div class="flex items-center gap-2">
                 <span id="scenarioCount" class="text-[9px] font-label text-primary font-bold">…</span>
-                <span class="text-[9px] font-label text-on-surface-dim">15-day episode</span>
+                <span class="text-[9px] font-label text-on-surface-dim">30-day episode</span>
               </div>
               <span class="text-[8px] font-label text-on-surface-dim/70 max-w-[16rem] text-right leading-tight">All strategies below — scroll the grid or search. Count updates after load.</span>
             </div>
@@ -492,8 +492,7 @@ body{background:#0b1326;color:#dae2fd;font-family:'Inter',sans-serif}
 
 <script>
 const API=window.location.origin;
-/** Must match server.viraltest_environment.TASK_HORIZON */
-const EPISODE_DAYS=15;
+const EPISODE_DAYS=30;
 const DAYS=["Mon","Tue","Wed","Thu","Fri","Sat","Sun"];
 function fmtAxisNum(v){
   const a=Math.abs(v);
