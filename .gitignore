@@ -6,7 +6,7 @@
 # Generated visualization outputs (regenerate: python visualize_optimal.py)
 *.png
 # But keep training evidence plots
-!plots/*.png
+!run-output/plots/*.png
 
 __pycache__/
 *.py[cod]

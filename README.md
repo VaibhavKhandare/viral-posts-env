@@ -21,7 +21,7 @@ tags:
 
 | Capability                         | How the environment tests it                                                                                                                      |
 | ---------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Tool discovery & orchestration** | 8 discoverable tools (`query_trends`, `query_competitor`, `predict_engagement`...). Agent must call `GET /tools` to learn what's available.       |
+| **Tool discovery & orchestration** | 9 discoverable tools (`query_trends`, `query_competitor`, `predict_engagement`...). Agent must call `GET /tools` to learn what's available.       |
 | **Persistent world model**         | 7-day horizon. Multi-episode brand chain carries state across weeks.                                                                              |
 | **Belief tracking**                | `notes` field persists hypotheses day-to-day. Agent must update beliefs from tool results.                                                        |
 | **Causal reasoning**               | `coach_feedback` returns counterfactual delta (your plan vs. heatmap-optimal). `predict_engagement` lets agent test hypotheses before committing. |
@@ -149,16 +149,17 @@ The final observation carries `HeadlineMetrics` with the three numbers judges re
 ## Tool catalog
 
 
-| Tool                 | Cost | Returns                                 |
-| -------------------- | ---- | --------------------------------------- |
-| `query_trends`       | 1    | Trending topics, tags, niche saturation |
-| `query_competitor`   | 2    | Recent posts, avg engagement, strategy  |
-| `query_tag_history`  | 1    | Your historical signals per tag         |
-| `query_audience`     | 2    | Segment affinities, active hours        |
-| `predict_engagement` | 3    | Simulated signals without committing    |
-| `draft_review`       | 3    | Strengths/weaknesses of a plan          |
-| `query_creator_pool` | 1    | Available collab partners + overlap     |
-| `propose_collab`     | 5    | Propose collaboration (cap 3/week)      |
+| Tool                      | Returns                                       |
+| ------------------------- | --------------------------------------------- |
+| `query_trends`            | Trending topics, tags, niche saturation       |
+| `query_competitor`        | Recent posts, avg engagement, strategy        |
+| `query_tag_history`       | Your historical signals per tag               |
+| `query_audience`          | Segment affinities, active hours              |
+| `predict_engagement`      | Simulated signals without committing          |
+| `draft_review`            | Strengths/weaknesses of a plan                |
+| `query_creator_pool`      | Available collab partners + overlap           |
+| `propose_collab`          | Propose collaboration (cap 3/week)            |
+| `query_interaction_norms` | Healthy like/comment/reply ranges + risk      |
 
 
 

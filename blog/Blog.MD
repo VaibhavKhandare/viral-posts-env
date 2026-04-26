@@ -102,8 +102,6 @@ The model improves consistently across all three graders. `weekly_strategic` —
 
 The two-phase loss curve flattens at the phase boundary (timing → content), then resumes its descent as the second phase introduces the content/intent objective.
 
-![Engagement signals](../run-output/plots/signals_breakdown.png)
-
 Qualitatively: the trained agent calls `GET /tools` on day 1, queries trends and competitors before posting, drops `predict_engagement` calls on the days it has a clear plan, and keeps `creator_energy` above 0.5 through the week. The untrained baseline posts blindly for the first few days and burns out.
 
 ![Trajectories](../run-output/plots/training_trajectories.png)
