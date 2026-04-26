@@ -8,7 +8,7 @@
 set -euo pipefail
 
 IMAGE="${HF_JOB_IMAGE:-pytorch/pytorch:2.5.1-cuda12.4-cudnn9-runtime}"
-FLAVOR="${HF_JOB_FLAVOR:-l40sx1}"
+FLAVOR="${HF_JOB_FLAVOR:-a100-large}"
 TIMEOUT="${HF_JOB_TIMEOUT:-8h}"
 SPACE_REPO="${HF_SPACE_REPO_ID:-vaibhavkhandare/train-bhai-train}"
 NB_EXEC_TIMEOUT="${NB_EXEC_TIMEOUT:-3600}"
