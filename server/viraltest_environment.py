@@ -163,6 +163,7 @@ WEEKLY_FATIGUE_MULT = 0.75
 
 SATURATION_PENALTY_K = 0.25
 TREND_DEFAULT_HALFLIFE_HOURS = 60
+TREND_MATCH_STOPWORDS = {"tips", "guide", "review", "routine", "ideas", "hacks", "tutorial", "the", "a", "an", "and", "of", "for", "to"}
 # Collab reward shaping (Later 2023 reach study, HypeAuditor 2024 niche affinity, Rival IQ 2025 overlap patterns,
 # Cen et al. 2024 disengagement model for diminishing returns instead of a hard cap).
 COLLAB_REACH_K = 0.60      # cross-audience exposure: capped reach uplift when overlap is 0
@@ -1006,8 +1007,13 @@ class ViraltestEnvironment(Environment):
     def _is_topic_trending(self, topic: Optional[str]) -> bool:
         if not topic:
             return False
-        topic_lower = topic.lower()
-        return any(t.lower() in topic_lower for t in self._trending_topics)
+        t_words = set(topic.lower().split()) - TREND_MATCH_STOPWORDS
+        if not t_words:
+            return False
+        for trend in self._trending_topics:
+            if t_words & (set(trend.lower().split()) - TREND_MATCH_STOPWORDS):
+                return True
+        return False
 
     # ----- reward -----
 
@@ -1038,7 +1044,13 @@ class ViraltestEnvironment(Environment):
             comp_component = min(1.0, diff / 1.3) * 0.15
 
         burnout_penalty = 0.1 if self._energy < 0.2 else 0.0
-        raw = eng_component + energy_component + consistency_component + tag_component + comp_component - burnout_penalty
+        is_post = sa.action_type == "post"
+        trending_topic_mult = 1.5 if is_post and self._is_topic_trending(sa.topic) else 1.0
+        peak_hour_mult = 1.3 if is_post and self._get_hour_multiplier() >= 1.2 else 1.0
+        raw = (
+            (eng_component + tag_component + comp_component) * trending_topic_mult * peak_hour_mult
+            + energy_component + consistency_component - burnout_penalty
+        )
         return max(0.0, min(1.0, raw))
 
     def _compute_rest_reward(self) -> float:
