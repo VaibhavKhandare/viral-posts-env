@@ -1097,6 +1097,19 @@ class ViraltestEnvironment(Environment):
         if grader_score is not None:
             meta["grader_score"] = round(grader_score, 4)
 
+        audience_hours: set = set()
+        for seg in _AUDIENCE_DATA.get("segments", []):
+            audience_hours.update(seg.get("active_hours", []))
+        meta["audience_active_hours"] = sorted(audience_hours)
+
+        comp_hours = [
+            (self._hour - p["hours_ago"]) % 24
+            for comp in self._competitors
+            for p in comp.recent_posts
+            if p["hours_ago"] < 48
+        ]
+        meta["competitor_recent_post_hours"] = sorted(comp_hours)
+
         burnout_risk = min(1.0, self._low_energy_days / 5.0)
 
         return ViraltestObservation(
