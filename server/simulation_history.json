@@ -1,1 +1,344 @@
-[]
+[
+  {
+    "id": "2026-04-26T07:28:15.437942+00:00",
+    "scenario": "Always Rest",
+    "scenario_id": "always_rest",
+    "description": "Never posts. Tests follower decay.",
+    "task": "monthly_competitive",
+    "score": 0.035,
+    "total_steps": 15,
+    "total_posts": 0,
+    "avg_reward": 0.15,
+    "final": {
+      "energy": 1.0,
+      "hours_since_sleep": 1,
+      "sleep_debt": 0.0,
+      "followers": 2424,
+      "engagement_rate": 0.0,
+      "burned_out": false
+    }
+  },
+  {
+    "id": "2026-04-26T07:28:15.483124+00:00",
+    "scenario": "Always Rest",
+    "scenario_id": "always_rest",
+    "description": "Never posts. Tests follower decay.",
+    "task": "monthly_strategic",
+    "score": 0.175,
+    "total_steps": 15,
+    "total_posts": 0,
+    "avg_reward": 0.15,
+    "final": {
+      "energy": 1.0,
+      "hours_since_sleep": 1,
+      "sleep_debt": 0.0,
+      "followers": 2424,
+      "engagement_rate": 0.0,
+      "burned_out": false
+    }
+  },
+  {
+    "id": "2026-04-26T07:28:15.524180+00:00",
+    "scenario": "Minimal Poster",
+    "scenario_id": "minimal",
+    "description": "1 carousel per day at noon.",
+    "task": "monthly_competitive",
+    "score": 0.216,
+    "total_steps": 15,
+    "total_posts": 0,
+    "avg_reward": 0.1995,
+    "final": {
+      "energy": 1.0,
+      "hours_since_sleep": 1,
+      "sleep_debt": 0.0,
+      "followers": 11034,
+      "engagement_rate": 0.6671,
+      "burned_out": false
+    }
+  },
+  {
+    "id": "2026-04-26T07:28:15.561308+00:00",
+    "scenario": "Minimal Poster",
+    "scenario_id": "minimal",
+    "description": "1 carousel per day at noon.",
+    "task": "monthly_strategic",
+    "score": 0.369,
+    "total_steps": 15,
+    "total_posts": 0,
+    "avg_reward": 0.1995,
+    "final": {
+      "energy": 1.0,
+      "hours_since_sleep": 1,
+      "sleep_debt": 0.0,
+      "followers": 11034,
+      "engagement_rate": 0.6671,
+      "burned_out": false
+    }
+  },
+  {
+    "id": "2026-04-26T07:28:15.599781+00:00",
+    "scenario": "Smart Agent",
+    "scenario_id": "smart",
+    "description": "Optimal: peak hours, trending, varied types+intents.",
+    "task": "monthly_competitive",
+    "score": 0.8288,
+    "total_steps": 15,
+    "total_posts": 0,
+    "avg_reward": 0.2158,
+    "final": {
+      "energy": 1.0,
+      "hours_since_sleep": 1,
+      "sleep_debt": 0.0,
+      "followers": 11705,
+      "engagement_rate": 0.3706,
+      "burned_out": false
+    }
+  },
+  {
+    "id": "2026-04-26T07:28:15.635465+00:00",
+    "scenario": "Smart Agent",
+    "scenario_id": "smart",
+    "description": "Optimal: peak hours, trending, varied types+intents.",
+    "task": "monthly_strategic",
+    "score": 0.8314,
+    "total_steps": 15,
+    "total_posts": 0,
+    "avg_reward": 0.2158,
+    "final": {
+      "energy": 1.0,
+      "hours_since_sleep": 1,
+      "sleep_debt": 0.0,
+      "followers": 11705,
+      "engagement_rate": 0.3706,
+      "burned_out": false
+    }
+  },
+  {
+    "id": "2026-04-26T07:28:15.670869+00:00",
+    "scenario": "Spam Post",
+    "scenario_id": "spam",
+    "description": "Same reel every hour. Burns out fast.",
+    "task": "monthly_competitive",
+    "score": 0.0,
+    "total_steps": 1,
+    "total_posts": 0,
+    "avg_reward": 0.0452,
+    "final": {
+      "energy": 0.0,
+      "hours_since_sleep": 6,
+      "sleep_debt": 0.0,
+      "followers": 10074,
+      "engagement_rate": 0.1872,
+      "burned_out": true
+    }
+  },
+  {
+    "id": "2026-04-26T07:28:15.705343+00:00",
+    "scenario": "Spam Post",
+    "scenario_id": "spam",
+    "description": "Same reel every hour. Burns out fast.",
+    "task": "monthly_strategic",
+    "score": 0.0075,
+    "total_steps": 1,
+    "total_posts": 0,
+    "avg_reward": 0.0452,
+    "final": {
+      "energy": 0.0,
+      "hours_since_sleep": 6,
+      "sleep_debt": 0.0,
+      "followers": 10074,
+      "engagement_rate": 0.1872,
+      "burned_out": true
+    }
+  },
+  {
+    "id": "2026-04-26T07:28:15.740315+00:00",
+    "scenario": "Random Actor",
+    "scenario_id": "random",
+    "description": "Random actions. Baseline test.",
+    "task": "monthly_competitive",
+    "score": 0.7174,
+    "total_steps": 15,
+    "total_posts": 0,
+    "avg_reward": 0.2102,
+    "final": {
+      "energy": 1.0,
+      "hours_since_sleep": 1,
+      "sleep_debt": 0.0,
+      "followers": 11789,
+      "engagement_rate": 0.4013,
+      "burned_out": false
+    }
+  },
+  {
+    "id": "2026-04-26T07:28:15.774122+00:00",
+    "scenario": "Random Actor",
+    "scenario_id": "random",
+    "description": "Random actions. Baseline test.",
+    "task": "monthly_strategic",
+    "score": 0.6533,
+    "total_steps": 15,
+    "total_posts": 0,
+    "avg_reward": 0.2102,
+    "final": {
+      "energy": 1.0,
+      "hours_since_sleep": 1,
+      "sleep_debt": 0.0,
+      "followers": 11789,
+      "engagement_rate": 0.4013,
+      "burned_out": false
+    }
+  },
+  {
+    "id": "2026-04-26T07:28:15.810794+00:00",
+    "scenario": "Collab Same-Niche Low Overlap",
+    "scenario_id": "collab_same_low",
+    "description": "Same-niche partner with <20% overlap. Best-case collab reward path.",
+    "task": "monthly_competitive",
+    "score": 0.2777,
+    "total_steps": 15,
+    "total_posts": 0,
+    "avg_reward": 0.2077,
+    "final": {
+      "energy": 1.0,
+      "hours_since_sleep": 1,
+      "sleep_debt": 0.0,
+      "followers": 13855,
+      "engagement_rate": 1.3307,
+      "burned_out": false
+    }
+  },
+  {
+    "id": "2026-04-26T07:28:15.849698+00:00",
+    "scenario": "Collab Same-Niche Low Overlap",
+    "scenario_id": "collab_same_low",
+    "description": "Same-niche partner with <20% overlap. Best-case collab reward path.",
+    "task": "monthly_strategic",
+    "score": 0.5363,
+    "total_steps": 15,
+    "total_posts": 0,
+    "avg_reward": 0.2077,
+    "final": {
+      "energy": 1.0,
+      "hours_since_sleep": 1,
+      "sleep_debt": 0.0,
+      "followers": 13855,
+      "engagement_rate": 1.3307,
+      "burned_out": false
+    }
+  },
+  {
+    "id": "2026-04-26T07:28:15.883259+00:00",
+    "scenario": "Collab Diff-Niche High Overlap",
+    "scenario_id": "collab_diff_high",
+    "description": "Diff-niche partner with >40% overlap. Penalty path (audience mismatch).",
+    "task": "monthly_competitive",
+    "score": 0.2688,
+    "total_steps": 15,
+    "total_posts": 0,
+    "avg_reward": 0.2069,
+    "final": {
+      "energy": 1.0,
+      "hours_since_sleep": 1,
+      "sleep_debt": 0.0,
+      "followers": 12371,
+      "engagement_rate": 1.2522,
+      "burned_out": false
+    }
+  },
+  {
+    "id": "2026-04-26T07:28:15.917593+00:00",
+    "scenario": "Collab Diff-Niche High Overlap",
+    "scenario_id": "collab_diff_high",
+    "description": "Diff-niche partner with >40% overlap. Penalty path (audience mismatch).",
+    "task": "monthly_strategic",
+    "score": 0.5123,
+    "total_steps": 15,
+    "total_posts": 0,
+    "avg_reward": 0.2069,
+    "final": {
+      "energy": 1.0,
+      "hours_since_sleep": 1,
+      "sleep_debt": 0.0,
+      "followers": 12371,
+      "engagement_rate": 1.2522,
+      "burned_out": false
+    }
+  },
+  {
+    "id": "2026-04-26T07:28:15.955439+00:00",
+    "scenario": "Interact Balanced",
+    "scenario_id": "interact_balanced",
+    "description": "Healthy on-niche likes/comments and audience replies.",
+    "task": "monthly_competitive",
+    "score": 0.2816,
+    "total_steps": 15,
+    "total_posts": 0,
+    "avg_reward": 0.2199,
+    "final": {
+      "energy": 1.0,
+      "hours_since_sleep": 1,
+      "sleep_debt": 0.0,
+      "followers": 12252,
+      "engagement_rate": 1.4081,
+      "burned_out": false
+    }
+  },
+  {
+    "id": "2026-04-26T07:28:15.995659+00:00",
+    "scenario": "Interact Balanced",
+    "scenario_id": "interact_balanced",
+    "description": "Healthy on-niche likes/comments and audience replies.",
+    "task": "monthly_strategic",
+    "score": 0.5463,
+    "total_steps": 15,
+    "total_posts": 0,
+    "avg_reward": 0.2199,
+    "final": {
+      "energy": 1.0,
+      "hours_since_sleep": 1,
+      "sleep_debt": 0.0,
+      "followers": 12252,
+      "engagement_rate": 1.4081,
+      "burned_out": false
+    }
+  },
+  {
+    "id": "2026-04-26T07:28:16.104107+00:00",
+    "scenario": "Interact Spam",
+    "scenario_id": "interact_spam",
+    "description": "80 likes + 40 comments \u2014 spam path triggers shadowban_risk.",
+    "task": "monthly_competitive",
+    "score": 0.2448,
+    "total_steps": 15,
+    "total_posts": 0,
+    "avg_reward": 0.2142,
+    "final": {
+      "energy": 1.0,
+      "hours_since_sleep": 1,
+      "sleep_debt": 0.0,
+      "followers": 11781,
+      "engagement_rate": 0.7259,
+      "burned_out": false
+    }
+  },
+  {
+    "id": "2026-04-26T07:28:16.156456+00:00",
+    "scenario": "Interact Spam",
+    "scenario_id": "interact_spam",
+    "description": "80 likes + 40 comments \u2014 spam path triggers shadowban_risk.",
+    "task": "monthly_strategic",
+    "score": 0.315,
+    "total_steps": 15,
+    "total_posts": 0,
+    "avg_reward": 0.2142,
+    "final": {
+      "energy": 1.0,
+      "hours_since_sleep": 1,
+      "sleep_debt": 0.0,
+      "followers": 11781,
+      "engagement_rate": 0.7259,
+      "burned_out": false
+    }
+  }
+]

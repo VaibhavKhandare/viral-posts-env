@@ -175,7 +175,11 @@ TREND_DEFAULT_HALFLIFE_HOURS = 60
 TREND_MATCH_STOPWORDS = {"tips", "guide", "review", "routine", "ideas", "hacks", "tutorial", "the", "a", "an", "and", "of", "for", "to"}
 # Collab reward shaping (Later 2023 reach study, HypeAuditor 2024 niche affinity, Rival IQ 2025 overlap patterns,
 # Cen et al. 2024 disengagement model for diminishing returns instead of a hard cap).
-COLLAB_PARTNER_REPEAT_PENALTY = 0.7  # discount on multipliers when partner reused this brand
+# Per-partner exhaustion: each collab with the SAME partner re-exposes the user to the same set of followers,
+# so spillover and reward multipliers should decay sharply. First 1-2 collabs deliver most of the gain.
+# Floor at 0.05 keeps a tiny residual signal so the curve is monotonic but effectively saturates.
+COLLAB_PARTNER_REPEAT_DECAY = {0: 1.0, 1: 0.70, 2: 0.35, 3: 0.15}
+COLLAB_PARTNER_REPEAT_FLOOR = 0.05
 COLLAB_FATIGUE_K = 0.3     # per-collab diminishing-returns factor: 1/(1+K*prior_collabs_this_episode)
 
 # Niche-aware tiered shaping (overlap = Jaccard intersection fraction).
@@ -201,17 +205,28 @@ COLLAB_DIFF_LOW_GROWTH = (1.30, 1.55)
 COLLAB_DIFF_HIGH_ENG = 0.75
 COLLAB_DIFF_HIGH_GROWTH = 0.80
 
+# Collab is the canonical "wider reach in one shot" lever. On top of the engagement
+# multiplier (which only affects the collab-day post), apply two extra mechanisms:
+#  1) One-shot follower spillover: partner_followers x (1 - overlap) x growth_mult x K_SPILLOVER.
+#     Models the partner's audience getting exposed to the user — net new followers, not just engagement.
+#  2) Sustained reach buff: 2-3 days post-collab, all posts get a small algorithm boost
+#     because the collab signal lifts the user's overall recommendability.
+COLLAB_SPILLOVER_K = 0.05                # follower spike fraction (0.05 = 5% of partner audience reach if overlap=0)
+COLLAB_REACH_CARRYOVER_DAYS = 2          # days the post-collab reach buff persists
+COLLAB_REACH_CARRYOVER_MULT = 1.20       # +20% engagement on each post during carryover window
+COLLAB_BLOCKED_SPILLOVER_K = 0.01        # forced/guardrail-blocked collabs get only ~20% of normal spillover
+
 # Interaction (likes/comments/replies) tunables
 INTERACT_ENERGY_LIKE = 0.005
 INTERACT_ENERGY_COMMENT = 0.012
 INTERACT_ENERGY_REPLY = 0.018
 INTERACT_HEALTHY_LIKES = (5, 20)
 INTERACT_HEALTHY_COMMENTS = (3, 10)
-INTERACT_LIKE_REACH_BUFF = 0.04
-INTERACT_COMMENT_REACH_BUFF = 0.08
-INTERACT_REPLY_REWARD_PER = 0.01
-INTERACT_REPLY_REWARD_CAP = 0.15
-INTERACT_DAILY_REWARD_CAP = 0.15
+INTERACT_LIKE_REACH_BUFF = 0.02          # was 0.04 — interactions are a sustaining lever, not a growth lever
+INTERACT_COMMENT_REACH_BUFF = 0.04       # was 0.08
+INTERACT_REPLY_REWARD_PER = 0.005        # was 0.01
+INTERACT_REPLY_REWARD_CAP = 0.08
+INTERACT_DAILY_REWARD_CAP = 0.10
 INTERACT_SPAM_LIKES = 30
 INTERACT_SPAM_COMMENTS = 20
 INTERACT_SPAM_REACH_PENALTY = 0.85
@@ -308,7 +323,7 @@ TOOL_CATALOG = {
         "parameters": {},
     },
     "propose_collab": {
-        "description": "Propose a collab post with a competitor at a specific hour. The post you schedule at that hour will be co-authored. Reward shaping: same-niche + low overlap = HIGH; same-niche + high overlap = LOW; diff-niche always capped below same-niche-low. Guardrail violations apply a 0.7x engagement / 0.6x growth penalty AND surface in the JudgeReport.",
+        "description": "Propose a collab post with a competitor at a specific hour. The post you schedule at that hour will be co-authored (or auto-injected if absent — collab always pays a post's energy + counts as a post). Reward shaping: same-niche + low overlap = HIGH; same-niche + high overlap = LOW; diff-niche always capped below same-niche-low. Per-partner exhaustion: 1st collab full reward, 2nd 0.70x, 3rd 0.35x, 4th 0.15x, 5th+ 0.05x — partner audiences are tapped once. Guardrail violations apply a 0.7x engagement / 0.6x growth penalty AND surface in the JudgeReport.",
         "parameters": {
             "partner_id": {"type": "string"},
             "content_type": {"type": "string", "enum": ["reel", "story", "carousel", "text_post"]},
@@ -363,6 +378,8 @@ class ViraltestEnvironment(Environment):
         self._collab_history: List[str] = []
         self._active_collab: Optional[CollabProposal] = None
         self._collab_violations: List[str] = []  # collab guardrail breaches this step
+        self._collab_carryover_days_remaining: int = 0
+        self._last_collab_spillover: int = 0     # diagnostic: followers gained from the most recent collab
         self._user_niche: str = _NICHE_BY_ARCHETYPE.get("user_creator", "generic")
 
         # Interaction state
@@ -570,6 +587,40 @@ class ViraltestEnvironment(Environment):
     def _partner_followers(self, partner_id: str) -> int:
         return _FOLLOWERS_BY_ARCHETYPE.get(partner_id, 0)
 
+    def _partner_prior_count(self, partner_id: str) -> int:
+        """How many times we've already collabed with this partner THIS episode (excludes current entry)."""
+        if not self._collab_history:
+            return 0
+        return self._collab_history[:-1].count(partner_id)
+
+    def _partner_repeat_decay(self, partner_id: str) -> float:
+        """Multiplier in [floor, 1.0] that scales spillover + tier multipliers based on prior count.
+
+        First collab = 1.0x (no decay), 2nd = 0.70, 3rd = 0.35, 4th = 0.15, 5th+ = 0.05.
+        """
+        n = self._partner_prior_count(partner_id)
+        return COLLAB_PARTNER_REPEAT_DECAY.get(n, COLLAB_PARTNER_REPEAT_FLOOR)
+
+    def _collab_default_topic(self, partner_niche: str) -> str:
+        """Pick a topic for an auto-injected collab post.
+
+        Prefer the user's niche (so the post lands in user-niche distribution); fall back to
+        the partner's niche; final fallback is the first known topic.
+        """
+        for niche in (self._user_niche, partner_niche):
+            topics = TOPIC_CATEGORIES.get(niche)
+            if topics:
+                return topics[0]
+        # Fallback: first topic of any known niche.
+        for topics in TOPIC_CATEGORIES.values():
+            if topics:
+                return topics[0]
+        return "collaboration"
+
+    def _collab_default_tags(self, partner_niche: str) -> List[str]:
+        # Pull a couple of trending tags so the auto-post benefits from the existing tag boost.
+        return list(self._trending_tags[:2]) if self._trending_tags else []
+
     @staticmethod
     def _interp(span: Tuple[float, float], t: float) -> float:
         """Linear interp from span[0] (t=0) to span[1] (t=1)."""
@@ -661,12 +712,13 @@ class ViraltestEnvironment(Environment):
         eng_mult = tier_eng
         growth_mult = tier_growth
 
-        # Repeat-partner discount (existing behavior preserved).
-        if partner_id in self._collab_history[:-1]:
-            eng_mult *= COLLAB_PARTNER_REPEAT_PENALTY
-            growth_mult *= COLLAB_PARTNER_REPEAT_PENALTY
+        # Per-partner exhaustion: spillover + tier mults degrade per repeat with this same partner.
+        # 1st = 1.0, 2nd = 0.70, 3rd = 0.35, 4th = 0.15, 5th+ = 0.05.
+        repeat_decay = self._partner_repeat_decay(partner_id)
+        eng_mult *= repeat_decay
+        growth_mult *= repeat_decay
 
-        # Diminishing returns across the episode (Cen 2024).
+        # Diminishing returns across the episode (Cen 2024) — applies regardless of partner.
         prior = max(0, self._collabs_this_month - 1)
         fatigue = 1.0 / (1.0 + COLLAB_FATIGUE_K * prior)
         eng_mult *= fatigue
@@ -688,6 +740,8 @@ class ViraltestEnvironment(Environment):
             "tier_growth_mult": round(tier_growth, 3),
             "eng_mult": round(eng_mult, 3),
             "growth_mult": round(growth_mult, 3),
+            "prior_count_with_partner": self._partner_prior_count(partner_id),
+            "repeat_decay": round(repeat_decay, 3),
         }
 
     def _collab_multipliers(self, partner_id: str) -> Tuple[float, float]:
@@ -955,6 +1009,8 @@ class ViraltestEnvironment(Environment):
                     "reason": ev.get("reason"),
                     "expected_eng_mult": ev.get("eng_mult"),
                     "expected_growth_mult": ev.get("growth_mult"),
+                    "prior_collabs_with_partner": ev.get("prior_count_with_partner"),
+                    "repeat_decay": ev.get("repeat_decay"),
                 })
             return ToolResult(
                 name=tool.name,
@@ -983,6 +1039,8 @@ class ViraltestEnvironment(Environment):
                     "intersection_size": ev["intersection_size"],
                     "expected_eng_mult": ev["eng_mult"],
                     "expected_growth_mult": ev["growth_mult"],
+                    "prior_collabs_with_partner": ev["prior_count_with_partner"],
+                    "repeat_decay": ev["repeat_decay"],
                 },
                 budget_remaining=self._api_budget,
             )
@@ -1198,6 +1256,22 @@ class ViraltestEnvironment(Environment):
                 continue
             schedule[sa.hour] = sa
 
+        # Collab requires a post at collab.hour (energy + post-count come from posting itself).
+        # If the agent didn't schedule one, auto-inject a co-authored post using the collab's
+        # content_type. This guarantees collab pays energy and counts as a post — no free multiplier.
+        if self._active_collab is not None:
+            chour = self._active_collab.hour
+            existing = schedule.get(chour)
+            if existing is None or existing.action_type != "post":
+                ct = self._active_collab.content_type or "reel"
+                partner_niche = self._partner_niche(self._active_collab.partner_id)
+                topic = self._collab_default_topic(partner_niche)
+                schedule[chour] = ScheduledAction(
+                    hour=chour, action_type="post", content_type=ct,
+                    topic=topic, tags=self._collab_default_tags(partner_niche),
+                    intent="watch_bait" if ct in ("reel", "story") else "save_bait",
+                )
+
         daily_engagement = 0.0
         daily_reward = 0.0
         daily_posts = 0
@@ -1240,6 +1314,10 @@ class ViraltestEnvironment(Environment):
         self._total_posts_this_week += daily_posts
         if self._day % 7 == 0 and self._day > 0:
             self._total_posts_this_week = 0
+
+        # Tick down the post-collab algorithm carryover (one day per step).
+        if self._collab_carryover_days_remaining > 0:
+            self._collab_carryover_days_remaining -= 1
 
         # Burnout risk tracking
         if energy_min < 0.2:
@@ -1301,6 +1379,7 @@ class ViraltestEnvironment(Environment):
         signals = None
 
         collab_growth_mult = 1.0
+        collab_spillover_followers = 0
 
         if sa.action_type == "post":
             cost = CONTENT_ENERGY_COST.get(sa.content_type, 0.1)
@@ -1343,10 +1422,29 @@ class ViraltestEnvironment(Environment):
                 # Multiplicative on engagement; capped at 0.5 floor inside _process_interactions.
                 engagement *= getattr(self, "_pending_reach_mult", 1.0)
 
+                # Sustained post-collab algorithm reach buff (applies to every post in the carryover window).
+                if getattr(self, "_collab_carryover_days_remaining", 0) > 0:
+                    engagement *= COLLAB_REACH_CARRYOVER_MULT
+
+                collab_spillover_followers = 0
                 if self._active_collab is not None and self._active_collab.hour == sa.hour:
+                    ev = self._collab_evaluation(self._active_collab.partner_id)
                     eng_m, growth_m = self._collab_multipliers(self._active_collab.partner_id)
                     engagement *= eng_m
                     collab_growth_mult = growth_m
+                    # One-shot follower spillover: partner audience gets exposed to user.
+                    # Scales with (1 - overlap) — disjoint audiences = more new followers.
+                    # repeat_decay flows through growth_m (already baked in by _collab_evaluation),
+                    # so we don't multiply by it again here.
+                    overlap = ev.get("overlap") or 0.0
+                    partner_followers = ev.get("partner_followers") or 0
+                    spill_k = COLLAB_BLOCKED_SPILLOVER_K if not ev.get("recommended") else COLLAB_SPILLOVER_K
+                    collab_spillover_followers = int(
+                        partner_followers * (1.0 - overlap) * growth_m * spill_k
+                    )
+                    self._last_collab_spillover = collab_spillover_followers
+                    # Arm the post-collab carryover window for the next N days.
+                    self._collab_carryover_days_remaining = COLLAB_REACH_CARRYOVER_DAYS
 
                 engagement = min(engagement, 5.0)
 
@@ -1378,6 +1476,8 @@ class ViraltestEnvironment(Environment):
 
             if engagement > 0:
                 self._followers += int(engagement * 100 * collab_growth_mult)
+                if collab_spillover_followers > 0:
+                    self._followers += collab_spillover_followers
 
         elif sa.action_type == "create_content":
             self._energy = max(0.0, self._energy - CREATE_CONTENT_COST)
