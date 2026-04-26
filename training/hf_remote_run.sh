@@ -5,7 +5,7 @@
 # inlining via `bash -lc`) avoids the argv "File name too long" failure.
 #
 # Required env (set by launcher):
-#   SPACE_REPO          e.g. ycwhencpp/train-new
+#   SPACE_REPO          e.g. vaibhavkhandare/train-bhai-train
 #   HF_TOKEN            secret, injected via --secrets
 #   NB_EXEC_TIMEOUT     papermill execution timeout in seconds (default 14400)
 #   SMOKE_MODE          0 = full training, 1 = smoke (default 0 here)

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Launch a HF Job that:
-#   1. clones the Space repo (default: ycwhencpp/train-new) into /work
+#   1. clones the Space repo (default: vaibhavkhandare/train-bhai-train) into /work
 #   2. execs training/hf_remote_run.sh from that clone (heavy lifting lives there)
 #
 # We keep the inline bootstrap intentionally tiny — anything larger risks the
