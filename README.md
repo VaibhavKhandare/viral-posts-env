@@ -1,6 +1,5 @@
 ---
-
-## title: Viraltest — Creator Optimization Agent
+title: Viraltest — Creator Optimization Agent
 emoji: 📊
 colorFrom: yellow
 colorTo: indigo
@@ -10,6 +9,7 @@ app_port: 8000
 base_path: /web
 tags:
   - openenv
+---
 
 # Viraltest v2 — World-Modeling RL Environment for Instagram Strategy
 
