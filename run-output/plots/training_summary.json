@@ -4,14 +4,14 @@
   "rounds": 4,
   "episodes_per_round": 6,
   "before": {
-    "monthly_engage": 0.5642,
-    "monthly_strategic": 0.5903,
-    "monthly_competitive": 0.8313
+    "monthly_engage": 0.0,
+    "monthly_strategic": 0.174,
+    "monthly_competitive": 0.028
   },
   "after": {
-    "monthly_engage": 0.1071,
-    "monthly_strategic": 0.3174,
-    "monthly_competitive": 0.5233
+    "monthly_engage": 0.0,
+    "monthly_strategic": 0.1744,
+    "monthly_competitive": 0.028
   },
   "smart_heuristic": {
     "monthly_engage": 0.7352,
@@ -19,9 +19,9 @@
     "monthly_competitive": 0.9066
   },
   "improvement": {
-    "monthly_engage": -0.45710000000000006,
-    "monthly_strategic": -0.27290000000000003,
-    "monthly_competitive": -0.30800000000000005
+    "monthly_engage": 0.0,
+    "monthly_strategic": 0.00040000000000001146,
+    "monthly_competitive": 0.0
   },
   "training_log": {
     "round": [
@@ -31,46 +31,46 @@
       4
     ],
     "avg_episode_reward": [
-      3.154,
-      2.855,
-      2.969,
-      3.294
+      3.463,
+      3.072,
+      3.469,
+      3.316
     ],
     "max_episode_reward": [
-      4.348,
-      3.71,
-      4.14,
-      4.527
+      4.232,
+      3.802,
+      3.956,
+      3.517
     ],
     "min_episode_reward": [
-      2.316,
-      2.249,
+      2.793,
       2.25,
-      2.32
+      2.979,
+      3.073
     ],
     "avg_grader": [
-      0.3017,
-      0.2058,
-      0.2041,
-      0.2793
+      0.3947,
+      0.2737,
+      0.3738,
+      0.3453
     ],
     "max_grader": [
-      0.647,
-      0.5125,
-      0.4656,
-      0.5243
+      0.6341,
+      0.5068,
+      0.574,
+      0.4575
     ],
     "n_training_samples": [
-      38,
-      37,
-      45,
-      45
+      44,
+      48,
+      41,
+      47
     ],
     "train_loss": [
-      2.6893,
-      2.554,
-      2.0757,
-      1.9805
+      2.4064,
+      2.434,
+      2.4042,
+      2.4202
     ]
   }
 }
