@@ -28,6 +28,7 @@ git clone --depth 1 "https://user:${HF_TOKEN}@huggingface.co/spaces/${SPACE_REPO
 cd /work
 papermill --log-output --progress-bar --execution-timeout "${NB_EXEC_TIMEOUT}" \
   training/train_grpo.ipynb training/train_grpo.executed.ipynb
+python training/export_io_pairs.py plots/io_log.jsonl plots/io_pairs.json
 python -c "import os; from huggingface_hub import HfApi; HfApi().upload_folder(folder_path='.', path_in_repo='run-output', repo_id=os.environ['SPACE_REPO'], repo_type='space', allow_patterns=['training/train_grpo.executed.ipynb','plots/**','**/lora-*/**'])"
 EOS
 )
