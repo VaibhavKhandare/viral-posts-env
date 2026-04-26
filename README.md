@@ -149,7 +149,8 @@ Every constant is backed by a Tier 1–3 source. Full bibliography with DOIs, PM
 
 ## Storytelling assets
 
-- [HuggingFace blog](blog/hf_mini_blog.md)
+- [Full blog — story, science, results](blog/blog.md)
+- [HuggingFace mini-blog](blog/hf_mini_blog.md)
 - [YouTube script (<2 min)](blog/youtube_script.md)
 - [Slide deck outline](blog/slide_outline.md)
 
