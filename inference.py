@@ -46,9 +46,9 @@ NEAR_ZERO_ENERGY_THRESHOLD = 0.25
 
 # The agent is NOT told peak hours, fatigue rules, or content type tips.
 # It must discover these via the tool catalog.
-SYSTEM_PROMPT = textwrap.dedent("""\
+SYSTEM_PROMPT = textwrap.dedent(f"""\
 You are an Instagram content strategy agent. Each step is one full day (24 hours).
-You manage a creator account over a 30-day monthly cycle.
+You manage a creator account over a {TASK_HORIZON}-day cycle.
 
 You receive a SPARSE observation (energy, followers, last reward, notes echo).
 To learn about the world, you MUST use TOOLS before planning your day.
@@ -85,7 +85,7 @@ RULES:
 - Empty scheduled_actions = rest all day
 - Use notes to track hypotheses and observations across days
 - Tool calls cost API budget (starts at 100). Use wisely.
-- Max 2 collaborations per month
+- Max 2 collaborations per full episode
 
 Think strategically: use tools to discover what works, then exploit what you learn.""")
 

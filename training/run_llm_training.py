@@ -146,9 +146,9 @@ def run_episode(task, plan_fn, seed=42):
 
 # ─── Ollama LLM interface ─────────────────────────────────────────────
 
-BASE_SYSTEM_PROMPT = textwrap.dedent("""\
+BASE_SYSTEM_PROMPT = textwrap.dedent(f"""\
 You are an Instagram content strategy agent. Each step is one day.
-You manage a creator account over a 30-day cycle.
+You manage a creator account over a {TASK_HORIZON}-day cycle.
 
 RESPONSE FORMAT — return ONLY valid JSON, no markdown, no explanation:
 {
@@ -319,8 +319,11 @@ def plot_baseline_leaderboard(baseline_results):
             axes[i].text(bar.get_width() + 0.005, bar.get_y() + bar.get_height() / 2,
                          f"{score:.4f}", va="center", fontsize=9)
     axes[0].set_ylabel("Agent")
-    fig.suptitle("Viraltest v2 — Heuristic Baseline Leaderboard (30-day episodes)",
-                 fontsize=14, fontweight="bold")
+    fig.suptitle(
+        f"Viraltest v2 — Heuristic Baseline Leaderboard ({TASK_HORIZON}-day episodes)",
+        fontsize=14,
+        fontweight="bold",
+    )
     fig.tight_layout()
     fig.savefig(PLOTS_DIR / "baseline_leaderboard.png", dpi=150, bbox_inches="tight")
     plt.close(fig)

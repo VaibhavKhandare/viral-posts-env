@@ -325,8 +325,11 @@ def plot_baseline_leaderboard(baseline_results: Dict):
                          f"{score:.4f}", va="center", fontsize=9)
 
     axes[0].set_ylabel("Agent")
-    fig.suptitle("Viraltest v2 — Heuristic Baseline Leaderboard (30-day episodes)",
-                 fontsize=14, fontweight="bold")
+    fig.suptitle(
+        f"Viraltest v2 — Heuristic Baseline Leaderboard ({TASK_HORIZON}-day episodes)",
+        fontsize=14,
+        fontweight="bold",
+    )
     fig.tight_layout()
     path = PLOTS_DIR / "baseline_leaderboard.png"
     fig.savefig(path, dpi=150, bbox_inches="tight")

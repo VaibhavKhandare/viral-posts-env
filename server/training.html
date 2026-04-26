@@ -105,7 +105,7 @@ body{background:#0b1326;color:#dae2fd;font-family:'Inter',sans-serif}
       <div class="glass-solid p-5 rounded-xl overflow-hidden">
         <h3 class="text-sm font-bold mb-1 flex items-center gap-2">
           <span class="material-symbols-outlined text-secondary text-lg">show_chart</span>
-          Reward Trajectories (30-day episodes)
+          Reward Trajectories (15-day episodes)
         </h3>
         <p class="text-[9px] font-label text-on-surface-dim mb-3">Daily reward over the episode for each agent &times; task. Shows that smart strategies maintain higher rewards throughout.</p>
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
@@ -169,6 +169,8 @@ const API=window.location.origin;
 const COLORS={"always_rest":"#E53935","spam":"#FF9800","random":"#9E9E9E","minimal":"#42A5F5","smart":"#4CAF50"};
 const TASK_MAP={"monthly_engage":"engage","monthly_strategic":"strategic","monthly_competitive":"competitive"};
 const TASK_LABELS={"monthly_engage":"Engage","monthly_strategic":"Strategic","monthly_competitive":"Competitive"};
+/** Must match server.viraltest_environment.TASK_HORIZON */
+const EPISODE_DAYS=15;
 
 let allData=null;
 
@@ -274,7 +276,7 @@ function renderTrajectories(){
     html+=`<line x1="${pL}" y1="${pT}" x2="${pL}" y2="${H-pB}" stroke="#cbc3d7" stroke-width="0.7"/>`;
     html+=`<line x1="${pL}" y1="${H-pB}" x2="${W-pR}" y2="${H-pB}" stroke="#cbc3d7" stroke-width="0.7"/>`;
     html+=`<text x="${pL}" y="${H-10}" fill="#958ea0" font-size="8" font-family="Space Grotesk,sans-serif">Day 1</text>`;
-    html+=`<text x="${W-pR}" y="${H-10}" text-anchor="end" fill="#958ea0" font-size="8" font-family="Space Grotesk,sans-serif">Day 30</text>`;
+    html+=`<text x="${W-pR}" y="${H-10}" text-anchor="end" fill="#958ea0" font-size="8" font-family="Space Grotesk,sans-serif">Day ${EPISODE_DAYS}</text>`;
     html+=`<text x="${pL+plotW/2}" y="${H-2}" text-anchor="middle" fill="#958ea0" font-size="7" font-family="Space Grotesk,sans-serif" opacity="0.75">day</text>`;
 
     taskResults.forEach(r=>{
@@ -317,7 +319,7 @@ function renderTable(){
     const scoreColor=r.grader_score>=0.5?"text-primary":r.grader_score>=0.2?"text-secondary":"text-tertiary";
     const energyColor=r.final_energy>=0.5?"text-secondary":r.final_energy>0?"text-tertiary":"text-error";
     const deltaColor=r.follower_delta>0?"text-secondary":r.follower_delta<0?"text-tertiary":"text-on-surface-dim";
-    const status=r.burned_out?'<span class="text-tertiary font-bold">BURNED</span>':r.steps>=30?'<span class="text-secondary">DONE</span>':'<span class="text-on-surface-dim">EARLY</span>';
+    const status=r.burned_out?'<span class="text-tertiary font-bold">BURNED</span>':r.steps>=EPISODE_DAYS?'<span class="text-secondary">DONE</span>':'<span class="text-on-surface-dim">EARLY</span>';
     return `<tr class="border-b border-white/5 hover:bg-white/[.02]">
       <td class="px-4 py-2"><div class="flex items-center gap-2"><span class="w-2 h-2 rounded-full" style="background:${color}"></span><span class="text-on-surface font-bold">${r.scenario}</span></div></td>
       <td class="px-4 py-2 text-on-surface-dim">${TASK_LABELS[r.task]||r.task}</td>
@@ -351,13 +353,13 @@ function renderTakeaways(){
   const ratio=worst.avg>0?(best.avg/worst.avg).toFixed(1):"∞";
 
   const burnedOut=allData.results.filter(r=>r.burned_out);
-  const completed=allData.results.filter(r=>!r.burned_out&&r.steps>=30);
+  const completed=allData.results.filter(r=>!r.burned_out&&r.steps>=EPISODE_DAYS);
 
   const points=[
     `<span class="text-on-surface font-bold">Best agent: ${best.label}</span> (avg score ${best.avg.toFixed(4)}) — ${ratio}× better than worst (${worst.label}, avg ${worst.avg.toFixed(4)}).`,
     `<span class="text-on-surface font-bold">Score spread:</span> The environment produces a ${(avgs[0].avg-avgs[avgs.length-1].avg).toFixed(4)} spread between best and worst agents, proving the reward is informative and not flat.`,
     `<span class="text-on-surface font-bold">${burnedOut.length} burnout events</span> across ${allData.results.length} runs — the burnout penalty correctly punishes unsustainable strategies (spam, no-rest).`,
-    `<span class="text-on-surface font-bold">${completed.length}/${allData.results.length} episodes completed</span> all 30 days — agents that manage energy survive; those that don't burn out early.`,
+    `<span class="text-on-surface font-bold">${completed.length}/${allData.results.length} episodes completed</span> all ${EPISODE_DAYS} days — agents that manage energy survive; those that don't burn out early.`,
     `<span class="text-on-surface font-bold">Reward is hard to game:</span> Spamming posts burns out immediately (score ≈ 0). Always resting loses followers. The optimal strategy requires balancing multiple objectives.`,
     `<span class="text-on-surface font-bold">Grader difficulty scales correctly:</span> All agents score lower on Competitive than on Engage, confirming the three-tier difficulty progression works.`,
   ];
