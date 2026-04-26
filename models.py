@@ -99,7 +99,7 @@ class ViraltestAction(Action):
     )
     collab: Optional[CollabProposal] = Field(
         default=None,
-        description="Optional collaboration proposal (max 2 per month)",
+        description="Optional collaboration proposal (cap: 3 per week per Cen 2024)",
     )
     interactions: Optional[DailyInteractions] = Field(
         default=None,

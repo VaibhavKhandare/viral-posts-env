@@ -5,7 +5,7 @@ Sections
 --------
 A) Collab tier diagnostics
    - Per-tier expected multipliers from `_collab_evaluation`
-   - Episode runs with varying collab cadence (1, 5, 15 collabs/episode) to show that
+   - Episode runs with varying collab cadence (1, 3, 7 collabs/episode) to show that
      the score spread between tiers GROWS with cadence, proving the multiplier is doing
      real work and the small diffs in the 2-collab test are just dilution.
 B) Interaction diagnostics
@@ -30,7 +30,7 @@ from server.viraltest_environment import ViraltestEnvironment
 
 
 SEED = 42
-HORIZON = 15  # TASK_HORIZON in the env
+HORIZON = 7  # TASK_HORIZON in the env
 
 # ---------------------------------------------------------------------------
 # Helpers
@@ -47,7 +47,7 @@ def _post_only(content_type: str = "reel", topic: str = "AI tools",
 def _run_episode(
     plan_fn,
     user_niche: Optional[str] = None,
-    task: str = "monthly_competitive",
+    task: str = "weekly_competitive",
 ) -> Dict[str, Any]:
     env = ViraltestEnvironment()
     reset_kwargs: Dict[str, Any] = {"task": task, "seed": SEED}
@@ -94,7 +94,7 @@ def section_a_collab_evaluator() -> None:
     print("A1. _collab_evaluation snapshot (user_niche=tech)")
     print("=" * 78)
     env = ViraltestEnvironment()
-    env.reset(task="monthly_competitive", seed=SEED, user_niche="tech")
+    env.reset(task="weekly_competitive", seed=SEED, user_niche="tech")
     fmt = "{:<22} {:>5} {:>7} {:>5} {:>5} {:>10} {:>10} {:<28}"
     print(fmt.format("partner", "same?", "overlap", "fol", "gap%", "eng_mult", "growth", "reason/recommended"))
     print("-" * 105)
@@ -130,7 +130,7 @@ def make_collab_plan(partner_id: str, collab_days: List[int]):
 
 def section_a_collab_cadence() -> None:
     print("=" * 78)
-    print("A2. Score spread vs collab cadence (1, 5, 15 collabs in 15-day horizon)")
+    print("A2. Score spread vs collab cadence (1, 3, 7 collabs in 7-day horizon)")
     print("    Hypothesis: more collab days -> larger gap between tiers")
     print("=" * 78)
 
@@ -144,9 +144,9 @@ def section_a_collab_cadence() -> None:
         ("Guardrail Block", "b2b_thought_leader", "tech"),       # overlap=0.08 (<10%)
     ]
     cadences = {
-        "1 collab":  [5],
-        "5 collabs": [3, 5, 7, 9, 11],
-        "15 collabs": list(range(1, 16)),
+        "1 collab":  [3],
+        "3 collabs": [2, 4, 6],
+        "7 collabs": list(range(1, 8)),
     }
 
     fmt = "{:<22} {:>10} {:>10} {:>10}"
@@ -266,7 +266,7 @@ def section_c_sanity() -> None:
 
     # Verify query_interaction_norms surfaces sensible values.
     env = ViraltestEnvironment()
-    env.reset(task="monthly_engage", seed=SEED, user_niche="tech")
+    env.reset(task="weekly_engage", seed=SEED, user_niche="tech")
     from models import ToolCall
     res = env._dispatch_tool(ToolCall(name="query_interaction_norms", arguments={}))
     print("query_interaction_norms tool ->")

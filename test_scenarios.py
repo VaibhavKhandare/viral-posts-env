@@ -19,7 +19,7 @@ from server.viraltest_environment import (
     ViraltestObservation,
 )
 
-TASKS = ["monthly_engage", "monthly_strategic", "monthly_competitive"]
+TASKS = ["weekly_engage", "weekly_strategic", "weekly_competitive"]
 SEED = 42
 
 _CONTENT_TYPES = ["reel", "carousel", "story", "text_post"]
@@ -55,7 +55,7 @@ def run_episode(
     min_energy = 1.0
     burned_out = False
 
-    for day in range(1, 31):
+    for day in range(1, 9):
         action = plan_fn(obs_dict, day)
         obs = env.step(action)
         obs_dict = obs.model_dump()
@@ -183,7 +183,7 @@ def plan_random(obs: dict, day: int) -> ViraltestAction:
 # ---------------------------------------------------------------------------
 
 def _collab_plan(day: int, partner_id: str, hour: int = 12) -> ViraltestAction:
-    """Daily plan that posts once and proposes a collab on days 5 and 15.
+    """Daily plan that posts once and proposes a collab on days 3 and 6 of the week.
 
     Single-post per day keeps engagement below the theoretical_max cap so collab
     multipliers visibly bend the final grader score and follower count.
@@ -193,7 +193,7 @@ def _collab_plan(day: int, partner_id: str, hour: int = 12) -> ViraltestAction:
          "topic": "AI tools", "tags": ["ai"], "intent": "watch_bait"},
     ]
     collab = None
-    if day in (5, 15):
+    if day in (3, 6):
         collab = CollabProposal(partner_id=partner_id, content_type="reel", hour=hour)
     return _plan(actions, collab=collab)
 
@@ -350,7 +350,7 @@ if __name__ == "__main__":
                 reset_kwargs["user_niche"] = user_niche
             obs = env.reset(**reset_kwargs)
             obs_dict = obs.model_dump()
-            for day in range(1, 31):
+            for day in range(1, 9):
                 action = plan_fn(obs_dict, day)
                 obs = env.step(action)
                 obs_dict = obs.model_dump()

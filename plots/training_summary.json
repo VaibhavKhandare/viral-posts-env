@@ -4,24 +4,24 @@
   "training_rounds": 4,
   "episodes_per_round": 6,
   "before": {
-    "monthly_engage": 0.3548,
-    "monthly_strategic": 0.6795,
-    "monthly_competitive": 0.3738
+    "weekly_engage": 0.3548,
+    "weekly_strategic": 0.6795,
+    "weekly_competitive": 0.3738
   },
   "after": {
-    "monthly_engage": 0.4086,
-    "monthly_strategic": 0.6273,
-    "monthly_competitive": 0.5101
+    "weekly_engage": 0.4086,
+    "weekly_strategic": 0.6273,
+    "weekly_competitive": 0.5101
   },
   "smart_heuristic": {
-    "monthly_engage": 0.4312,
-    "monthly_strategic": 0.7682,
-    "monthly_competitive": 0.8094
+    "weekly_engage": 0.4312,
+    "weekly_strategic": 0.7682,
+    "weekly_competitive": 0.8094
   },
   "improvement": {
-    "monthly_engage": 0.053800000000000014,
-    "monthly_strategic": -0.052200000000000024,
-    "monthly_competitive": 0.13629999999999998
+    "weekly_engage": 0.053800000000000014,
+    "weekly_strategic": -0.052200000000000024,
+    "weekly_competitive": 0.13629999999999998
   },
   "training_log": {
     "round": [
@@ -76,7 +76,7 @@
   "all_episodes": [
     {
       "round": 1,
-      "task": "monthly_engage",
+      "task": "weekly_engage",
       "seed": 42,
       "grader_score": 0.4395,
       "total_reward": 6.1044,
@@ -84,7 +84,7 @@
     },
     {
       "round": 1,
-      "task": "monthly_strategic",
+      "task": "weekly_strategic",
       "seed": 43,
       "grader_score": 0.6758,
       "total_reward": 6.0373,
@@ -92,7 +92,7 @@
     },
     {
       "round": 1,
-      "task": "monthly_competitive",
+      "task": "weekly_competitive",
       "seed": 44,
       "grader_score": 0.3698,
       "total_reward": 6.0686,
@@ -100,7 +100,7 @@
     },
     {
       "round": 1,
-      "task": "monthly_engage",
+      "task": "weekly_engage",
       "seed": 45,
       "grader_score": 0.3806,
       "total_reward": 6.0643,
@@ -108,7 +108,7 @@
     },
     {
       "round": 1,
-      "task": "monthly_strategic",
+      "task": "weekly_strategic",
       "seed": 46,
       "grader_score": 0.7391,
       "total_reward": 6.096,
@@ -116,7 +116,7 @@
     },
     {
       "round": 1,
-      "task": "monthly_competitive",
+      "task": "weekly_competitive",
       "seed": 47,
       "grader_score": 0.3699,
       "total_reward": 6.0489999999999995,
@@ -124,7 +124,7 @@
     },
     {
       "round": 2,
-      "task": "monthly_engage",
+      "task": "weekly_engage",
       "seed": 142,
       "grader_score": 0.4335,
       "total_reward": 6.0995,
@@ -132,7 +132,7 @@
     },
     {
       "round": 2,
-      "task": "monthly_strategic",
+      "task": "weekly_strategic",
       "seed": 143,
       "grader_score": 0.7236,
       "total_reward": 6.0992,
@@ -140,7 +140,7 @@
     },
     {
       "round": 2,
-      "task": "monthly_competitive",
+      "task": "weekly_competitive",
       "seed": 144,
       "grader_score": 0.3789,
       "total_reward": 6.0943,
@@ -148,7 +148,7 @@
     },
     {
       "round": 2,
-      "task": "monthly_engage",
+      "task": "weekly_engage",
       "seed": 145,
       "grader_score": 0.4356,
       "total_reward": 6.0999,
@@ -156,7 +156,7 @@
     },
     {
       "round": 2,
-      "task": "monthly_strategic",
+      "task": "weekly_strategic",
       "seed": 146,
       "grader_score": 0.7232,
       "total_reward": 6.0882,
@@ -164,7 +164,7 @@
     },
     {
       "round": 2,
-      "task": "monthly_competitive",
+      "task": "weekly_competitive",
       "seed": 147,
       "grader_score": 0.2527,
       "total_reward": 6.0764,
@@ -172,7 +172,7 @@
     },
     {
       "round": 3,
-      "task": "monthly_engage",
+      "task": "weekly_engage",
       "seed": 242,
       "grader_score": 0.382,
       "total_reward": 6.4364,
@@ -180,7 +180,7 @@
     },
     {
       "round": 3,
-      "task": "monthly_strategic",
+      "task": "weekly_strategic",
       "seed": 243,
       "grader_score": 0.6426,
       "total_reward": 6.4364,
@@ -188,7 +188,7 @@
     },
     {
       "round": 3,
-      "task": "monthly_competitive",
+      "task": "weekly_competitive",
       "seed": 244,
       "grader_score": 0.7529,
       "total_reward": 6.3849,
@@ -196,7 +196,7 @@
     },
     {
       "round": 3,
-      "task": "monthly_engage",
+      "task": "weekly_engage",
       "seed": 245,
       "grader_score": 0.3935,
       "total_reward": 6.4805,
@@ -204,7 +204,7 @@
     },
     {
       "round": 3,
-      "task": "monthly_strategic",
+      "task": "weekly_strategic",
       "seed": 246,
       "grader_score": 0.724,
       "total_reward": 6.4286,
@@ -212,7 +212,7 @@
     },
     {
       "round": 3,
-      "task": "monthly_competitive",
+      "task": "weekly_competitive",
       "seed": 247,
       "grader_score": 0.7138,
       "total_reward": 6.3425,
@@ -220,7 +220,7 @@
     },
     {
       "round": 4,
-      "task": "monthly_engage",
+      "task": "weekly_engage",
       "seed": 342,
       "grader_score": 0.3764,
       "total_reward": 6.4858,
@@ -228,7 +228,7 @@
     },
     {
       "round": 4,
-      "task": "monthly_strategic",
+      "task": "weekly_strategic",
       "seed": 343,
       "grader_score": 0.6314,
       "total_reward": 6.4636,
@@ -236,7 +236,7 @@
     },
     {
       "round": 4,
-      "task": "monthly_competitive",
+      "task": "weekly_competitive",
       "seed": 344,
       "grader_score": 0.7705,
       "total_reward": 6.4934,
@@ -244,7 +244,7 @@
     },
     {
       "round": 4,
-      "task": "monthly_engage",
+      "task": "weekly_engage",
       "seed": 345,
       "grader_score": 0.3851,
       "total_reward": 6.4661,
@@ -252,7 +252,7 @@
     },
     {
       "round": 4,
-      "task": "monthly_strategic",
+      "task": "weekly_strategic",
       "seed": 346,
       "grader_score": 0.6755,
       "total_reward": 6.5269,
@@ -260,7 +260,7 @@
     },
     {
       "round": 4,
-      "task": "monthly_competitive",
+      "task": "weekly_competitive",
       "seed": 347,
       "grader_score": 0.4897,
       "total_reward": 6.3657,

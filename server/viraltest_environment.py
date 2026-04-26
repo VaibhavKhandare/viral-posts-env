@@ -102,10 +102,10 @@ _FOLLOWERS_BY_ARCHETYPE: Dict[str, int] = {
 # ---------------------------------------------------------------------------
 
 # Episode length in daily env steps. Graders and UI should stay consistent with this value.
-TASK_HORIZON = 15
+TASK_HORIZON = 7
 
 # Distinct positive tags for full tag_discovery score in strategic/competitive graders.
-# Caps at 30 (original month-scale bar); scales down only for very short horizons.
+# Caps at 30 for long horizons; for a 7-day week this resolves to 14 (~2 unique tags/day).
 TAG_DISCOVERY_POSITIVE_TARGET = float(max(6, min(30, TASK_HORIZON * 2)))
 
 # Socialinsider 2026 (31M posts)
@@ -147,7 +147,7 @@ INTENT_MULTIPLIER = {
     "like_bait":  {"likes_per_reach": 1.3},
 }
 
-VALID_TASKS = ("monthly_engage", "monthly_strategic", "monthly_competitive")
+VALID_TASKS = ("weekly_engage", "weekly_strategic", "weekly_competitive")
 
 INITIAL_FOLLOWERS = 10000
 REST_RECOVERY = 0.12
@@ -256,9 +256,9 @@ def _load_heuristic_baselines() -> Dict[str, float]:
         return {}
 
 HEURISTIC_BASELINE_SCORES: Dict[str, float] = _load_heuristic_baselines() or {
-    "monthly_engage": 0.43,
-    "monthly_strategic": 0.77,
-    "monthly_competitive": 0.81,
+    "weekly_engage": 0.43,
+    "weekly_strategic": 0.77,
+    "weekly_competitive": 0.81,
 }
 
 # Cross-episode store for distribution-shift retention. Keyed by episode_chain_id, stores
@@ -338,13 +338,13 @@ TOOL_CATALOG = {
 
 
 class ViraltestEnvironment(Environment):
-    """Monthly creator optimization simulation (Theme #3.1 World Modeling)."""
+    """Weekly creator optimization simulation (Theme #3.1 World Modeling)."""
 
     SUPPORTS_CONCURRENT_SESSIONS: bool = True
 
     def __init__(self) -> None:
         self._state = State(episode_id=str(uuid4()), step_count=0)
-        self._task = "monthly_engage"
+        self._task = "weekly_engage"
         self._rng = random.Random(42)
         self._init_state()
 
@@ -374,7 +374,7 @@ class ViraltestEnvironment(Environment):
         self._algorithm_penalty_remaining = 0
         self._agent_notes: Optional[str] = None
         self._api_budget = API_BUDGET_INITIAL
-        self._collabs_this_month = 0
+        self._collabs_this_week = 0
         self._collab_history: List[str] = []
         self._active_collab: Optional[CollabProposal] = None
         self._collab_violations: List[str] = []  # collab guardrail breaches this step
@@ -719,7 +719,7 @@ class ViraltestEnvironment(Environment):
         growth_mult *= repeat_decay
 
         # Diminishing returns across the episode (Cen 2024) — applies regardless of partner.
-        prior = max(0, self._collabs_this_month - 1)
+        prior = max(0, self._collabs_this_week - 1)
         fatigue = 1.0 / (1.0 + COLLAB_FATIGUE_K * prior)
         eng_mult *= fatigue
         growth_mult *= fatigue
@@ -1108,8 +1108,8 @@ class ViraltestEnvironment(Environment):
         if self._total_posts_this_week > WEEKLY_FATIGUE_THRESHOLD:
             violations.append(f"weekly posts={self._total_posts_this_week} > {WEEKLY_FATIGUE_THRESHOLD} (Buffer 2.1M cap)")
             pc -= 0.20
-        if self._collabs_this_month >= 4:
-            violations.append(f"collab cadence={self._collabs_this_month} net-negative beyond 3 (Cen 2024)")
+        if self._collabs_this_week >= 4:
+            violations.append(f"collab cadence={self._collabs_this_week}/week net-negative beyond 3 (Cen 2024)")
             pc -= 0.20
         if errors:
             violations.append(f"plan_errors={len(errors)}")
@@ -1181,9 +1181,9 @@ class ViraltestEnvironment(Environment):
     # ----- core API -----
 
     def reset(self, seed: Optional[int] = None, episode_id: Optional[str] = None, **kwargs: Any) -> ViraltestObservation:
-        self._task = kwargs.get("task", "monthly_engage")
+        self._task = kwargs.get("task", "weekly_engage")
         if self._task not in VALID_TASKS:
-            self._task = "monthly_engage"
+            self._task = "weekly_engage"
 
         self._rng = random.Random(seed if seed is not None else 42)
         self._state = State(episode_id=episode_id or str(uuid4()), step_count=0)
@@ -1235,7 +1235,7 @@ class ViraltestEnvironment(Environment):
         self._active_collab = None
         self._collab_violations = []
         if action.collab:
-            self._collabs_this_month += 1
+            self._collabs_this_week += 1
             self._collab_history.append(action.collab.partner_id)
             self._active_collab = action.collab
 
@@ -1724,21 +1724,21 @@ class ViraltestEnvironment(Environment):
             interaction_metrics=interaction_metrics,
         )
 
-    # ----- graders (monthly) -----
+    # ----- graders (weekly) -----
 
     def _run_grader(self) -> float:
-        if self._task == "monthly_engage":
-            return self._grade_monthly_engage()
-        elif self._task == "monthly_strategic":
-            return self._grade_monthly_strategic()
-        elif self._task == "monthly_competitive":
-            return self._grade_monthly_competitive()
+        if self._task == "weekly_engage":
+            return self._grade_weekly_engage()
+        elif self._task == "weekly_strategic":
+            return self._grade_weekly_strategic()
+        elif self._task == "weekly_competitive":
+            return self._grade_weekly_competitive()
         return 0.0
 
     def _theoretical_max_engagement(self) -> float:
         # Buffer 2.1M (RESEARCH.md): 3–5 posts/week doubles follower growth vs 1–2,
         # diminishing returns above 5/week, 20–35% engagement drop per post above 7/week.
-        # Cap at 5 posts/week × 4 weeks = 20 posts/month (sweet-spot, no fatigue penalty).
+        # Cap at 5 posts/week (sweet-spot, no fatigue penalty); scales linearly for longer horizons.
         best_base = max(BASE_ENGAGEMENT.values())
         best_reach = max(REACH_MULT.values())
         best_niche = max(_NICHE_MULTIPLIERS.values()) if _NICHE_MULTIPLIERS else 1.0
@@ -1766,7 +1766,7 @@ class ViraltestEnvironment(Environment):
         )
         return per_post * total_posts
 
-    def _grade_monthly_engage(self) -> float:
+    def _grade_weekly_engage(self) -> float:
         theoretical_max = self._theoretical_max_engagement()
         if theoretical_max <= 0:
             return 0.0
@@ -1775,7 +1775,7 @@ class ViraltestEnvironment(Environment):
             raw *= 0.3
         return raw
 
-    def _grade_monthly_strategic(self) -> float:
+    def _grade_weekly_strategic(self) -> float:
         if self._energy <= 0.0:
             return max(0.0, min(0.15, self._total_engagement * 0.01))
 
@@ -1804,7 +1804,7 @@ class ViraltestEnvironment(Environment):
 
         return max(0.0, min(1.0, raw))
 
-    def _grade_monthly_competitive(self) -> float:
+    def _grade_weekly_competitive(self) -> float:
         if self._energy <= 0.0:
             return 0.0
 

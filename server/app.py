@@ -160,7 +160,7 @@ async def dashboard_history_clear():
 async def dashboard_reset(body: Dict[str, Any] = Body(default={})):
     global _dash_env
     _dash_env = ViraltestEnvironment()
-    task = body.get("task", "monthly_engage")
+    task = body.get("task", "weekly_engage")
     obs = _dash_env.reset(task=task)
     return _obs_to_dict(obs)
 
@@ -364,7 +364,7 @@ async def dashboard_simulate(body: Dict[str, Any] = Body(...)):
     _SIM_RNG = stdlib_random.Random(99)
 
     scenario_id = body.get("scenario", "smart")
-    task = body.get("task", "monthly_competitive")
+    task = body.get("task", "weekly_competitive")
     if scenario_id not in SCENARIOS:
         return {"error": f"Unknown scenario: {scenario_id}"}
 
@@ -447,7 +447,7 @@ async def dashboard_simulate(body: Dict[str, Any] = Body(...)):
     return result
 
 
-_TRAINING_TASKS = ["monthly_engage", "monthly_strategic", "monthly_competitive"]
+_TRAINING_TASKS = ["weekly_engage", "weekly_strategic", "weekly_competitive"]
 
 @app.get("/dashboard/training-evidence")
 async def training_evidence():

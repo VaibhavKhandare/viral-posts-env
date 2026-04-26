@@ -135,7 +135,7 @@ Every constant and design decision in Viraltest is backed by a verifiable source
 
 **Key findings:** 3–5 posts/week doubles follower growth vs 1–2. 7+/week shows 20–35% engagement drop per post. Diminishing returns above 5/week.
 
-**What we use:** `FATIGUE_TIERS`, `WEEKLY_FATIGUE_THRESHOLD = 7`, `_theoretical_max_engagement` caps at 5 posts/week × `TASK_HORIZON/7` weeks (≈21 posts for 30-day horizon — the Buffer-defined sweet spot before fatigue penalties kick in).
+**What we use:** `FATIGUE_TIERS`, `WEEKLY_FATIGUE_THRESHOLD = 7`, `_theoretical_max_engagement` caps at 5 posts/week × `TASK_HORIZON/7` weeks (5 posts for the default 7-day horizon — the Buffer-defined sweet spot before fatigue penalties kick in).
 
 ---
 
@@ -228,7 +228,7 @@ Every constant and design decision in Viraltest is backed by a verifiable source
 
 **What we use:** `audience_overlap_matrix.json` values and `COLLAB_GROWTH_K = 1.50` — follower spillover scales with `(1 - overlap)`, peaking at +150% when overlap is zero (matches the upper end of Rival IQ's cross-industry follower-acquisition lift).
 
-Per-episode collab cadence is **not hard-capped**. Instead, each successive collab in a month is multiplied by `1 / (1 + COLLAB_FATIGUE_K · prior_collabs)` (`K = 0.3`): the multiplier falls to ~77% on the 2nd, 63% on the 3rd, 53% on the 4th. With base `engagement ≈ 1.52×` from a typical-overlap partner, this puts the 1st–2nd collab clearly above the no-collab baseline, the 3rd roughly neutral, and the 4th+ net-negative. This follows Cen et al. 2024's argument that disengagement-aware policies should price marginal exposure rather than impose binary caps, and lets the policy discover its own collab frequency from reward gradient.
+Per-episode collab cadence is **not hard-capped**. Instead, each successive collab in a week is multiplied by `1 / (1 + COLLAB_FATIGUE_K · prior_collabs)` (`K = 0.3`): the multiplier falls to ~77% on the 2nd, 63% on the 3rd, 53% on the 4th. With base `engagement ≈ 1.52×` from a typical-overlap partner, this puts the 1st–2nd collab clearly above the no-collab baseline, the 3rd roughly neutral, and the 4th+ net-negative. This follows Cen et al. 2024's argument that disengagement-aware policies should price marginal exposure rather than impose binary caps, and lets the policy discover its own collab frequency from reward gradient.
 
 ---
 
@@ -240,7 +240,7 @@ Per-episode collab cadence is **not hard-capped**. Instead, each successive coll
 
 **Key findings:** ~67M global creators in 2025, growing 10% CAGR to 107M by 2030. Only 3% are professional (>$100K/yr). TAM ~$250B → $480B by 2027. 3% of YouTubers capture 90% of earnings.
 
-**What we use:** Problem framing in README. `INITIAL_FOLLOWERS = 10000` (micro-creator tier). `target_growth = 0.04` monthly (micro avg 0.8–1.5%/month → 0.04 as top-decile 4%/month target).
+**What we use:** Problem framing in README. `INITIAL_FOLLOWERS = 10000` (micro-creator tier). `target_growth = 0.04` monthly equivalent (micro avg 0.8–1.5%/month → 0.04 as top-decile 4%/month target; converted to weekly basis at evaluation time).
 
 ---
 

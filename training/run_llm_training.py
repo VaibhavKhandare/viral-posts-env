@@ -47,7 +47,7 @@ ALL_TOPICS = [t for topics in TOPIC_CATEGORIES.values() for t in topics]
 NICHES = list(TOPIC_CATEGORIES.keys())
 CONTENT_TYPES = ["reel", "carousel", "story", "text_post"]
 INTENTS = ["send_bait", "save_bait", "watch_bait", "like_bait"]
-TASKS = ["monthly_engage", "monthly_strategic", "monthly_competitive"]
+TASKS = ["weekly_engage", "weekly_strategic", "weekly_competitive"]
 
 OLLAMA_URL = "http://localhost:11434"
 OLLAMA_MODEL = "qwen2.5:3b-instruct-q4_K_M"
@@ -148,7 +148,7 @@ def run_episode(task, plan_fn, seed=42):
 
 BASE_SYSTEM_PROMPT = textwrap.dedent("""\
 You are an Instagram content strategy agent. Each step is one day.
-You manage a creator account over a 30-day cycle.
+You manage a creator account over a 7-day cycle.
 
 RESPONSE FORMAT — return ONLY valid JSON, no markdown, no explanation:
 {
@@ -313,13 +313,13 @@ def plot_baseline_leaderboard(baseline_results):
     for i, task in enumerate(TASKS):
         scores = [baseline_results[a][task]["grader_score"] for a in agent_names]
         bars = axes[i].barh(agent_names, scores, color=colors)
-        axes[i].set_title(task.replace("monthly_", "").title(), fontsize=13, fontweight="bold")
+        axes[i].set_title(task.replace("weekly_", "").title(), fontsize=13, fontweight="bold")
         axes[i].set_xlim(0, max(max(scores) * 1.15, 0.01))
         for bar, score in zip(bars, scores):
             axes[i].text(bar.get_width() + 0.005, bar.get_y() + bar.get_height() / 2,
                          f"{score:.4f}", va="center", fontsize=9)
     axes[0].set_ylabel("Agent")
-    fig.suptitle("Viraltest v2 — Heuristic Baseline Leaderboard (30-day episodes)",
+    fig.suptitle("Viraltest v2 — Heuristic Baseline Leaderboard (7-day episodes)",
                  fontsize=14, fontweight="bold")
     fig.tight_layout()
     fig.savefig(PLOTS_DIR / "baseline_leaderboard.png", dpi=150, bbox_inches="tight")
@@ -336,9 +336,9 @@ def plot_baseline_trajectories(baseline_results):
             r = baseline_results[name][task]
             axes[0, i].plot(r["rewards"], label=name, color=colors[j], alpha=0.8, linewidth=1.5)
             axes[1, i].plot(r["energies"], label=name, color=colors[j], alpha=0.8, linewidth=1.5)
-        axes[0, i].set_title(f"{task.replace('monthly_', '').title()} — Rewards", fontsize=11)
+        axes[0, i].set_title(f"{task.replace('weekly_', '').title()} — Rewards", fontsize=11)
         axes[0, i].set_xlabel("Day"); axes[0, i].set_ylabel("Reward"); axes[0, i].grid(True, alpha=0.3)
-        axes[1, i].set_title(f"{task.replace('monthly_', '').title()} — Energy", fontsize=11)
+        axes[1, i].set_title(f"{task.replace('weekly_', '').title()} — Energy", fontsize=11)
         axes[1, i].set_xlabel("Day"); axes[1, i].set_ylabel("Energy"); axes[1, i].grid(True, alpha=0.3)
     axes[0, 2].legend(bbox_to_anchor=(1.05, 1), loc="upper left", fontsize=8)
     fig.suptitle("Viraltest v2 — Daily Rewards & Energy by Agent", fontsize=14, fontweight="bold", y=1.01)
@@ -374,7 +374,7 @@ def plot_training_curves(training_log):
 
 
 def plot_before_after(before_results, after_results, baseline_results):
-    task_labels = [t.replace("monthly_", "").title() for t in TASKS]
+    task_labels = [t.replace("weekly_", "").title() for t in TASKS]
     before_scores = [before_results[t]["grader_score"] for t in TASKS]
     after_scores = [after_results[t]["grader_score"] for t in TASKS]
     smart_scores = [baseline_results["smart"][t]["grader_score"] for t in TASKS]
@@ -412,7 +412,7 @@ def plot_training_trajectories(before_results, after_results, baseline_results):
             lw = 2.5 if "Trained" in label else 1.5
             axes[0, i].plot(r["rewards"], label=label, color=color, linewidth=lw, linestyle=ls, alpha=0.9)
             axes[1, i].plot(r["energies"], label=label, color=color, linewidth=lw, linestyle=ls, alpha=0.9)
-        task_title = task.replace("monthly_", "").title()
+        task_title = task.replace("weekly_", "").title()
         axes[0, i].set_title(f"{task_title} — Daily Rewards", fontsize=11)
         axes[0, i].set_xlabel("Day"); axes[0, i].set_ylabel("Reward"); axes[0, i].grid(True, alpha=0.3)
         axes[1, i].set_title(f"{task_title} — Energy", fontsize=11)

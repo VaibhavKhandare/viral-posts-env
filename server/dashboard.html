@@ -35,7 +35,7 @@ body{background:#0b1326;color:#dae2fd;font-family:'Inter',sans-serif}
 <aside class="flex flex-col sticky top-0 h-screen w-64 border-r border-white/5 bg-surface-lowest shadow-2xl shadow-slate-950/50 shrink-0 z-50">
   <div class="p-6 pb-4">
     <div class="text-xl font-black tracking-tighter text-transparent bg-clip-text bg-gradient-to-br from-primary to-primary-ctr mb-1">Growth Copilot</div>
-    <div class="text-[9px] font-label uppercase tracking-[.2em] text-on-surface-dim/50">30-day creator simulation</div>
+    <div class="text-[9px] font-label uppercase tracking-[.2em] text-on-surface-dim/50">7-day creator simulation</div>
   </div>
   <nav class="flex-1 px-3 space-y-1">
     <a href="/dashboard" class="flex items-center gap-3 px-4 py-2.5 rounded-lg text-primary font-bold border-r-2 border-primary bg-gradient-to-r from-primary/10 to-transparent transition-all">
@@ -52,9 +52,9 @@ body{background:#0b1326;color:#dae2fd;font-family:'Inter',sans-serif}
   <div class="p-4 border-t border-white/5 space-y-3">
     <div class="text-[9px] font-label uppercase tracking-widest text-on-surface-dim/60 mb-1">Task</div>
     <select id="taskSelect" onchange="refreshTaskScoreBlurb()" class="w-full bg-surface border border-outline/30 rounded-lg px-3 py-2 text-sm font-label focus:ring-1 focus:ring-primary focus:outline-none">
-      <option value="monthly_engage">Easy — Engage</option>
-      <option value="monthly_strategic">Medium — Strategic</option>
-      <option value="monthly_competitive" selected>Hard — Competitive</option>
+      <option value="weekly_engage">Easy — Engage</option>
+      <option value="weekly_strategic">Medium — Strategic</option>
+      <option value="weekly_competitive" selected>Hard — Competitive</option>
     </select>
     <button onclick="doReset()" class="w-full py-3 rounded-lg bg-gradient-to-br from-primary to-primary-ctr text-[#23005c] font-bold text-sm hover:opacity-90 transition active:scale-[.97]">
       <span class="material-symbols-outlined text-[16px] align-middle mr-1">restart_alt</span>Reset
@@ -361,7 +361,7 @@ body{background:#0b1326;color:#dae2fd;font-family:'Inter',sans-serif}
             <div class="flex flex-col items-end gap-0.5">
               <div class="flex items-center gap-2">
                 <span id="scenarioCount" class="text-[9px] font-label text-primary font-bold">…</span>
-                <span class="text-[9px] font-label text-on-surface-dim">30-day episode</span>
+                <span class="text-[9px] font-label text-on-surface-dim">7-day episode</span>
               </div>
               <span class="text-[8px] font-label text-on-surface-dim/70 max-w-[16rem] text-right leading-tight">All strategies below — scroll the grid or search. Count updates after load.</span>
             </div>
@@ -506,9 +506,9 @@ function refreshTaskScoreBlurb(){
   const el=document.getElementById("taskScoreBlurb");
   if(!el)return;
   const t=document.getElementById("taskSelect").value;
-  if(t==="monthly_engage"){
+  if(t==="weekly_engage"){
     el.innerHTML="<span class=\"text-on-surface font-semibold\">Easy (Engage):</span> final score = min(1, total episode engagement ÷ theoretical maximum). If energy hits 0 at the end, the score is multiplied by 0.3.";
-  }else if(t==="monthly_strategic"){
+  }else if(t==="weekly_strategic"){
     el.innerHTML="<span class=\"text-on-surface font-semibold\">Medium (Strategic):</span> 35% normalized engagement + 25% tag mix (discovery + top-tag performance) + 25% average energy + 15% days with solid posts. Penalties if energy ever crashes low or you use fewer than 5 unique tags.";
   }else{
     el.innerHTML="<span class=\"text-on-surface font-semibold\">Hard (Competitive):</span> 25% engagement + 20% tags + 20% follower growth + 15% beating rival avg engagement + 10% differentiated topics + 10% minimum energy floor. Score is 0 if burned out; ×0.5 if fewer than 3 content types; ×0.7 if fewer than 8 unique tags.";
@@ -1206,7 +1206,7 @@ async function loadHistory(){
     const data=await r.json();
     const tb=document.getElementById("historyTable");
     if(!data.length){tb.innerHTML='<tr><td colspan="10" class="px-4 py-6 text-center text-on-surface-dim italic">No history yet — run a simulation</td></tr>';return}
-    const taskLabels={monthly_engage:"Easy",monthly_strategic:"Medium",monthly_competitive:"Hard",weekly_engage:"Easy",weekly_strategic:"Medium",weekly_competitive:"Hard"};
+    const taskLabels={weekly_engage:"Easy",weekly_strategic:"Medium",weekly_competitive:"Hard"};
     tb.innerHTML=data.slice().reverse().map(h=>{
       const dt=new Date(h.id);
       const time=dt.toLocaleDateString("en-US",{month:"short",day:"numeric"})+' '+dt.toLocaleTimeString("en-US",{hour:"2-digit",minute:"2-digit"});

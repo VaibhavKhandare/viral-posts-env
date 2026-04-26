@@ -105,7 +105,7 @@ body{background:#0b1326;color:#dae2fd;font-family:'Inter',sans-serif}
       <div class="glass-solid p-5 rounded-xl overflow-hidden">
         <h3 class="text-sm font-bold mb-1 flex items-center gap-2">
           <span class="material-symbols-outlined text-secondary text-lg">show_chart</span>
-          Reward Trajectories (30-day episodes)
+          Reward Trajectories (7-day episodes)
         </h3>
         <p class="text-[9px] font-label text-on-surface-dim mb-3">Daily reward over the episode for each agent &times; task. Shows that smart strategies maintain higher rewards throughout.</p>
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
@@ -167,8 +167,8 @@ body{background:#0b1326;color:#dae2fd;font-family:'Inter',sans-serif}
 <script>
 const API=window.location.origin;
 const COLORS={"always_rest":"#E53935","spam":"#FF9800","random":"#9E9E9E","minimal":"#42A5F5","smart":"#4CAF50"};
-const TASK_MAP={"monthly_engage":"engage","monthly_strategic":"strategic","monthly_competitive":"competitive"};
-const TASK_LABELS={"monthly_engage":"Engage","monthly_strategic":"Strategic","monthly_competitive":"Competitive"};
+const TASK_MAP={"weekly_engage":"engage","weekly_strategic":"strategic","weekly_competitive":"competitive"};
+const TASK_LABELS={"weekly_engage":"Engage","weekly_strategic":"Strategic","weekly_competitive":"Competitive"};
 
 let allData=null;
 
@@ -202,7 +202,7 @@ function renderAll(){
 }
 
 function renderBarCharts(){
-  const tasks=["monthly_engage","monthly_strategic","monthly_competitive"];
+  const tasks=["weekly_engage","weekly_strategic","weekly_competitive"];
   for(const task of tasks){
     const key=TASK_MAP[task];
     const svg=document.getElementById("svg_"+key);
@@ -246,7 +246,7 @@ function smoothPath(pts){
 }
 
 function renderTrajectories(){
-  const tasks=["monthly_engage","monthly_strategic","monthly_competitive"];
+  const tasks=["weekly_engage","weekly_strategic","weekly_competitive"];
   const legend=document.getElementById("trajectoryLegend");
   let legendHtml="";
 
@@ -307,7 +307,7 @@ function renderTrajectories(){
 function renderTable(){
   const tb=document.getElementById("resultsTable");
   const rows=allData.results.slice().sort((a,b)=>{
-    const taskOrder={"monthly_engage":0,"monthly_strategic":1,"monthly_competitive":2};
+    const taskOrder={"weekly_engage":0,"weekly_strategic":1,"weekly_competitive":2};
     if(taskOrder[a.task]!==taskOrder[b.task])return taskOrder[a.task]-taskOrder[b.task];
     return b.grader_score-a.grader_score;
   });
@@ -357,7 +357,7 @@ function renderTakeaways(){
     `<span class="text-on-surface font-bold">Best agent: ${best.label}</span> (avg score ${best.avg.toFixed(4)}) — ${ratio}× better than worst (${worst.label}, avg ${worst.avg.toFixed(4)}).`,
     `<span class="text-on-surface font-bold">Score spread:</span> The environment produces a ${(avgs[0].avg-avgs[avgs.length-1].avg).toFixed(4)} spread between best and worst agents, proving the reward is informative and not flat.`,
     `<span class="text-on-surface font-bold">${burnedOut.length} burnout events</span> across ${allData.results.length} runs — the burnout penalty correctly punishes unsustainable strategies (spam, no-rest).`,
-    `<span class="text-on-surface font-bold">${completed.length}/${allData.results.length} episodes completed</span> all 30 days — agents that manage energy survive; those that don't burn out early.`,
+    `<span class="text-on-surface font-bold">${completed.length}/${allData.results.length} episodes completed</span> all 7 days — agents that manage energy survive; those that don't burn out early.`,
     `<span class="text-on-surface font-bold">Reward is hard to game:</span> Spamming posts burns out immediately (score ≈ 0). Always resting loses followers. The optimal strategy requires balancing multiple objectives.`,
     `<span class="text-on-surface font-bold">Grader difficulty scales correctly:</span> All agents score lower on Competitive than on Engage, confirming the three-tier difficulty progression works.`,
   ];

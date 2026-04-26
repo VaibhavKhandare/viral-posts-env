@@ -29,7 +29,7 @@ API_BASE_URL = os.getenv("API_BASE_URL") or "https://router.huggingface.co/v1"
 MODEL_NAME = os.getenv("MODEL_NAME") or "Qwen/Qwen2.5-7B-Instruct"
 BENCHMARK = os.getenv("VIRALTEST_BENCHMARK", "viraltest")
 
-TASKS = ["monthly_engage", "monthly_strategic", "monthly_competitive"]
+TASKS = ["weekly_engage", "weekly_strategic", "weekly_competitive"]
 _ALLOW_SHORT = os.getenv("ALLOW_SHORT_EPISODE", "").lower() in ("1", "true", "yes")
 _REQUESTED_MAX = int(os.getenv("MAX_STEPS", str(TASK_HORIZON)))
 MAX_STEPS = _REQUESTED_MAX if _ALLOW_SHORT else max(_REQUESTED_MAX, TASK_HORIZON)
@@ -48,7 +48,7 @@ NEAR_ZERO_ENERGY_THRESHOLD = 0.25
 # It must discover these via the tool catalog.
 SYSTEM_PROMPT = textwrap.dedent("""\
 You are an Instagram content strategy agent. Each step is one full day (24 hours).
-You manage a creator account over a 30-day monthly cycle.
+You manage a creator account over a 7-day weekly cycle.
 
 You receive a SPARSE observation (energy, followers, last reward, notes echo).
 To learn about the world, you MUST use TOOLS before planning your day.
@@ -85,7 +85,7 @@ RULES:
 - Empty scheduled_actions = rest all day
 - Use notes to track hypotheses and observations across days
 - Tool calls cost API budget (starts at 100). Use wisely.
-- Max 2 collaborations per month
+- Cap of 3 collaborations per week (Cen 2024)
 
 Think strategically: use tools to discover what works, then exploit what you learn.""")
 
@@ -319,7 +319,7 @@ async def run_task(client: OpenAI, task: str) -> None:
             if should_force_rest_day(obs):
                 action = ViraltestAction(scheduled_actions=[], notes="Low energy — forced rest day.")
             else:
-                action = get_model_daily_plan(client, obs, history)
+                action = await asyncio.to_thread(get_model_daily_plan, client, obs, history)
 
             result = await env.step(action)
 
