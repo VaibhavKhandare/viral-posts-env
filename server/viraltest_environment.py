@@ -387,6 +387,8 @@ class ViraltestEnvironment(Environment):
         self._hours_since_sleep = 2
         self._sleep_debt = 0.0
 
+        self._reward_mode = "combined"
+
     def _load_competitors(self) -> List[CompetitorState]:
         archetypes = _COMPETITORS_DATA.get("archetypes", [])
         return [
@@ -1136,6 +1138,8 @@ class ViraltestEnvironment(Environment):
 
         self._shift_label = kwargs.get("shift_label")
         self._chain_id = kwargs.get("episode_chain_id")
+        mode = kwargs.get("reward_mode", "combined")
+        self._reward_mode = mode if mode in ("timing", "content", "combined") else "combined"
 
         if self._chain_id and self._chain_id in _BRAND_STORE:
             brand = _BRAND_STORE[self._chain_id]
@@ -1439,20 +1443,29 @@ class ViraltestEnvironment(Environment):
     # ----- reward -----
 
     def _compute_hourly_reward(self, sa: ScheduledAction, engagement: float) -> float:
-        eng_component = min(1.0, engagement / 2.0) * 0.3
+        if self._reward_mode == "timing":
+            return self._compute_timing_reward(sa, engagement)
+        if self._reward_mode == "content":
+            return self._compute_content_reward(sa, engagement)
+        return self._compute_combined_reward(sa, engagement)
 
+    def _energy_component(self) -> float:
         prev_energy = self._energy_history[-2] if len(self._energy_history) >= 2 else 1.0
         energy_delta = self._energy - prev_energy
-        energy_component = max(0.0, min(1.0, (energy_delta + 0.3) / 0.6)) * 0.15
+        return max(0.0, min(1.0, (energy_delta + 0.3) / 0.6))
 
+    def _consistency_score(self) -> float:
         day_posts = self._posts_per_day.get(self._day, 0)
         if 1 <= day_posts <= 2:
-            consistency = 1.0
-        elif day_posts == 0 or day_posts == 3:
-            consistency = 0.5
-        else:
-            consistency = 0.0
-        consistency_component = consistency * 0.15
+            return 1.0
+        if day_posts == 0 or day_posts == 3:
+            return 0.5
+        return 0.0
+
+    def _compute_combined_reward(self, sa: ScheduledAction, engagement: float) -> float:
+        eng_component = min(1.0, engagement / 2.0) * 0.3
+        energy_component = self._energy_component() * 0.15
+        consistency_component = self._consistency_score() * 0.15
 
         tag_component = 0.0
         if sa.action_type == "post" and sa.tags:
@@ -1474,22 +1487,54 @@ class ViraltestEnvironment(Environment):
         )
         return max(0.0, min(1.0, raw))
 
+    def _compute_timing_reward(self, sa: ScheduledAction, engagement: float) -> float:
+        is_post = sa.action_type == "post"
+        peak_hour_mult = 1.3 if is_post and self._get_hour_multiplier() >= 1.2 else 1.0
+        trending_topic_mult = 1.5 if is_post and self._is_topic_trending(sa.topic) else 1.0
+        eng_component = min(1.0, engagement / 2.0) * 0.40 * trending_topic_mult * peak_hour_mult
+
+        peak_bonus = min(1.0, self._get_hour_multiplier() / 1.3) if is_post else 0.0
+        peak_component = peak_bonus * 0.20
+
+        energy_component = self._energy_component() * 0.20
+        consistency_component = self._consistency_score() * 0.20
+        burnout_penalty = 0.1 if self._energy < 0.2 else 0.0
+
+        raw = eng_component + peak_component + energy_component + consistency_component - burnout_penalty
+        return max(0.0, min(1.0, raw))
+
+    def _compute_content_reward(self, sa: ScheduledAction, engagement: float) -> float:
+        is_post = sa.action_type == "post"
+        trending_topic_mult = 1.5 if is_post and self._is_topic_trending(sa.topic) else 1.0
+        eng_component = min(1.0, engagement / 2.0) * 0.20 * trending_topic_mult
+
+        tag_component = 0.0
+        if is_post and sa.tags:
+            trending_match = sum(1 for t in sa.tags if t.lower() in self._trending_tags) / 5.0
+            tag_component = min(1.0, trending_match + 0.3) * 0.25
+
+        comp_component = 0.0
+        if is_post:
+            diff = self._calc_competitor_diff(sa.topic)
+            comp_component = min(1.0, diff / 1.3) * 0.25
+
+        variety_component = 0.0
+        intent_component = 0.0
+        if is_post:
+            variety_component = min(1.0, len(self._unique_content_types) / 4.0) * 0.15
+            intent_component = (0.15 if sa.intent in INTENT_MULTIPLIER else 0.0)
+
+        burnout_penalty = 0.05 if self._energy < 0.2 else 0.0
+        raw = eng_component + tag_component + comp_component + variety_component + intent_component - burnout_penalty
+        return max(0.0, min(1.0, raw))
+
     def _compute_rest_reward(self) -> float:
-        prev_energy = self._energy_history[-2] if len(self._energy_history) >= 2 else 1.0
-        energy_delta = self._energy - prev_energy
-        energy_component = max(0.0, min(1.0, (energy_delta + 0.3) / 0.6)) * 0.15
-
-        day_posts = self._posts_per_day.get(self._day, 0)
-        if 1 <= day_posts <= 2:
-            consistency = 1.0
-        elif day_posts == 0 or day_posts == 3:
-            consistency = 0.5
-        else:
-            consistency = 0.0
-        consistency_component = consistency * 0.15
-
+        energy_component = self._energy_component() * 0.15
+        consistency_component = self._consistency_score() * 0.15
         burnout_penalty = 0.1 if self._energy < 0.2 else 0.0
         raw = energy_component + consistency_component - burnout_penalty
+        if self._reward_mode == "content":
+            raw *= 0.5
         return max(0.0, min(1.0, raw))
 
     def _advance_time(self) -> None:
@@ -1698,6 +1743,13 @@ class ViraltestEnvironment(Environment):
             raw *= 0.7
 
         return max(0.0, min(1.0, raw))
+
+
+def get_peak_hours(day_of_week: int, top_k: int = 2) -> List[int]:
+    row = _HEATMAP_GRID.get(day_of_week % 7, [])
+    if not row:
+        return []
+    return sorted(range(len(row)), key=lambda h: row[h], reverse=True)[:top_k]
 
 
 def _topic_overlap(topic_a: str, topic_b: str) -> bool:
